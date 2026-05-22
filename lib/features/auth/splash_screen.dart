@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToLogin() async {
     await Future.delayed(const Duration(seconds: 3));
     if (mounted) {
-      context.go('/login');
+      context.go('/onboarding');
     }
   }
 

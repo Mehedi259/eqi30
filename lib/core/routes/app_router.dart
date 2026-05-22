@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/splash_screen.dart';
+import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/ai_chat_onboarding_screen.dart';
+import '../../features/onboarding/result_screen.dart' as onboarding;
+import '../../features/onboarding/custom_journey_onboarding_screen.dart';
+import '../../features/onboarding/journey_details_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
@@ -31,6 +35,26 @@ class AppRouter {
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/ai-chat-onboarding',
+        builder: (context, state) => const AiChatOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/result-onboarding',
+        builder: (context, state) => const onboarding.OnboardingResultScreen(),
+      ),
+      GoRoute(
+        path: '/custom-journey-onboarding',
+        builder: (context, state) => const CustomJourneyOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/journey-details',
+        builder: (context, state) => const JourneyDetailsScreen(),
       ),
       GoRoute(
         path: '/login',
