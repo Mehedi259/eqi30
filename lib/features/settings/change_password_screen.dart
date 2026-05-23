@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+class ChangePasswordScreen extends StatefulWidget {
+  const ChangePasswordScreen({super.key});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Alex Johnson');
-  final _emailController = TextEditingController(
-    text: 'alex.johnson@email.com',
-  );
-  final _phoneController = TextEditingController(text: '(555) 123-4567');
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  bool _obscureCurrentPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -49,7 +51,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                   const Expanded(
                     child: Text(
-                      'Edit Profile',
+                      'Change Password',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF0B191D),
@@ -64,65 +66,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
 
+            const SizedBox(height: 24),
+
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(26),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF073B4B),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'A',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 40,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: const Color(0xFF073B4B),
-                                  width: 2,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.edit,
-                                size: 16,
-                                color: Color(0xFF073B4B),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    // Full Name
                     const Text(
-                      'Full Name',
+                      'Current Pass',
                       style: TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 14,
@@ -132,8 +85,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: _nameController,
+                      controller: _currentPasswordController,
+                      obscureText: _obscureCurrentPassword,
                       decoration: InputDecoration(
+                        hintText: '• • • • • • • •',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -148,15 +103,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Color(0xFFE2E8F0),
                           ),
                         ),
-                        contentPadding: const EdgeInsets.all(16),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureCurrentPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: const Color(0xFF637275),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureCurrentPassword =
+                                  !_obscureCurrentPassword;
+                            });
+                          },
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Email
                     const Text(
-                      'Email',
+                      'New Password',
                       style: TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 14,
@@ -166,9 +133,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _newPasswordController,
+                      obscureText: _obscureNewPassword,
                       decoration: InputDecoration(
+                        hintText: '• • • • • • • •',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -183,15 +151,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Color(0xFFE2E8F0),
                           ),
                         ),
-                        contentPadding: const EdgeInsets.all(16),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureNewPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: const Color(0xFF637275),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureNewPassword = !_obscureNewPassword;
+                            });
+                          },
+                        ),
                       ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Phone
                     const Text(
-                      'Phone',
+                      'Confirm Password',
                       style: TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 14,
@@ -201,9 +180,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 8),
                     TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
+                      controller: _confirmPasswordController,
+                      obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
+                        hintText: '• • • • • • • •',
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(
@@ -218,51 +198,67 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             color: Color(0xFFE2E8F0),
                           ),
                         ),
-                        contentPadding: const EdgeInsets.all(16),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: const Color(0xFF637275),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
                       ),
                     ),
+
+                    const Spacer(),
+
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_newPasswordController.text ==
+                              _confirmPasswordController.text) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Password changed successfully!'),
+                              ),
+                            );
+                            context.pop();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Passwords do not match!'),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF095A70),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
                   ],
-                ),
-              ),
-            ),
-
-            // Save Button
-            Padding(
-              padding: const EdgeInsets.all(26),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Profile updated successfully!'),
-                      ),
-                    );
-                    context.pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF095A70),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20),
-                    ],
-                  ),
                 ),
               ),
             ),

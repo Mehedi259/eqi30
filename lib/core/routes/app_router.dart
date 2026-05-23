@@ -24,9 +24,12 @@ import '../../features/profile/profile_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/settings/security_screen.dart';
+import '../../features/settings/change_password_screen.dart';
 import '../../features/settings/privacy_terms_screen.dart';
 import '../../features/settings/help_faq_screen.dart';
 import '../../features/settings/subscription_screen.dart';
+import '../../features/settings/reminder_screen.dart';
+import '../../features/settings/goal_screen.dart';
 import '../../features/resources/resources_screen.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/feedback/feedback_screen.dart';
@@ -155,6 +158,10 @@ class AppRouter {
         builder: (context, state) => const SecurityScreen(),
       ),
       GoRoute(
+        path: '/change-password',
+        builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
         path: '/privacy-terms',
         builder: (context, state) => const PrivacyTermsScreen(),
       ),
@@ -166,6 +173,11 @@ class AppRouter {
         path: '/subscription',
         builder: (context, state) => const SubscriptionScreen(),
       ),
+      GoRoute(
+        path: '/reminder',
+        builder: (context, state) => const ReminderScreen(),
+      ),
+      GoRoute(path: '/goal', builder: (context, state) => const GoalScreen()),
       GoRoute(
         path: '/resources',
         builder: (context, state) => const ResourcesScreen(),
