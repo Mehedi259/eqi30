@@ -26,11 +26,14 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/settings/security_screen.dart';
 import '../../features/settings/change_password_screen.dart';
 import '../../features/settings/privacy_terms_screen.dart';
+import '../../features/settings/privacy_policy_screen.dart';
+import '../../features/settings/terms_of_service_screen.dart';
 import '../../features/settings/help_faq_screen.dart';
 import '../../features/settings/subscription_screen.dart';
 import '../../features/settings/reminder_screen.dart';
 import '../../features/settings/goal_screen.dart';
 import '../../features/resources/resources_screen.dart';
+import '../../features/progress/progress_tracker_screen.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/feedback/feedback_screen.dart';
 
@@ -166,6 +169,14 @@ class AppRouter {
         builder: (context, state) => const PrivacyTermsScreen(),
       ),
       GoRoute(
+        path: '/privacy-policy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/terms-of-service',
+        builder: (context, state) => const TermsOfServiceScreen(),
+      ),
+      GoRoute(
         path: '/help-faq',
         builder: (context, state) => const HelpFaqScreen(),
       ),
@@ -181,6 +192,10 @@ class AppRouter {
       GoRoute(
         path: '/resources',
         builder: (context, state) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: '/progress-tracker',
+        builder: (context, state) => const ProgressTrackerScreen(),
       ),
       GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
       GoRoute(

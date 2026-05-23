@@ -198,7 +198,7 @@ class HomeTab extends StatelessWidget {
                   iconBgColor: const Color(0xFFD8FFDA),
                   title: 'Check My Progress',
                   subtitle: 'Detailed Insights',
-                  onTap: () => context.push('/result'),
+                  onTap: () => context.push('/progress-tracker'),
                 ),
 
                 const SizedBox(height: 12),
