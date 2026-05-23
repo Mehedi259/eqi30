@@ -19,8 +19,16 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
     String cleanColor = competencyColor.replaceFirst('#', '');
     Color primaryColor = Color(int.parse('FF$cleanColor', radix: 16));
 
+    // Debug print
+    print('AbilitiesUnderCompetencyScreen - competencyId: $competencyId');
+    print('AbilitiesUnderCompetencyScreen - competencyName: $competencyName');
+    print('AbilitiesUnderCompetencyScreen - competencyColor: $competencyColor');
+
     // Get competency-specific data
     final competencyData = _getCompetencyData(competencyId);
+    print(
+      'AbilitiesUnderCompetencyScreen - abilities count: ${competencyData['abilities'].length}',
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFFBFEFF),
@@ -282,7 +290,9 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
         };
 
       case 'spirit-&-energy':
+      case 'spirit-':
       case 'spirit':
+      case 'spirit-management':
         return {
           'headerEmoji': '⚡',
           'headerImage': null,
