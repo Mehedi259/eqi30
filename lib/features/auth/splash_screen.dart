@@ -26,7 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       body: Container(
         width: size.width,
@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             ),
-            
+
             // Main content
             SafeArea(
               child: Center(
@@ -99,55 +99,17 @@ class _SplashScreenState extends State<SplashScreen> {
                           fit: BoxFit.contain,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      
-                      // App Name
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'EQ',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF0B191D),
-                                fontSize: size.width * 0.1 > 40 ? 40 : size.width * 0.1,
-                                fontWeight: FontWeight.w700,
-                                height: 1.05,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            TextSpan(
-                              text: 'i',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFFFF5501),
-                                fontSize: size.width * 0.1 > 40 ? 40 : size.width * 0.1,
-                                fontWeight: FontWeight.w700,
-                                height: 1.05,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '30',
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF0B191D),
-                                fontSize: size.width * 0.1 > 40 ? 40 : size.width * 0.1,
-                                fontWeight: FontWeight.w700,
-                                height: 1.05,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      
+                      const SizedBox(height: 40),
+
                       // Tagline
                       Text(
                         '30 Micro-Abilities for Calmer,',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           color: const Color(0xFF637275),
-                          fontSize: size.width * 0.05 > 20 ? 20 : size.width * 0.05,
+                          fontSize: size.width * 0.05 > 20
+                              ? 20
+                              : size.width * 0.05,
                           fontWeight: FontWeight.w400,
                           height: 1.50,
                         ),
@@ -157,7 +119,9 @@ class _SplashScreenState extends State<SplashScreen> {
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           color: const Color(0xFF637275),
-                          fontSize: size.width * 0.05 > 20 ? 20 : size.width * 0.05,
+                          fontSize: size.width * 0.05 > 20
+                              ? 20
+                              : size.width * 0.05,
                           fontWeight: FontWeight.w400,
                           height: 1.50,
                         ),
@@ -167,7 +131,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
             ),
-            
+
             // Bottom indicator (iPhone home indicator style)
             Positioned(
               left: 0,

@@ -12,38 +12,42 @@ class OnboardingScreen extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Human image with lungs
-                  Container(
-                    width: 351,
-                    height: 554,
-                    margin: const EdgeInsets.symmetric(horizontal: 26),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('assets/images/Human.png'),
-                        fit: BoxFit.contain,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Human image with lungs
+                    Container(
+                      width: 300,
+                      height: 450,
+                      margin: const EdgeInsets.symmetric(horizontal: 26),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('assets/images/Human.png'),
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  // Title text
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 60),
-                    child: Text(
-                      'The stuff that nobody taught you.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: const Color(0xFF0B191D),
-                        fontSize: 24,
-                        fontFamily: 'Nunito Sans',
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
+                    const SizedBox(height: 20),
+                    // Title text
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 60),
+                      child: Text(
+                        'The stuff that nobody taught you.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: const Color(0xFF0B191D),
+                          fontSize: 24,
+                          fontFamily: 'Nunito Sans',
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
             // Bottom buttons
