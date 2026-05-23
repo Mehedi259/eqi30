@@ -138,7 +138,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
             // Input Field
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 27, vertical: 16),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   Expanded(
@@ -148,22 +148,21 @@ class _ChatScreenState extends State<ChatScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0x3384E2FF),
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          width: 0.5,
-                          color: const Color(0x33073B4B),
+                          color: const Color(0xFFE2E8F0),
+                          width: 1,
                         ),
-                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextField(
                         controller: _messageController,
                         decoration: const InputDecoration(
-                          hintText: 'write your message',
+                          hintText: 'Write your message...',
                           hintStyle: TextStyle(
-                            color: Color(0xFF637275),
-                            fontSize: 12,
+                            color: Color(0xFF94A3B8),
+                            fontSize: 14,
                             fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -171,22 +170,22 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         style: const TextStyle(
                           color: Color(0xFF0B191D),
-                          fontSize: 12,
+                          fontSize: 14,
                           fontFamily: 'Inter',
                         ),
                         onSubmitted: _sendMessage,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   GestureDetector(
                     onTap: () => _sendMessage(_messageController.text),
                     child: Container(
-                      width: 42,
-                      height: 42,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF095A70),
-                        borderRadius: BorderRadius.circular(24),
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF095A70),
+                        shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.send,
