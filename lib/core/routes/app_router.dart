@@ -93,7 +93,14 @@ class AppRouter {
       ),
 
       // Main App Routes
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(
+        path: '/home',
+        builder: (context, state) {
+          final tabIndex =
+              int.tryParse(state.uri.queryParameters['tab'] ?? '0') ?? 0;
+          return HomeScreen(initialIndex: tabIndex);
+        },
+      ),
       GoRoute(
         path: '/result',
         builder: (context, state) => const ResultScreen(),

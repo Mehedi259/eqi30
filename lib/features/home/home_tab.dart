@@ -218,7 +218,7 @@ class HomeTab extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => context.push('/journey'),
+                    onPressed: () => context.go('/home?tab=1'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF073B4B),
                       padding: const EdgeInsets.symmetric(vertical: 16),
