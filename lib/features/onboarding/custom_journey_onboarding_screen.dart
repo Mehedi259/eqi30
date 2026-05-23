@@ -100,7 +100,7 @@ class _CustomJourneyOnboardingScreenState
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Info Box
             Container(
               padding: const EdgeInsets.all(12),
@@ -112,10 +112,7 @@ class _CustomJourneyOnboardingScreenState
               child: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '💡',
-                    style: TextStyle(fontSize: 20),
-                  ),
+                  Text('💡', style: TextStyle(fontSize: 20)),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -133,7 +130,7 @@ class _CustomJourneyOnboardingScreenState
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Competency Cards
             _buildCompetencyCard(
               '🔄',
@@ -189,14 +186,14 @@ class _CustomJourneyOnboardingScreenState
               'Decision Making',
             ),
             const SizedBox(height: 24),
-            
+
             // Continue Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigate to home
-                  context.go('/home');
+                  // Navigate to journey details (Here's your guided journey)
+                  context.push('/journey-details');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF073B4B),
@@ -225,7 +222,7 @@ class _CustomJourneyOnboardingScreenState
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Back Link
             Center(
               child: TextButton(
@@ -263,7 +260,7 @@ class _CustomJourneyOnboardingScreenState
     String competencyKey,
   ) {
     final currentPriority = _priorities[competencyKey];
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -282,10 +279,7 @@ class _CustomJourneyOnboardingScreenState
         children: [
           Row(
             children: [
-              Text(
-                emoji,
-                style: const TextStyle(fontSize: 24),
-              ),
+              Text(emoji, style: const TextStyle(fontSize: 24)),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -326,7 +320,7 @@ class _CustomJourneyOnboardingScreenState
               children: List.generate(6, (index) {
                 final priority = index + 1;
                 final isSelected = currentPriority == priority;
-                
+
                 return GestureDetector(
                   onTap: () => _setPriority(competencyKey, priority),
                   child: Container(
@@ -349,7 +343,9 @@ class _CustomJourneyOnboardingScreenState
                       child: Text(
                         '$priority',
                         style: TextStyle(
-                          color: isSelected ? Colors.white : const Color(0xFF0B191D),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF0B191D),
                           fontSize: 12,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
