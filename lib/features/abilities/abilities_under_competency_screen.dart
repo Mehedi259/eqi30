@@ -19,6 +19,9 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
     String cleanColor = competencyColor.replaceFirst('#', '');
     Color primaryColor = Color(int.parse('FF$cleanColor', radix: 16));
 
+    // Get competency-specific data
+    final competencyData = _getCompetencyData(competencyId);
+
     return Scaffold(
       backgroundColor: const Color(0xFFFBFEFF),
       appBar: AppBar(
@@ -55,6 +58,23 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
+
+              // Header Image/Icon
+              Center(
+                child: competencyData['headerImage'] != null
+                    ? Image.asset(
+                        competencyData['headerImage'],
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.contain,
+                      )
+                    : Text(
+                        competencyData['headerEmoji'],
+                        style: const TextStyle(fontSize: 80),
+                      ),
+              ),
+
+              const SizedBox(height: 16),
 
               // Header Section
               Column(
@@ -99,55 +119,21 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Abilities List
-              _buildAbilityCard(
-                emoji: '🧠',
-                title: 'Emotional Awareness',
-                description: 'Notice and name your emotions in real time.',
-                status: 'Day 1/30',
-                isActive: true,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(height: 12),
-
-              _buildAbilityCard(
-                emoji: '🚧',
-                title: 'Boundary Awareness',
-                description: 'Know your limits and say no without guilt.',
-                status: 'Not started',
-                isActive: false,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(height: 12),
-
-              _buildAbilityCard(
-                emoji: '💪',
-                title: 'Self-Confidence',
-                description: 'Trust your abilities under pressure.',
-                status: 'Not started',
-                isActive: false,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(height: 12),
-
-              _buildAbilityCard(
-                emoji: '🌱',
-                title: 'Self-Actualization',
-                description: 'Move toward your best, not just survive.',
-                status: 'Not started',
-                isActive: false,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(height: 12),
-
-              _buildAbilityCard(
-                emoji: '🦅',
-                title: 'Independence',
-                description:
-                    'Decide for yourself without over-relying on approval.',
-                status: 'Not started',
-                isActive: false,
-                primaryColor: primaryColor,
-              ),
+              ...List.generate(competencyData['abilities'].length, (index) {
+                final ability = competencyData['abilities'][index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildAbilityCard(
+                    emoji: ability['emoji'],
+                    title: ability['title'],
+                    description: ability['description'],
+                    status: ability['status'],
+                    isActive: ability['isActive'],
+                    primaryColor: primaryColor,
+                    backgroundImage: competencyData['backgroundImage'],
+                  ),
+                );
+              }),
 
               const SizedBox(height: 40),
             ],
@@ -157,6 +143,294 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
     );
   }
 
+  Map<String, dynamic> _getCompetencyData(String competencyId) {
+    switch (competencyId) {
+      case 'self-management':
+        return {
+          'headerEmoji': '🧠',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/Self-management element card background.png',
+          'abilities': [
+            {
+              'emoji': '🧠',
+              'title': 'Emotional Awareness',
+              'description': 'Notice and name your emotions in real time.',
+              'status': 'Day 1/30',
+              'isActive': true,
+            },
+            {
+              'emoji': '🚧',
+              'title': 'Boundary Awareness',
+              'description': 'Know your limits and say no without guilt.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '💪',
+              'title': 'Self-Confidence',
+              'description': 'Trust your abilities under pressure.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🌱',
+              'title': 'Self-Actualization',
+              'description': 'Move toward your best, not just survive.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🦅',
+              'title': 'Independence',
+              'description':
+                  'Decide for yourself without over-relying on approval.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      case 'stress-management':
+        return {
+          'headerEmoji': '🌊',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/stress management element card background.png',
+          'abilities': [
+            {
+              'emoji': '🧊',
+              'title': 'Stress Tolerance',
+              'description': 'Stay functional when pressure is high.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🧠',
+              'title': 'Cognitive Flexibility',
+              'description': 'Adapt your thinking when situations change.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '⚖️',
+              'title': 'Emotional Regulation',
+              'description': 'Shape and respond to emotions over time.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '😊',
+              'title': 'Optimism',
+              'description': 'Find realistic hope even in hard times.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🤝',
+              'title': 'Social Resources',
+              'description': 'Track and manage what drains or fuels you.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      case 'interpersonal':
+        return {
+          'headerEmoji': '🤝',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/Interpersonal Management Element card background.png',
+          'abilities': [
+            {
+              'emoji': '💗',
+              'title': 'Empathy',
+              'description': 'Understand others\' feelings accurately.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '😊',
+              'title': 'Verbal Expression',
+              'description': 'Say what you mean clearly.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🔄',
+              'title': 'Non-verbal Communication',
+              'description': 'Align your body language with your message.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '💪',
+              'title': 'Assertiveness',
+              'description': 'Ask for what you need without aggression.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🧘',
+              'title': 'Conflict Management',
+              'description': 'Stay steady and solution-focused in conflict.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      case 'spirit-&-energy':
+      case 'spirit':
+        return {
+          'headerEmoji': '⚡',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/spirit and energy element card background.png',
+          'abilities': [
+            {
+              'emoji': '🙏',
+              'title': 'Belief Influence',
+              'description':
+                  'Examine beliefs that shape your sense of meaning.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🔍',
+              'title': 'Clarity',
+              'description': 'Get clear on what you want in life and work.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '💚',
+              'title': 'Energy Awareness',
+              'description': 'Pursue your highest potential consistently.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🏘️',
+              'title': 'Community Building',
+              'description': 'Create belonging and connection around you.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🌍',
+              'title': 'Meaning Making',
+              'description': 'Build and use your support network wisely.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      case 'decision-making':
+      case 'decision':
+        return {
+          'headerEmoji': '🎯',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/decision-making element card background.png',
+          'abilities': [
+            {
+              'emoji': '🧠',
+              'title': 'Processing Speed',
+              'description': 'Analyze situations clearly before acting.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🛑',
+              'title': 'Impulse Control',
+              'description': 'Understand risk and make informed choices.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🔬',
+              'title': 'Reality Testing',
+              'description': 'See situations from multiple angles.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '⚖️',
+              'title': 'Abstraction',
+              'description': 'Make decisions aligned with what matters to you.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '💡',
+              'title': 'Problem Solving',
+              'description': 'Work through challenges step by step.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      case 'executive-function':
+      case 'executive':
+        return {
+          'headerEmoji': '🧭',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/executive function element card background.png',
+          'abilities': [
+            {
+              'emoji': '📋',
+              'title': 'Planning',
+              'description': 'Organize your time and tasks effectively.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🎯',
+              'title': 'Prioritizing',
+              'description': 'Stay on task despite distraction.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '💪',
+              'title': 'Motivation',
+              'description': 'Make sound decisions under pressure.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '🎯',
+              'title': 'Attention Span',
+              'description': 'Set goals that actually move you forward.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+            {
+              'emoji': '📦',
+              'title': 'Organization',
+              'description': 'Complete what you start, reliably.',
+              'status': 'Not started',
+              'isActive': false,
+            },
+          ],
+        };
+
+      default:
+        return {
+          'headerEmoji': '🧠',
+          'headerImage': null,
+          'backgroundImage':
+              'assets/images/Self-management element card background.png',
+          'abilities': [],
+        };
+    }
+  }
+
   Widget _buildAbilityCard({
     required String emoji,
     required String title,
@@ -164,17 +438,18 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
     required String status,
     required bool isActive,
     required Color primaryColor,
+    required String backgroundImage,
   }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: ShapeDecoration(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(width: 3, color: primaryColor),
-          borderRadius: BorderRadius.circular(12),
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage(backgroundImage),
+          fit: BoxFit.cover,
         ),
-        shadows: const [
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
           BoxShadow(
             color: Color(0x0A000000),
             blurRadius: 4,
