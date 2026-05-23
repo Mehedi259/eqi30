@@ -27,16 +27,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.go('/home');
-      }
+    setState(() => _isLoading = true);
+
+    // Simulate API call
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      context.go('/home');
     }
   }
 
@@ -64,40 +62,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: AppTextStyles.bodyMedium,
                 ),
                 const SizedBox(height: 40),
-                
+
                 CustomTextField(
                   label: 'Email',
                   hint: 'brooklynsim@gm',
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 20),
-                
+
                 CustomTextField(
                   label: 'Password',
                   controller: _passwordController,
                   isPassword: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
-                
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -130,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 CustomButton(
                   text: 'Let\'s try a 2-minute exercise',
                   onPressed: _handleLogin,
@@ -138,31 +118,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   icon: Icons.arrow_forward,
                 ),
                 const SizedBox(height: 24),
-                
-                Center(
-                  child: Text(
-                    'Or',
-                    style: AppTextStyles.bodyMedium,
-                  ),
-                ),
+
+                Center(child: Text('Or', style: AppTextStyles.bodyMedium)),
                 const SizedBox(height: 24),
-                
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _SocialButton(
-                      icon: Icons.g_mobiledata,
-                      onTap: () {},
-                    ),
+                    _SocialButton(icon: Icons.g_mobiledata, onTap: () {}),
                     const SizedBox(width: 16),
-                    _SocialButton(
-                      icon: Icons.apple,
-                      onTap: () {},
-                    ),
+                    _SocialButton(icon: Icons.apple, onTap: () {}),
                   ],
                 ),
                 const SizedBox(height: 32),
-                
+
                 Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -204,10 +173,7 @@ class _SocialButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _SocialButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _SocialButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -221,11 +187,7 @@ class _SocialButton extends StatelessWidget {
           color: const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(50),
         ),
-        child: Icon(
-          icon,
-          size: 32,
-          color: AppColors.textPrimary,
-        ),
+        child: Icon(icon, size: 32, color: AppColors.textPrimary),
       ),
     );
   }

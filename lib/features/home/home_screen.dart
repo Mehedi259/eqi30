@@ -61,26 +61,61 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.w600,
               ),
               unselectedLabelStyle: AppTextStyles.caption,
-              items: const [
+              items: [
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home),
+                  icon: Image.asset(
+                    'assets/images/home.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/homeActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
                   label: 'Home',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.route_outlined),
-                  activeIcon: Icon(Icons.route),
+                  icon: Image.asset(
+                    'assets/images/journey.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/journeyActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
                   label: 'Journey',
                 ),
-                BottomNavigationBarItem(icon: SizedBox(height: 24), label: ''),
+                const BottomNavigationBarItem(
+                  icon: SizedBox(height: 24),
+                  label: '',
+                ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.library_books_outlined),
-                  activeIcon: Icon(Icons.library_books),
+                  icon: Image.asset(
+                    'assets/images/resource.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/resourceActive.png',
+                    width: 28,
+                    height: 28,
+                  ),
                   label: 'Resource',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person),
+                  icon: Image.asset(
+                    'assets/images/profile.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/profileActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
                   label: 'Profile',
                 ),
               ],
@@ -101,10 +136,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: CircleAvatar(
                     radius: 28,
                     backgroundColor: AppColors.primaryDark,
-                    child: const Icon(
-                      Icons.chat_bubble_outline,
-                      color: Colors.white,
-                      size: 24,
+                    child: Image.asset(
+                      'assets/images/messageActive.png',
+                      width: 24,
+                      height: 24,
                     ),
                   ),
                 ),
