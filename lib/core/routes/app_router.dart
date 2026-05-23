@@ -19,6 +19,7 @@ import '../../features/journey/custom_journey_screen.dart';
 import '../../features/journey/start_journey_screen.dart';
 import '../../features/abilities/abilities_screen.dart';
 import '../../features/abilities/abilities_selection_screen.dart';
+import '../../features/abilities/abilities_under_competency_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -120,6 +121,22 @@ class AppRouter {
       GoRoute(
         path: '/choose-journey',
         builder: (context, state) => const AbilitiesSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/abilities-under-competency',
+        builder: (context, state) {
+          final competencyId =
+              state.uri.queryParameters['competencyId'] ?? 'self-management';
+          final competencyName =
+              state.uri.queryParameters['name'] ?? 'Self Management';
+          final competencyColor =
+              state.uri.queryParameters['color'] ?? '#43BDC7';
+          return AbilitiesUnderCompetencyScreen(
+            competencyId: competencyId,
+            competencyName: competencyName,
+            competencyColor: competencyColor,
+          );
+        },
       ),
       GoRoute(
         path: '/profile',

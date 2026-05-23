@@ -239,92 +239,104 @@ class AbilitiesSelectionScreen extends StatelessWidget {
     required Color lightColor,
     required double progress,
   }) {
-    return Container(
-      height: 196,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: lightColor,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 32)),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF0B191D),
-              fontSize: 16,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600,
-              height: 1.38,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: const Color(0xFF0B191D).withOpacity(0.6),
-              fontSize: 12,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              height: 1.50,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              Expanded(
-                flex: (progress * 10).toInt(),
-                child: Container(
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: lightColor,
-                    borderRadius: BorderRadius.circular(91),
-                  ),
-                ),
+    // Convert title to competency ID
+    String competencyId = title.toLowerCase().replaceAll(' ', '-');
+    String colorHex =
+        '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+
+    return GestureDetector(
+      onTap: () {
+        context.push(
+          '/abilities-under-competency?competencyId=$competencyId&name=$title&color=$colorHex',
+        );
+      },
+      child: Container(
+        height: 196,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: lightColor,
+                borderRadius: BorderRadius.circular(8),
               ),
-              if (progress < 1)
+              child: Center(
+                child: Text(emoji, style: const TextStyle(fontSize: 32)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Color(0xFF0B191D),
+                fontSize: 16,
+                fontFamily: 'Poppins',
+                fontWeight: FontWeight.w600,
+                height: 1.38,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: const Color(0xFF0B191D).withOpacity(0.6),
+                fontSize: 12,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w400,
+                height: 1.50,
+              ),
+            ),
+            const Spacer(),
+            Row(
+              children: [
                 Expanded(
-                  flex: ((1 - progress) * 10).toInt(),
+                  flex: (progress * 10).toInt(),
                   child: Container(
                     height: 6,
-                    margin: const EdgeInsets.only(left: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
+                      color: lightColor,
                       borderRadius: BorderRadius.circular(91),
                     ),
                   ),
                 ),
-              const SizedBox(width: 4),
-              Container(
-                width: 24,
-                height: 24,
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: lightColor.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(92),
+                if (progress < 1)
+                  Expanded(
+                    flex: ((1 - progress) * 10).toInt(),
+                    child: Container(
+                      height: 6,
+                      margin: const EdgeInsets.only(left: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(91),
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 4),
+                Container(
+                  width: 24,
+                  height: 24,
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: lightColor.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(92),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward,
+                    size: 14,
+                    color: Color(0xFF0B191D),
+                  ),
                 ),
-                child: const Icon(
-                  Icons.arrow_forward,
-                  size: 14,
-                  color: Color(0xFF0B191D),
-                ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

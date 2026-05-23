@@ -17,10 +17,7 @@ class JourneyScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text(
-          'Details',
-          style: AppTextStyles.heading4,
-        ),
+        title: Text('Details', style: AppTextStyles.heading4),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -69,52 +66,70 @@ class JourneyScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     // Journey items
                     _buildJourneyItem(
+                      context: context,
                       number: 1,
                       title: 'Self-management',
                       beforeImage: '😰',
                       beforeText: 'Not confident Frazzled',
                       afterImage: '🧘',
                       afterText: 'Confident Calm',
+                      competencyId: 'self-management',
+                      competencyColor: '#43BDC7',
                     ),
                     _buildJourneyItem(
+                      context: context,
                       number: 2,
                       title: 'Interpersonal Management',
                       beforeImage: '😤',
                       beforeText: 'Fighting & Upset',
                       afterImage: '🤝',
                       afterText: 'Better Relationship',
+                      competencyId: 'interpersonal',
+                      competencyColor: '#FF6B9D',
                     ),
                     _buildJourneyItem(
+                      context: context,
                       number: 3,
                       title: 'Spirit Management',
                       beforeImage: '😕',
                       beforeText: 'Sad & Confused',
                       afterImage: '⚡',
                       afterText: 'Energized & Connected',
+                      competencyId: 'spirit',
+                      competencyColor: '#FFB84D',
                     ),
                     _buildJourneyItem(
+                      context: context,
                       number: 4,
                       title: 'Executive Functioning',
                       beforeImage: '😫',
                       beforeText: 'Too much to do',
                       afterImage: '✅',
                       afterText: 'Organized Efficient',
+                      competencyId: 'executive',
+                      competencyColor: '#9B59B6',
                     ),
                     _buildJourneyItem(
+                      context: context,
                       number: 5,
                       title: 'Decision Making',
                       beforeImage: '🤔',
                       beforeText: 'Too many options',
                       afterImage: '🎯',
                       afterText: 'Decisive Clear',
+                      competencyId: 'decision',
+                      competencyColor: '#3498DB',
                     ),
                     _buildJourneyItem(
+                      context: context,
                       number: 6,
                       title: 'Stress Management',
                       beforeImage: '😰',
                       beforeText: 'Hopeless Stressed',
                       afterImage: '😌',
                       afterText: 'Hopeful Peaceful',
+                      competencyId: 'stress',
+                      competencyColor: '#E74C3C',
                     ),
                   ],
                 ),
@@ -154,10 +169,7 @@ class JourneyScreen extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            'NEXT',
-                            style: AppTextStyles.buttonLarge,
-                          ),
+                          Text('NEXT', style: AppTextStyles.buttonLarge),
                           const SizedBox(width: 8),
                           const Icon(Icons.arrow_forward, size: 20),
                         ],
@@ -167,7 +179,9 @@ class JourneyScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () {
-                      context.push('/abilities?competencyId=self_management&title=Self-Management');
+                      context.push(
+                        '/abilities?competencyId=self_management&title=Self-Management',
+                      );
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.borderLight),
@@ -193,116 +207,116 @@ class JourneyScreen extends StatelessWidget {
   }
 
   Widget _buildJourneyItem({
+    required BuildContext context,
     required int number,
     required String title,
     required String beforeImage,
     required String beforeText,
     required String afterImage,
     required String afterText,
+    required String competencyId,
+    required String competencyColor,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryDark,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '$number',
-                    style: AppTextStyles.heading5.copyWith(
-                      color: Colors.white,
-                      fontSize: 14,
+    return GestureDetector(
+      onTap: () {
+        context.push(
+          '/abilities-under-competency?competencyId=$competencyId&name=$title&color=$competencyColor',
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryDark,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      '$number',
+                      style: AppTextStyles.heading5.copyWith(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppTextStyles.heading5.copyWith(fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              // Before
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: AppTextStyles.heading5.copyWith(fontSize: 14),
                   ),
-                  child: Column(
-                    children: [
-                      Text(
-                        beforeImage,
-                        style: const TextStyle(fontSize: 40),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        beforeText,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 11,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                // Before
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(beforeImage, style: const TextStyle(fontSize: 40)),
+                        const SizedBox(height: 8),
+                        Text(
+                          beforeText,
+                          style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              const Icon(
-                Icons.arrow_forward,
-                color: AppColors.primaryTeal,
-                size: 24,
-              ),
-              const SizedBox(width: 16),
-              // After
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryCyan.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        afterImage,
-                        style: const TextStyle(fontSize: 40),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        afterText,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          fontSize: 11,
+                const SizedBox(width: 16),
+                const Icon(
+                  Icons.arrow_forward,
+                  color: AppColors.primaryTeal,
+                  size: 24,
+                ),
+                const SizedBox(width: 16),
+                // After
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryCyan.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(afterImage, style: const TextStyle(fontSize: 40)),
+                        const SizedBox(height: 8),
+                        Text(
+                          afterText,
+                          style: AppTextStyles.bodySmall.copyWith(fontSize: 11),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -439,10 +453,7 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'NEXT',
-                      style: AppTextStyles.buttonLarge,
-                    ),
+                    Text('NEXT', style: AppTextStyles.buttonLarge),
                     const SizedBox(width: 8),
                     const Icon(Icons.arrow_forward, size: 20),
                   ],
@@ -464,7 +475,7 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
     required Color color,
   }) {
     final isSelected = _selectedSpeed == index;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -474,9 +485,7 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected
-              ? color.withValues(alpha: 0.1)
-              : Colors.white,
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? color : AppColors.borderLight,
@@ -493,10 +502,7 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
-                child: Text(
-                  emoji,
-                  style: const TextStyle(fontSize: 28),
-                ),
+                child: Text(emoji, style: const TextStyle(fontSize: 28)),
               ),
             ),
             const SizedBox(width: 16),
@@ -506,20 +512,12 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
                 children: [
                   Text(
                     level,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: color,
-                    ),
+                    style: AppTextStyles.labelSmall.copyWith(color: color),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    title,
-                    style: AppTextStyles.heading5,
-                  ),
+                  Text(title, style: AppTextStyles.heading5),
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.bodySmall,
-                  ),
+                  Text(subtitle, style: AppTextStyles.bodySmall),
                 ],
               ),
             ),
@@ -527,15 +525,8 @@ class _GrowthSpeedBottomSheetState extends State<GrowthSpeedBottomSheet> {
               Container(
                 width: 24,
                 height: 24,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               )
             else
               Container(
@@ -566,11 +557,13 @@ class PracticeTimeBottomSheet extends StatefulWidget {
   const PracticeTimeBottomSheet({super.key});
 
   @override
-  State<PracticeTimeBottomSheet> createState() => _PracticeTimeBottomSheetState();
+  State<PracticeTimeBottomSheet> createState() =>
+      _PracticeTimeBottomSheetState();
 }
 
 class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
-  int _selectedTime = 0; // 0: Morning, 1: Midday, 2: Evening, 3: Decide each day
+  int _selectedTime =
+      0; // 0: Morning, 1: Midday, 2: Evening, 3: Decide each day
   bool _dailyReminder = true;
   bool _missDayNudge = true;
 
@@ -623,10 +616,7 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '✦ YOUR EQ SNAPSHOT',
-                    style: AppTextStyles.labelSmall,
-                  ),
+                  Text('✦ YOUR EQ SNAPSHOT', style: AppTextStyles.labelSmall),
                   const SizedBox(height: 8),
                   Text(
                     'When do practices fit best into your day?',
@@ -728,10 +718,7 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'CONTINUE',
-                          style: AppTextStyles.buttonLarge,
-                        ),
+                        Text('CONTINUE', style: AppTextStyles.buttonLarge),
                         const SizedBox(width: 8),
                         const Icon(Icons.arrow_forward, size: 20),
                       ],
@@ -741,7 +728,9 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () {
-                    context.push('/abilities?competencyId=self_management&title=Self-Management');
+                    context.push(
+                      '/abilities?competencyId=self_management&title=Self-Management',
+                    );
                   },
                   child: Text(
                     'See 30 Abilities',
@@ -766,7 +755,7 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
     required String subtitle,
   }) {
     final isSelected = _selectedTime == index;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -787,24 +776,15 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
         ),
         child: Row(
           children: [
-            Text(
-              emoji,
-              style: const TextStyle(fontSize: 32),
-            ),
+            Text(emoji, style: const TextStyle(fontSize: 32)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.heading5,
-                  ),
+                  Text(title, style: AppTextStyles.heading5),
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.bodySmall,
-                  ),
+                  Text(subtitle, style: AppTextStyles.bodySmall),
                 ],
               ),
             ),
@@ -816,11 +796,7 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
                   color: AppColors.primaryCyan,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  color: Colors.white,
-                  size: 16,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 16),
               )
             else
               Container(
@@ -847,25 +823,15 @@ class _PracticeTimeBottomSheetState extends State<PracticeTimeBottomSheet> {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: AppColors.accentOrange,
-          size: 24,
-        ),
+        Icon(icon, color: AppColors.accentOrange, size: 24),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: AppTextStyles.heading5.copyWith(fontSize: 14),
-              ),
+              Text(title, style: AppTextStyles.heading5.copyWith(fontSize: 14)),
               const SizedBox(height: 2),
-              Text(
-                subtitle,
-                style: AppTextStyles.bodySmall,
-              ),
+              Text(subtitle, style: AppTextStyles.bodySmall),
             ],
           ),
         ),
