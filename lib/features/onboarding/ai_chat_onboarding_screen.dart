@@ -168,7 +168,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
         children: [
           // Header Section
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -202,7 +202,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 // Bot Avatar with animation rings
                 Center(
                   child: Stack(
@@ -312,7 +312,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
           // Quick Reply Chips
           if (_showQuickReplies)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 4),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -331,7 +331,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
 
           // Message Input
           Container(
-            padding: const EdgeInsets.all(26),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -406,7 +406,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
 
           // Continue Button
           Container(
-            padding: const EdgeInsets.fromLTRB(26, 0, 26, 24),
+            padding: const EdgeInsets.fromLTRB(26, 0, 26, 8),
             color: Colors.white,
             child: SizedBox(
               width: double.infinity,
@@ -417,7 +417,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF073B4B),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
