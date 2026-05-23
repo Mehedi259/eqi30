@@ -233,36 +233,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                           ),
                         ),
                       ),
-                      // Speech bubble
-                      Positioned(
-                        top: 10,
-                        right: -20,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0x9195ACFF),
-                                Color(0x5EFED4FF),
-                                Color(0xFFD0CAFF),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(60),
-                          ),
-                          child: const Text(
-                            'Hey, Sarah',
-                            style: TextStyle(
-                              color: Color(0xFF373737),
-                              fontSize: 8,
-                              fontFamily: 'Archivo',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
