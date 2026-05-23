@@ -45,11 +45,15 @@ class CustomButton extends StatelessWidget {
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      text,
-                      style: AppTextStyles.buttonLarge.copyWith(
-                        color: textColor ?? AppColors.textGray,
+                    Flexible(
+                      child: Text(
+                        text,
+                        style: AppTextStyles.buttonLarge.copyWith(
+                          color: textColor ?? AppColors.textGray,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (icon != null) ...[
@@ -84,11 +88,15 @@ class CustomButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    text,
-                    style: AppTextStyles.buttonLarge.copyWith(
-                      color: textColor ?? Colors.white,
+                  Flexible(
+                    child: Text(
+                      text,
+                      style: AppTextStyles.buttonLarge.copyWith(
+                        color: textColor ?? Colors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (icon != null) ...[
