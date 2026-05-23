@@ -9,7 +9,8 @@ class CreateNewPasswordScreen extends StatefulWidget {
   const CreateNewPasswordScreen({super.key});
 
   @override
-  State<CreateNewPasswordScreen> createState() => _CreateNewPasswordScreenState();
+  State<CreateNewPasswordScreen> createState() =>
+      _CreateNewPasswordScreenState();
 }
 
 class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
@@ -29,7 +30,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       await Future.delayed(const Duration(seconds: 2));
-      
+
       if (mounted) {
         setState(() => _isLoading = false);
         _showSuccessDialog();
@@ -59,10 +60,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              'Success!',
-              style: AppTextStyles.heading3,
-            ),
+            Text('Success!', style: AppTextStyles.heading3),
             const SizedBox(height: 8),
             Text(
               'You password has been changed. Please log in again with a new password.',
@@ -93,7 +91,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
         ),
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(26),
           child: Form(
             key: _formKey,
@@ -112,7 +110,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                   style: AppTextStyles.bodyMedium,
                 ),
                 const SizedBox(height: 40),
-                
+
                 CustomTextField(
                   label: 'New Password',
                   hint: 'Password',
@@ -129,7 +127,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                
+
                 CustomTextField(
                   label: 'Confirm Password',
                   hint: 'Password',
@@ -145,8 +143,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                     return null;
                   },
                 ),
-                const Spacer(),
-                
+                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+
                 CustomButton(
                   text: 'Let\'s try a 2-minute exercise',
                   onPressed: _handleSubmit,
