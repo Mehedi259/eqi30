@@ -158,8 +158,8 @@ class JourneyDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: () {
-                        // Navigate to abilities
-                        context.go('/abilities');
+                        // Navigate to choose journey (same as "See 30 Abilities")
+                        context.push('/choose-journey');
                       },
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
