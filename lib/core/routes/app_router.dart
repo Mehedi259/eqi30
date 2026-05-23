@@ -5,6 +5,8 @@ import '../../features/onboarding/ai_chat_onboarding_screen.dart';
 import '../../features/onboarding/result_screen.dart' as onboarding;
 import '../../features/onboarding/custom_journey_onboarding_screen.dart';
 import '../../features/onboarding/journey_details_screen.dart';
+import '../../features/onboarding/growth_pace_screen.dart';
+import '../../features/onboarding/time_preference_screen.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/register_screen.dart';
 import '../../features/auth/forgot_password_screen.dart';
@@ -16,6 +18,7 @@ import '../../features/journey/journey_screen.dart';
 import '../../features/journey/custom_journey_screen.dart';
 import '../../features/journey/start_journey_screen.dart';
 import '../../features/abilities/abilities_screen.dart';
+import '../../features/abilities/abilities_selection_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -57,9 +60,14 @@ class AppRouter {
         builder: (context, state) => const JourneyDetailsScreen(),
       ),
       GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        path: '/growth-pace',
+        builder: (context, state) => const GrowthPaceScreen(),
       ),
+      GoRoute(
+        path: '/time-preference',
+        builder: (context, state) => const TimePreferenceScreen(),
+      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -76,12 +84,9 @@ class AppRouter {
         path: '/create-new-password',
         builder: (context, state) => const CreateNewPasswordScreen(),
       ),
-      
+
       // Main App Routes
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
+      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
         path: '/result',
         builder: (context, state) => const ResultScreen(),
@@ -111,6 +116,10 @@ class AppRouter {
             competencyTitle: competencyTitle,
           );
         },
+      ),
+      GoRoute(
+        path: '/choose-journey',
+        builder: (context, state) => const AbilitiesSelectionScreen(),
       ),
       GoRoute(
         path: '/profile',
@@ -144,10 +153,7 @@ class AppRouter {
         path: '/resources',
         builder: (context, state) => const ResourcesScreen(),
       ),
-      GoRoute(
-        path: '/chat',
-        builder: (context, state) => const ChatScreen(),
-      ),
+      GoRoute(path: '/chat', builder: (context, state) => const ChatScreen()),
       GoRoute(
         path: '/feedback',
         builder: (context, state) => const FeedbackScreen(),

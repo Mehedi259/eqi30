@@ -14,52 +14,53 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
   double _sliderValue = 6.0;
   List<Map<String, dynamic>> _messages = [];
   bool _showQuickReplies = true;
-  
+
   @override
   void initState() {
     super.initState();
     _initializeChat();
   }
-  
+
   void _initializeChat() {
     _messages = [
       {
         'type': 'bot',
-        'message': 'Hi Sarah! I\'m your EQ guide. I\'ll ask you a few questions to understand where you are right now. There are no right or wrong answers. 😊',
+        'message':
+            'Hi Sarah! I\'m your EQ guide. I\'ll ask you a few questions to understand where you are right now. There are no right or wrong answers. 😊',
         'time': '10:02 AM',
       },
       {
         'type': 'bot',
-        'message': 'On a scale of 1–10, how well do you manage your emotions when things get stressful at work?',
+        'message':
+            'On a scale of 1–10, how well do you manage your emotions when things get stressful at work?',
         'time': '10:02 AM',
         'hasSlider': true,
       },
       {
         'type': 'user',
-        'message': 'I\'d say about a 6. I know what I feel but sometimes I react too fast.',
+        'message':
+            'I\'d say about a 6. I know what I feel but sometimes I react too fast.',
         'time': '10:02 AM',
       },
       {
         'type': 'bot',
-        'message': 'That\'s really good self-awareness! Noticing that you react quickly is already a huge first step. 💡\n\nBased on what you\'ve shared so far, Emotional Regulation might be a great starting point for you.',
+        'message':
+            'That\'s really good self-awareness! Noticing that you react quickly is already a huge first step. 💡\n\nBased on what you\'ve shared so far, Emotional Regulation might be a great starting point for you.',
         'time': '10:02 AM',
       },
-      {
-        'type': 'user',
-        'message': 'Tell me more',
-        'time': '10:02 AM',
-      },
+      {'type': 'user', 'message': 'Tell me more', 'time': '10:02 AM'},
       {
         'type': 'bot',
-        'message': 'Thanks for sharing that. Let me analyze your responses and suggest the best starting point for your EQ journey... 🔍',
+        'message':
+            'Thanks for sharing that. Let me analyze your responses and suggest the best starting point for your EQ journey... 🔍',
         'time': '10:02 AM',
       },
     ];
   }
-  
+
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
-    
+
     setState(() {
       _messages.add({
         'type': 'user',
@@ -68,7 +69,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
       });
       _messageController.clear();
     });
-    
+
     // Scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -79,7 +80,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
         );
       }
     });
-    
+
     // Simulate bot response
     Future.delayed(const Duration(seconds: 1), () {
       setState(() {
@@ -89,7 +90,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
           'time': '10:02 AM',
         });
       });
-      
+
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
@@ -101,17 +102,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
       });
     });
   }
-  
+
   void _sendQuickReply(String message) {
     setState(() {
-      _messages.add({
-        'type': 'user',
-        'message': message,
-        'time': '10:02 AM',
-      });
+      _messages.add({'type': 'user', 'message': message, 'time': '10:02 AM'});
       _showQuickReplies = false;
     });
-    
+
     // Scroll to bottom
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
@@ -123,7 +120,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
       }
     });
   }
-  
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -171,7 +168,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
         children: [
           // Header Section
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -205,7 +202,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 // Bot Avatar with animation rings
                 Center(
                   child: Stack(
@@ -241,10 +238,17 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                         top: 10,
                         right: -20,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0x9195ACFF), Color(0x5EFED4FF), Color(0xFFD0CAFF)],
+                              colors: [
+                                Color(0x9195ACFF),
+                                Color(0x5EFED4FF),
+                                Color(0xFFD0CAFF),
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(60),
                           ),
@@ -265,7 +269,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
               ],
             ),
           ),
-          
+
           // Chat Messages
           Expanded(
             child: ListView.builder(
@@ -287,18 +291,24 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                   }
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildBotMessage(message['message'], message['time']),
+                    child: _buildBotMessage(
+                      message['message'],
+                      message['time'],
+                    ),
                   );
                 } else {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildUserMessage(message['message'], message['time']),
+                    child: _buildUserMessage(
+                      message['message'],
+                      message['time'],
+                    ),
                   );
                 }
               },
             ),
           ),
-          
+
           // Quick Reply Chips
           if (_showQuickReplies)
             Container(
@@ -318,7 +328,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                 ),
               ),
             ),
-          
+
           // Message Input
           Container(
             padding: const EdgeInsets.all(26),
@@ -393,7 +403,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
               ],
             ),
           ),
-          
+
           // Continue Button
           Container(
             padding: const EdgeInsets.fromLTRB(26, 0, 26, 24),
@@ -589,7 +599,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                               activeTrackColor: const Color(0xFF095A70),
                               inactiveTrackColor: const Color(0xFFCCCCCC),
                               thumbColor: const Color(0xFF0F1E3C),
-                              overlayColor: const Color(0xFF095A70).withOpacity(0.2),
+                              overlayColor: const Color(
+                                0xFF095A70,
+                              ).withOpacity(0.2),
                             ),
                             child: Slider(
                               value: _sliderValue,
@@ -716,10 +728,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: const Color(0xFFE0F2F7),
-          border: Border.all(
-            color: const Color(0xFF95D5E6),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF95D5E6), width: 1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

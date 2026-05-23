@@ -7,7 +7,7 @@ class JourneyDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAFBFD),
       appBar: AppBar(
@@ -79,20 +79,20 @@ class JourneyDetailsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // Banner Image - Full Width
                 Image.asset(
                   'assets/images/Details Banner.png',
                   width: size.width,
                   fit: BoxFit.cover,
                 ),
-                
+
                 // Extra space for bottom buttons
                 const SizedBox(height: 140),
               ],
             ),
           ),
-          
+
           // Fixed Bottom Buttons
           Positioned(
             left: 0,
@@ -118,8 +118,8 @@ class JourneyDetailsScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to login or home
-                        context.go('/login');
+                        // Navigate to growth pace screen
+                        context.push('/growth-pace');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF073B4B),
@@ -142,13 +142,17 @@ class JourneyDetailsScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: 12),
-                          Icon(Icons.arrow_forward, size: 16, color: Colors.white),
+                          Icon(
+                            Icons.arrow_forward,
+                            size: 16,
+                            color: Colors.white,
+                          ),
                         ],
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Explore Abilities Button
                   SizedBox(
                     width: double.infinity,
