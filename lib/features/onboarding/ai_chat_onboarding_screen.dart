@@ -166,138 +166,155 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
       ),
       body: Column(
         children: [
-          // Header Section
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'AI ASSESSMENT',
-                  style: TextStyle(
-                    color: Color(0xFF50A8C0),
-                    fontSize: 11,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.10,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Let\'s find your path.',
-                  style: TextStyle(
-                    color: Color(0xFF1A2B4A),
-                    fontSize: 24,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Based on your answers, here are your highest-impact starting points.',
-                  style: TextStyle(
-                    color: Color(0xFF8A96A8),
-                    fontSize: 14,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Bot Avatar with animation rings
-                Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Animated rings
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.44),
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                      // Bot image
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: const DecorationImage(
-                            image: AssetImage('assets/images/botImage.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Chat Messages
           Expanded(
-            child: ListView.builder(
+            child: SingleChildScrollView(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                if (message['type'] == 'bot') {
-                  if (message['hasSlider'] == true) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _buildBotMessageWithSlider(
-                        message['message'],
-                        _sliderValue.toInt(),
-                        message['time'],
-                      ),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildBotMessage(
-                      message['message'],
-                      message['time'],
+              child: Column(
+                children: [
+                  // Header Section
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 8,
                     ),
-                  );
-                } else {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildUserMessage(
-                      message['message'],
-                      message['time'],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'AI ASSESSMENT',
+                          style: TextStyle(
+                            color: Color(0xFF50A8C0),
+                            fontSize: 11,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.10,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Let\'s find your path.',
+                          style: TextStyle(
+                            color: Color(0xFF1A2B4A),
+                            fontSize: 24,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Based on your answers, here are your highest-impact starting points.',
+                          style: TextStyle(
+                            color: Color(0xFF8A96A8),
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Bot Avatar with animation rings
+                        Center(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Animated rings
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.44),
+                                    width: 0.5,
+                                  ),
+                                ),
+                              ),
+                              // Bot image
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: const DecorationImage(
+                                    image: AssetImage(
+                                      'assets/images/botImage.png',
+                                    ),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  );
-                }
-              },
-            ),
-          ),
+                  ),
 
-          // Quick Reply Chips
-          if (_showQuickReplies)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 4),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _buildQuickReplyChip('Tell me more'),
-                    const SizedBox(width: 8),
-                    _buildQuickReplyChip('What\'s next?'),
-                    const SizedBox(width: 8),
-                    _buildQuickReplyChip('Show my results'),
-                    const SizedBox(width: 8),
-                    _buildQuickReplyChip('Ask another question'),
-                  ],
-                ),
+                  // Chat Messages
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 26,
+                      vertical: 16,
+                    ),
+                    child: Column(
+                      children: _messages.map((message) {
+                        if (message['type'] == 'bot') {
+                          if (message['hasSlider'] == true) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildBotMessageWithSlider(
+                                message['message'],
+                                _sliderValue.toInt(),
+                                message['time'],
+                              ),
+                            );
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildBotMessage(
+                              message['message'],
+                              message['time'],
+                            ),
+                          );
+                        } else {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildUserMessage(
+                              message['message'],
+                              message['time'],
+                            ),
+                          );
+                        }
+                      }).toList(),
+                    ),
+                  ),
+
+                  // Quick Reply Chips
+                  if (_showQuickReplies)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 26,
+                        vertical: 4,
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildQuickReplyChip('Tell me more'),
+                            const SizedBox(width: 8),
+                            _buildQuickReplyChip('What\'s next?'),
+                            const SizedBox(width: 8),
+                            _buildQuickReplyChip('Show my results'),
+                            const SizedBox(width: 8),
+                            _buildQuickReplyChip('Ask another question'),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
+          ),
 
           // Message Input
           Container(
