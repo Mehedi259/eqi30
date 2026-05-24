@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../screens/start_journey_screen.dart';
 
 class JourneyTab extends StatelessWidget {
   const JourneyTab({super.key});
@@ -84,6 +85,7 @@ class JourneyTab extends StatelessWidget {
 
                     // Session Card 1
                     _buildSessionCard(
+                      context: context,
                       category: 'MINDSET',
                       title: 'Emotional Awareness – Day 1',
                       subtitle: 'Pause & Label Your Emotion',
@@ -97,6 +99,7 @@ class JourneyTab extends StatelessWidget {
 
                     // Session Card 2
                     _buildSessionCard(
+                      context: context,
                       category: 'RESILIENCE',
                       title: 'Stress Tolerance – Day 2',
                       subtitle: null,
@@ -307,6 +310,7 @@ class JourneyTab extends StatelessWidget {
   }
 
   Widget _buildSessionCard({
+    required BuildContext context,
     required String category,
     required String title,
     String? subtitle,
@@ -400,30 +404,44 @@ class JourneyTab extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: ShapeDecoration(
-              color: const Color(0xFF073B4B),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  buttonText,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w500,
-                  ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StartJourneyScreen(),
                 ),
-                const SizedBox(width: 12),
-                const Icon(Icons.arrow_forward, color: Colors.white, size: 16),
-              ],
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: ShapeDecoration(
+                color: const Color(0xFF073B4B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    buttonText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Icon(
+                    Icons.arrow_forward,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
