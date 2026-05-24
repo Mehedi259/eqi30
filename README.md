@@ -361,6 +361,6 @@ For support, email support@eqi30.com or join our community:
 ---
 
 <div align="center">
-  <p>Made with ❤️ by the EQi30 Team</p>
-  <p>© 2026 EQi30. All rights reserved.</p>
+  <p>Made with ❤️ by the Mehedi Hasan Mridul</p>
+  <p>© 2026 All rights reserved.</p>
 </div>
