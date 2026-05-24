@@ -217,6 +217,7 @@ class _AbilitiesUnderCompetencyScreenState
                         isActive: ability['isActive'],
                         primaryColor: primaryColor,
                         backgroundImage: competencyData['backgroundImage'],
+                        iconPath: ability['iconPath'],
                       ),
                     ),
                   ),
@@ -246,6 +247,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Notice and name your emotions in real time.',
               'status': 'Day 1/30',
               'isActive': true,
+              'iconPath': 'assets/images/Emotional Awareness icon.png',
             },
             {
               'emoji': '🚧',
@@ -253,6 +255,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Know your limits and say no without guilt.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Boundary Awareness icon.png',
             },
             {
               'emoji': '💪',
@@ -260,6 +263,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Trust your abilities under pressure.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Self-Confidence icon.png',
             },
             {
               'emoji': '🌱',
@@ -267,6 +271,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Move toward your best, not just survive.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Self-Actualization icon.png',
             },
             {
               'emoji': '🦅',
@@ -275,6 +280,7 @@ class _AbilitiesUnderCompetencyScreenState
                   'Decide for yourself without over-relying on approval.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Independence icon.png',
             },
           ],
         };
@@ -292,6 +298,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Stay functional when pressure is high.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Stress Tolerance icon.png',
             },
             {
               'emoji': '🧠',
@@ -299,6 +306,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Adapt your thinking when situations change.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Cognitive Flexibility icon.png',
             },
             {
               'emoji': '⚖️',
@@ -306,6 +314,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Shape and respond to emotions over time.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Emotional Regulation icon.png',
             },
             {
               'emoji': '😊',
@@ -313,6 +322,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Find realistic hope even in hard times.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Optimism icon.png',
             },
             {
               'emoji': '🤝',
@@ -320,6 +330,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Track and manage what drains or fuels you.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Social Resources icon.png',
             },
           ],
         };
@@ -337,6 +348,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Understand others\' feelings accurately.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Empathy icon.png',
             },
             {
               'emoji': '😊',
@@ -344,6 +356,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Say what you mean clearly.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Verbal Expression icon.png',
             },
             {
               'emoji': '🔄',
@@ -351,6 +364,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Align your body language with your message.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Non-verbal Communication icon.png',
             },
             {
               'emoji': '💪',
@@ -358,6 +372,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Ask for what you need without aggression.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Assertiveness icon.png',
             },
             {
               'emoji': '🧘',
@@ -365,6 +380,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Stay steady and solution-focused in conflict.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Conflict Management icon.png',
             },
           ],
         };
@@ -386,6 +402,7 @@ class _AbilitiesUnderCompetencyScreenState
                   'Examine beliefs that shape your sense of meaning.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Belief Influence icon.png',
             },
             {
               'emoji': '🔍',
@@ -393,6 +410,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Get clear on what you want in life and work.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Clarity icon.png',
             },
             {
               'emoji': '💚',
@@ -400,6 +418,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Pursue your highest potential consistently.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Energy Awareness icon.png',
             },
             {
               'emoji': '🏘️',
@@ -407,6 +426,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Create belonging and connection around you.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Community Building icon.png',
             },
             {
               'emoji': '🌍',
@@ -414,6 +434,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Build and use your support network wisely.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Meaning Making icon.png',
             },
           ],
         };
@@ -432,6 +453,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Analyze situations clearly before acting.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Processing Speed icon.png',
             },
             {
               'emoji': '🛑',
@@ -439,6 +461,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Understand risk and make informed choices.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Impulse Control icon.png',
             },
             {
               'emoji': '🔬',
@@ -446,6 +469,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'See situations from multiple angles.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Reality Testing icon.png',
             },
             {
               'emoji': '⚖️',
@@ -453,6 +477,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Make decisions aligned with what matters to you.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Abstraction icon.png',
             },
             {
               'emoji': '💡',
@@ -460,6 +485,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Work through challenges step by step.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Problem Solving icon.png',
             },
           ],
         };
@@ -478,6 +504,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Organize your time and tasks effectively.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Planning icon.png',
             },
             {
               'emoji': '🎯',
@@ -485,6 +512,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Stay on task despite distraction.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Prioritizing icon.png',
             },
             {
               'emoji': '💪',
@@ -492,6 +520,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Make sound decisions under pressure.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Motivation icon.png',
             },
             {
               'emoji': '🎯',
@@ -499,6 +528,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Set goals that actually move you forward.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Attention Span icon.png',
             },
             {
               'emoji': '📦',
@@ -506,6 +536,7 @@ class _AbilitiesUnderCompetencyScreenState
               'description': 'Complete what you start, reliably.',
               'status': 'Not started',
               'isActive': false,
+              'iconPath': 'assets/images/Organization icon.png',
             },
           ],
         };
@@ -529,6 +560,7 @@ class _AbilitiesUnderCompetencyScreenState
     required bool isActive,
     required Color primaryColor,
     required String backgroundImage,
+    String? iconPath,
   }) {
     return Container(
       width: double.infinity,
@@ -566,15 +598,22 @@ class _AbilitiesUnderCompetencyScreenState
                     ),
                   ),
                   child: Center(
-                    child: Text(
-                      emoji,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontFamily: 'Archivo',
-                        fontWeight: FontWeight.w600,
-                        height: 1,
-                      ),
-                    ),
+                    child: iconPath != null
+                        ? Image.asset(
+                            iconPath,
+                            width: 36,
+                            height: 36,
+                            fit: BoxFit.contain,
+                          )
+                        : Text(
+                            emoji,
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontFamily: 'Archivo',
+                              fontWeight: FontWeight.w600,
+                              height: 1,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
