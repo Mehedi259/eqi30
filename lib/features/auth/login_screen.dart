@@ -12,15 +12,68 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isLoading = false;
 
+  late AnimationController _controller;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<Offset> _emailSlideAnimation;
+  late Animation<Offset> _passwordSlideAnimation;
+  late Animation<Offset> _buttonSlideAnimation;
+  late Animation<Offset> _socialSlideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Very subtle upward slide with smooth fade - same as journey-details
+    _headerSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _emailSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _passwordSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _buttonSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _socialSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Smooth, slow fade animation
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _controller.forward();
+  }
+
   @override
   void dispose() {
+    _controller.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -50,114 +103,170 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
-                Text(
-                  'Welcome Back !',
-                  style: AppTextStyles.heading2.copyWith(
-                    color: AppColors.primaryDark,
+                // Header - Slides from left
+                SlideTransition(
+                  position: _headerSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Welcome Back !',
+                          style: AppTextStyles.heading2.copyWith(
+                            color: AppColors.primaryDark,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sign in with your email and password\nor social media to continue',
+                          style: AppTextStyles.bodyMedium,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in with your email and password\nor social media to continue',
-                  style: AppTextStyles.bodyMedium,
                 ),
                 const SizedBox(height: 40),
 
-                CustomTextField(
-                  label: 'Email',
-                  hint: 'brooklynsim@gm',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                // Email field - Slides from right
+                SlideTransition(
+                  position: _emailSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CustomTextField(
+                      label: 'Email',
+                      hint: 'brooklynsim@gm',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
 
-                CustomTextField(
-                  label: 'Password',
-                  controller: _passwordController,
-                  isPassword: true,
+                // Password field - Slides from left
+                SlideTransition(
+                  position: _passwordSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CustomTextField(
+                      label: 'Password',
+                      controller: _passwordController,
+                      isPassword: true,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                SlideTransition(
+                  position: _passwordSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Checkbox(
-                          value: _rememberMe,
-                          onChanged: (value) {
-                            setState(() => _rememberMe = value ?? false);
-                          },
-                          activeColor: AppColors.primaryDark,
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: _rememberMe,
+                              onChanged: (value) {
+                                setState(() => _rememberMe = value ?? false);
+                              },
+                              activeColor: AppColors.primaryDark,
+                            ),
+                            Text(
+                              'Remember me',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          'Remember me',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textPrimary,
+                        TextButton(
+                          onPressed: () => context.push('/forgot-password'),
+                          child: Text(
+                            'Forgot password ?',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    TextButton(
-                      onPressed: () => context.push('/forgot-password'),
-                      child: Text(
-                        'Forgot password ?',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Button - Slides from right
+                SlideTransition(
+                  position: _buttonSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: CustomButton(
+                      text: 'Let\'s try a 2-minute exercise',
+                      onPressed: _handleLogin,
+                      isLoading: _isLoading,
+                      icon: Icons.arrow_forward,
                     ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 24),
 
-                CustomButton(
-                  text: 'Let\'s try a 2-minute exercise',
-                  onPressed: _handleLogin,
-                  isLoading: _isLoading,
-                  icon: Icons.arrow_forward,
-                ),
-                const SizedBox(height: 24),
-
-                Center(child: Text('Or', style: AppTextStyles.bodyMedium)),
-                const SizedBox(height: 24),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _SocialButton(icon: Icons.g_mobiledata, onTap: () {}),
-                    const SizedBox(width: 16),
-                    _SocialButton(icon: Icons.apple, onTap: () {}),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Don\'t have an account? ',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textPrimary,
+                // Social buttons - Slides from bottom
+                SlideTransition(
+                  position: _socialSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        Center(
+                          child: Text('Or', style: AppTextStyles.bodyMedium),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => context.push('/register'),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: const Size(0, 0),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        const SizedBox(height: 24),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _SocialButton(
+                              icon: Icons.g_mobiledata,
+                              onTap: () {},
+                            ),
+                            const SizedBox(width: 16),
+                            _SocialButton(icon: Icons.apple, onTap: () {}),
+                          ],
                         ),
-                        child: Text(
-                          'Sign up',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.primaryDark,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 32),
+
+                        Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Don\'t have an account? ',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => context.push('/register'),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  minimumSize: const Size(0, 0),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(
+                                  'Sign up',
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    color: AppColors.primaryDark,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

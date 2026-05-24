@@ -28,89 +28,56 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
 
-    // Header slides from left
-    _headerSlideAnimation =
-        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.0, 0.35, curve: Curves.easeOutCubic),
-          ),
-        );
+    // Very subtle upward slide with smooth fade - same as journey-details
+    _headerSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Morning option slides from right
-    _morningSlideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.15, 0.45, curve: Curves.easeOutCubic),
-          ),
-        );
+    _morningSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Midday option slides from left
-    _middaySlideAnimation =
-        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.25, 0.55, curve: Curves.easeOutCubic),
-          ),
-        );
+    _middaySlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Evening option slides from right
-    _eveningSlideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.35, 0.65, curve: Curves.easeOutCubic),
-          ),
-        );
+    _eveningSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Flexible option slides from left
-    _flexibleSlideAnimation =
-        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.45, 0.75, curve: Curves.easeOutCubic),
-          ),
-        );
+    _flexibleSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Settings container slides from right
-    _settingsSlideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.55, 0.85, curve: Curves.easeOutCubic),
-          ),
-        );
+    _settingsSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Continue button slides from left
-    _continueButtonSlideAnimation =
-        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.65, 0.95, curve: Curves.easeOutCubic),
-          ),
-        );
+    _continueButtonSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Abilities button slides from right
-    _abilitiesButtonSlideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.7, 1.0, curve: Curves.easeOutCubic),
-          ),
-        );
+    _abilitiesButtonSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    // Fade animation
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-      ),
-    );
+    // Smooth, slow fade animation
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _controller.forward();
   }

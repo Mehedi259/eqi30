@@ -9,17 +9,31 @@ class OnboardingResultScreen extends StatefulWidget {
 }
 
 class _OnboardingResultScreenState extends State<OnboardingResultScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
+  late AnimationController _progressController;
   late Animation<double> _headerAnimation;
   late Animation<double> _cardAnimation;
   late Animation<double> _buttonAnimation;
+
+  // Progress animations for each card
+  late Animation<double> _progress1Animation;
+  late Animation<double> _progress2Animation;
+  late Animation<double> _progress3Animation;
+  late Animation<double> _progress4Animation;
+  late Animation<double> _progress5Animation;
+  late Animation<double> _progress6Animation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _progressController = AnimationController(
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
 
@@ -44,12 +58,63 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
       ),
     );
 
+    // Staggered progress bar animations
+    _progress1Animation = Tween<double>(begin: 0.0, end: 0.42).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _progress2Animation = Tween<double>(begin: 0.0, end: 0.55).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.1, 0.5, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _progress3Animation = Tween<double>(begin: 0.0, end: 0.65).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _progress4Animation = Tween<double>(begin: 0.0, end: 0.78).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.3, 0.7, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _progress5Animation = Tween<double>(begin: 0.0, end: 0.85).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _progress6Animation = Tween<double>(begin: 0.0, end: 0.92).animate(
+      CurvedAnimation(
+        parent: _progressController,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
     _controller.forward();
+
+    // Start progress animations after cards appear
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (mounted) {
+        _progressController.forward();
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -142,49 +207,85 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                 ).animate(_cardAnimation),
                 child: Column(
                   children: [
-                    _buildHighlightedCard(
-                      'Self-Management',
-                      'Needs Attention',
-                      42,
-                      const Color(0xFF43BDC7),
-                      const Color(0xFFEBFDFF),
-                      const Color(0xFF002B2E),
-                      showBadge: true,
+                    AnimatedBuilder(
+                      animation: _progress1Animation,
+                      builder: (context, child) {
+                        return _buildHighlightedCard(
+                          'Self-Management',
+                          'Needs Attention',
+                          (_progress1Animation.value * 100).toInt(),
+                          _progress1Animation.value,
+                          const Color(0xFF43BDC7),
+                          const Color(0xFFEBFDFF),
+                          const Color(0xFF002B2E),
+                          showBadge: true,
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-                    _buildResultCard(
-                      'Stress Management',
-                      'Developing',
-                      55,
-                      const Color(0xFF249FA9),
+                    AnimatedBuilder(
+                      animation: _progress2Animation,
+                      builder: (context, child) {
+                        return _buildResultCard(
+                          'Stress Management',
+                          'Developing',
+                          (_progress2Animation.value * 100).toInt(),
+                          _progress2Animation.value,
+                          const Color(0xFF249FA9),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-                    _buildResultCard(
-                      'Interpersonal Management',
-                      'Good',
-                      65,
-                      const Color(0xFF43C76F),
+                    AnimatedBuilder(
+                      animation: _progress3Animation,
+                      builder: (context, child) {
+                        return _buildResultCard(
+                          'Interpersonal Management',
+                          'Good',
+                          (_progress3Animation.value * 100).toInt(),
+                          _progress3Animation.value,
+                          const Color(0xFF43C76F),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-                    _buildResultCard(
-                      'Spirit Management',
-                      'Strong',
-                      78,
-                      const Color(0xFFF37C21),
+                    AnimatedBuilder(
+                      animation: _progress4Animation,
+                      builder: (context, child) {
+                        return _buildResultCard(
+                          'Spirit Management',
+                          'Strong',
+                          (_progress4Animation.value * 100).toInt(),
+                          _progress4Animation.value,
+                          const Color(0xFFF37C21),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-                    _buildResultCard(
-                      'Executive Function Skill',
-                      'Strong',
-                      85,
-                      const Color(0xFF96B6F0),
+                    AnimatedBuilder(
+                      animation: _progress5Animation,
+                      builder: (context, child) {
+                        return _buildResultCard(
+                          'Executive Function Skill',
+                          'Strong',
+                          (_progress5Animation.value * 100).toInt(),
+                          _progress5Animation.value,
+                          const Color(0xFF96B6F0),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-                    _buildResultCard(
-                      'Decision Making',
-                      'Strong',
-                      92,
-                      const Color(0xFF6A95E2),
+                    AnimatedBuilder(
+                      animation: _progress6Animation,
+                      builder: (context, child) {
+                        return _buildResultCard(
+                          'Decision Making',
+                          'Strong',
+                          (_progress6Animation.value * 100).toInt(),
+                          _progress6Animation.value,
+                          const Color(0xFF6A95E2),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -292,6 +393,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
     String title,
     String status,
     int percentage,
+    double progressValue,
     Color color,
     Color bgColor,
     Color borderColor, {
@@ -344,7 +446,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(9999),
                   child: LinearProgressIndicator(
-                    value: percentage / 100,
+                    value: progressValue,
                     backgroundColor: const Color(0xFF073B4B),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                     minHeight: 8,
@@ -413,6 +515,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
     String title,
     String status,
     int percentage,
+    double progressValue,
     Color color,
   ) {
     return Container(
@@ -469,7 +572,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
           ClipRRect(
             borderRadius: BorderRadius.circular(9999),
             child: LinearProgressIndicator(
-              value: percentage / 100,
+              value: progressValue,
               backgroundColor: const Color(0xFFEFEDF0),
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 8,

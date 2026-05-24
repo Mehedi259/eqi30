@@ -1,8 +1,96 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class AbilitiesSelectionScreen extends StatelessWidget {
+class AbilitiesSelectionScreen extends StatefulWidget {
   const AbilitiesSelectionScreen({super.key});
+
+  @override
+  State<AbilitiesSelectionScreen> createState() =>
+      _AbilitiesSelectionScreenState();
+}
+
+class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<Offset> _row1LeftSlideAnimation;
+  late Animation<Offset> _row1RightSlideAnimation;
+  late Animation<Offset> _row2LeftSlideAnimation;
+  late Animation<Offset> _row2RightSlideAnimation;
+  late Animation<Offset> _row3LeftSlideAnimation;
+  late Animation<Offset> _row3RightSlideAnimation;
+  late Animation<Offset> _continueButtonSlideAnimation;
+  late Animation<Offset> _backButtonSlideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Very subtle upward slide with smooth fade
+    _headerSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row1LeftSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row1RightSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row2LeftSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row2RightSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row3LeftSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _row3RightSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _continueButtonSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _backButtonSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Smooth, slow fade animation
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,107 +131,158 @@ class AbilitiesSelectionScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '✦ YOUR EQ JOURNEY',
-                      style: TextStyle(
-                        color: Color(0xFF50A8C0),
-                        fontSize: 11,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.10,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Choose your growth area.',
-                      style: TextStyle(
-                        color: Color(0xFF0B191D),
-                        fontSize: 24,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        height: 1.33,
+                    // Header - Slides from left
+                    SlideTransition(
+                      position: _headerSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '✦ YOUR EQ JOURNEY',
+                              style: TextStyle(
+                                color: Color(0xFF50A8C0),
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.10,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Choose your growth area.',
+                              style: TextStyle(
+                                color: Color(0xFF0B191D),
+                                fontSize: 24,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                                height: 1.33,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
+                    // Row 1
                     Row(
                       children: [
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '🧠',
-                            title: 'Self Management',
-                            subtitle: 'Emotions · Confidence · Boundaries',
-                            color: const Color(0xFF43BDC7),
-                            lightColor: const Color(0xFF72D8E0),
-                            progress: 0.7,
+                          child: SlideTransition(
+                            position: _row1LeftSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '🧠',
+                                title: 'Self Management',
+                                subtitle: 'Emotions · Confidence · Boundaries',
+                                color: const Color(0xFF43BDC7),
+                                lightColor: const Color(0xFF72D8E0),
+                                progress: 0.7,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '🤝',
-                            title: 'Interpersonal',
-                            subtitle: 'Empathy · Communication · Conflict',
-                            color: const Color(0xFF43C76F),
-                            lightColor: const Color(0xFF87E6A6),
-                            progress: 0.8,
+                          child: SlideTransition(
+                            position: _row1RightSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '🤝',
+                                title: 'Interpersonal',
+                                subtitle: 'Empathy · Communication · Conflict',
+                                color: const Color(0xFF43C76F),
+                                lightColor: const Color(0xFF87E6A6),
+                                progress: 0.8,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Row 2
                     Row(
                       children: [
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '🌊',
-                            title: 'Stress Management',
-                            subtitle: 'Resilience · Flexibility · Optimism',
-                            color: const Color(0xFF249FA9),
-                            lightColor: const Color(0xFF5BBEC6),
-                            progress: 0.6,
+                          child: SlideTransition(
+                            position: _row2LeftSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '🌊',
+                                title: 'Stress Management',
+                                subtitle: 'Resilience · Flexibility · Optimism',
+                                color: const Color(0xFF249FA9),
+                                lightColor: const Color(0xFF5BBEC6),
+                                progress: 0.6,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '⚡',
-                            title: 'Spirit & Energy',
-                            subtitle: 'Resilience · Flexibility · Optimism',
-                            color: const Color(0xFFF37C21),
-                            lightColor: const Color(0xFFFF9C50),
-                            progress: 0.9,
+                          child: SlideTransition(
+                            position: _row2RightSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '⚡',
+                                title: 'Spirit & Energy',
+                                subtitle: 'Resilience · Flexibility · Optimism',
+                                color: const Color(0xFFF37C21),
+                                lightColor: const Color(0xFFFF9C50),
+                                progress: 0.9,
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Row 3
                     Row(
                       children: [
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '🧭',
-                            title: 'Executive Function',
-                            subtitle: 'Planning · Flexibility · Optimism',
-                            color: const Color(0xFF96B6F0),
-                            lightColor: const Color(0xFFB4CDFB),
-                            progress: 0.5,
+                          child: SlideTransition(
+                            position: _row3LeftSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '🧭',
+                                title: 'Executive Function',
+                                subtitle: 'Planning · Flexibility · Optimism',
+                                color: const Color(0xFF96B6F0),
+                                lightColor: const Color(0xFFB4CDFB),
+                                progress: 0.5,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildAbilityCard(
-                            context,
-                            emoji: '🎯',
-                            title: 'Decision making',
-                            subtitle: 'Intuition · Logic · Wisdom',
-                            color: const Color(0xFF6A95E2),
-                            lightColor: const Color(0xFF90B2EF),
-                            progress: 0.7,
+                          child: SlideTransition(
+                            position: _row3RightSlideAnimation,
+                            child: FadeTransition(
+                              opacity: _fadeAnimation,
+                              child: _buildAbilityCard(
+                                context,
+                                emoji: '🎯',
+                                title: 'Decision making',
+                                subtitle: 'Intuition · Logic · Wisdom',
+                                color: const Color(0xFF6A95E2),
+                                lightColor: const Color(0xFF90B2EF),
+                                progress: 0.7,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -156,67 +295,81 @@ class AbilitiesSelectionScreen extends StatelessWidget {
               padding: const EdgeInsets.all(26),
               child: Column(
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/journey');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF073B4B),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 15,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  // Continue button - Slides from left
+                  SlideTransition(
+                    position: _continueButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            context.push('/journey');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF073B4B),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 15,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Continue to Journey',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Icon(Icons.arrow_forward, size: 16),
+                            ],
+                          ),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Continue to Journey',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Back button - Slides from right
+                  SlideTransition(
+                    position: _backButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            context.pop();
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 15,
+                            ),
+                            side: const BorderSide(color: Colors.transparent),
+                            backgroundColor: const Color(
+                              0xFFDCF7FB,
+                            ).withOpacity(0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Go Back',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Color(0xFF0B191D),
                               fontSize: 16,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Icon(Icons.arrow_forward, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        context.pop();
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 15,
-                        ),
-                        side: const BorderSide(color: Colors.transparent),
-                        backgroundColor: const Color(
-                          0xFFDCF7FB,
-                        ).withOpacity(0.5),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Go Back',
-                        style: TextStyle(
-                          color: Color(0xFF0B191D),
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

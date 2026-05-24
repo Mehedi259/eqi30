@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class AbilitiesUnderCompetencyScreen extends StatelessWidget {
+class AbilitiesUnderCompetencyScreen extends StatefulWidget {
   final String competencyId;
   final String competencyName;
   final String competencyColor;
@@ -14,18 +14,80 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
   });
 
   @override
+  State<AbilitiesUnderCompetencyScreen> createState() =>
+      _AbilitiesUnderCompetencyScreenState();
+}
+
+class _AbilitiesUnderCompetencyScreenState
+    extends State<AbilitiesUnderCompetencyScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _headerImageSlideAnimation;
+  late Animation<Offset> _headerTextSlideAnimation;
+  late List<Animation<Offset>> _abilityCardAnimations;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    // Very subtle upward slide with smooth fade
+    _headerImageSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _headerTextSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    // Create 5 ability card animations with subtle upward movement
+    _abilityCardAnimations = List.generate(5, (index) {
+      return Tween<Offset>(
+        begin: const Offset(0, 0.02),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    });
+
+    // Smooth, slow fade animation
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // Parse color from hex string - handle both with and without #
-    String cleanColor = competencyColor.replaceFirst('#', '');
+    String cleanColor = widget.competencyColor.replaceFirst('#', '');
     Color primaryColor = Color(int.parse('FF$cleanColor', radix: 16));
 
     // Debug print
-    print('AbilitiesUnderCompetencyScreen - competencyId: $competencyId');
-    print('AbilitiesUnderCompetencyScreen - competencyName: $competencyName');
-    print('AbilitiesUnderCompetencyScreen - competencyColor: $competencyColor');
+    print(
+      'AbilitiesUnderCompetencyScreen - competencyId: ${widget.competencyId}',
+    );
+    print(
+      'AbilitiesUnderCompetencyScreen - competencyName: ${widget.competencyName}',
+    );
+    print(
+      'AbilitiesUnderCompetencyScreen - competencyColor: ${widget.competencyColor}',
+    );
 
     // Get competency-specific data
-    final competencyData = _getCompetencyData(competencyId);
+    final competencyData = _getCompetencyData(widget.competencyId);
     print(
       'AbilitiesUnderCompetencyScreen - abilities count: ${competencyData['abilities'].length}',
     );
@@ -67,78 +129,96 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 24),
 
-              // Header Image/Icon
-              Center(
-                child: competencyData['headerImage'] != null
-                    ? Image.asset(
-                        competencyData['headerImage'],
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.contain,
-                      )
-                    : Text(
-                        competencyData['headerEmoji'],
-                        style: const TextStyle(fontSize: 80),
-                      ),
+              // Header Image/Icon - Slides from left
+              SlideTransition(
+                position: _headerImageSlideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Center(
+                    child: competencyData['headerImage'] != null
+                        ? Image.asset(
+                            competencyData['headerImage'],
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.contain,
+                          )
+                        : Text(
+                            competencyData['headerEmoji'],
+                            style: const TextStyle(fontSize: 80),
+                          ),
+                  ),
+                ),
               ),
 
               const SizedBox(height: 16),
 
-              // Header Section
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '✦ ${competencyName.toUpperCase()}',
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontSize: 12,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
-                      height: 1.50,
-                      letterSpacing: 1.10,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '5 Abilities to Build',
-                    style: TextStyle(
-                      color: Color(0xFF0B191D),
-                      fontSize: 24,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w700,
-                      height: 1.33,
-                    ),
-                  ),
+              // Header Section - Slides from right
+              SlideTransition(
+                position: _headerTextSlideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '✦ ${widget.competencyName.toUpperCase()}',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontSize: 12,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w600,
+                          height: 1.50,
+                          letterSpacing: 1.10,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '5 Abilities to Build',
+                        style: TextStyle(
+                          color: Color(0xFF0B191D),
+                          fontSize: 24,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w700,
+                          height: 1.33,
+                        ),
+                      ),
 
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Each ability is a focused 30–60 day micro-skill journey. Start with one.',
-                    style: TextStyle(
-                      color: Color(0xFF8A96A8),
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      height: 1.43,
-                    ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Each ability is a focused 30–60 day micro-skill journey. Start with one.',
+                        style: TextStyle(
+                          color: Color(0xFF8A96A8),
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                          height: 1.43,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
 
               const SizedBox(height: 24),
 
-              // Abilities List
+              // Abilities List with alternating animations
               ...List.generate(competencyData['abilities'].length, (index) {
                 final ability = competencyData['abilities'][index];
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildAbilityCard(
-                    emoji: ability['emoji'],
-                    title: ability['title'],
-                    description: ability['description'],
-                    status: ability['status'],
-                    isActive: ability['isActive'],
-                    primaryColor: primaryColor,
-                    backgroundImage: competencyData['backgroundImage'],
+                  child: SlideTransition(
+                    position: _abilityCardAnimations[index],
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: _buildAbilityCard(
+                        emoji: ability['emoji'],
+                        title: ability['title'],
+                        description: ability['description'],
+                        status: ability['status'],
+                        isActive: ability['isActive'],
+                        primaryColor: primaryColor,
+                        backgroundImage: competencyData['backgroundImage'],
+                      ),
+                    ),
                   ),
                 );
               }),
