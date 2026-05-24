@@ -10,10 +10,7 @@ class StartJourneyScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
             _buildHeader(context),
-
-            // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 26),
@@ -21,32 +18,20 @@ class StartJourneyScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-
-                    // Category Badge and Recommendation
                     _buildCategoryRow(),
                     const SizedBox(height: 16),
-
-                    // Info Cards (What it is, Why it matters, What you'll do)
                     _buildInfoCards(),
                     const SizedBox(height: 16),
-
-                    // Journey Details (30-day, 5 min/day, 60 micro-skills)
                     _buildJourneyDetails(),
                     const SizedBox(height: 24),
-
-                    // What You'll Learn Section
                     _buildWhatYouLearnSection(),
                     const SizedBox(height: 24),
-
-                    // Journey Phases Section
                     _buildJourneyPhasesSection(),
                     const SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-
-            // Bottom Action Buttons
             _buildBottomActions(context),
           ],
         ),
@@ -130,15 +115,12 @@ class StartJourneyScreen extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        // What It Is Card (Full Width)
         _buildInfoCard(
           title: 'WHAT IT IS',
           titleColor: const Color(0xFF006767),
           description: 'Recognizing & naming what you feel in the moment.',
           width: double.infinity,
         ),
-
-        // Why It Matters Card
         _buildInfoCard(
           title: 'WHY IT MATTERS',
           titleColor: const Color(0xFFE8A54B),
@@ -146,8 +128,6 @@ class StartJourneyScreen extends StatelessWidget {
               'Improves self-control, reduces reactivity, clarifies decisions.',
           width: 171,
         ),
-
-        // What You'll Do Card
         _buildInfoCard(
           title: 'WHAT YOU\'LL DO',
           titleColor: const Color(0xFF006767),
@@ -165,15 +145,6 @@ class StartJourneyScreen extends StatelessWidget {
     required String description,
     required double width,
   }) {
-    IconData icon;
-    if (title.contains('WHAT IT IS')) {
-      icon = Icons.search;
-    } else if (title.contains('WHY IT MATTERS')) {
-      icon = Icons.lightbulb_outline;
-    } else {
-      icon = Icons.check_circle_outline;
-    }
-
     return Container(
       width: width == double.infinity ? null : width,
       constraints: width == double.infinity
@@ -188,22 +159,16 @@ class StartJourneyScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: titleColor),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  color: titleColor,
-                  fontSize: 12,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w600,
-                  height: 1.33,
-                  letterSpacing: 0.60,
-                ),
-              ),
-            ],
+          Text(
+            title,
+            style: TextStyle(
+              color: titleColor,
+              fontSize: 12,
+              fontFamily: 'Inter',
+              fontWeight: FontWeight.w600,
+              height: 1.33,
+              letterSpacing: 0.60,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -234,37 +199,21 @@ class StartJourneyScreen extends StatelessWidget {
   }
 
   Widget _buildDetailChip(String text) {
-    IconData icon;
-    if (text.contains('day')) {
-      icon = Icons.calendar_today;
-    } else if (text.contains('min')) {
-      icon = Icons.access_time;
-    } else {
-      icon = Icons.stars;
-    }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0xFFDDF9F8),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: const Color(0xFF3E4948)),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Color(0xFF3E4948),
-              fontSize: 14,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w400,
-              height: 1.43,
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF3E4948),
+          fontSize: 14,
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w400,
+          height: 1.43,
+        ),
       ),
     );
   }
@@ -383,90 +332,113 @@ class StartJourneyScreen extends StatelessWidget {
     required String status,
     required bool isActive,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFF43BDC7), width: 3),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 4,
-            offset: Offset(0, 1),
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(left: 3),
+          padding: const EdgeInsets.only(
+            left: 9,
+            top: 12,
+            right: 12,
+            bottom: 12,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Emoji Container
-          Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              color: const Color(0x2643BDC7),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            alignment: Alignment.center,
-            child: Text(emoji, style: const TextStyle(fontSize: 32)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border.all(color: const Color(0xFFE0EEEE), width: 1),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 4,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-
-          // Title and Description
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF1A2B4A),
-                    fontSize: 14,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    height: 1.43,
-                  ),
+          child: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: const Color(0x2643BDC7),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: Color(0xFF8A96A8),
-                    fontSize: 12,
+                alignment: Alignment.center,
+                child: Text(emoji, style: const TextStyle(fontSize: 32)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF1A2B4A),
+                        fontSize: 14,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                        height: 1.43,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        color: Color(0xFF8A96A8),
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w400,
+                        height: 1.50,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? const Color(0xFFDFF8FF)
+                      : const Color(0xFFF1F2F4),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    color: isActive
+                        ? const Color(0xFF50A8C0)
+                        : const Color(0xFF8A96A8),
+                    fontSize: 10,
                     fontFamily: 'Inter',
-                    fontWeight: FontWeight.w400,
-                    height: 1.50,
+                    fontWeight: FontWeight.w700,
+                    height: 1.60,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-
-          // Status Badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFFDFF8FF)
-                  : const Color(0xFFF1F2F4),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              status,
-              style: TextStyle(
-                color: isActive
-                    ? const Color(0xFF50A8C0)
-                    : const Color(0xFF8A96A8),
-                fontSize: 10,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                height: 1.60,
+        ),
+        Positioned(
+          left: 0,
+          top: 0,
+          bottom: 0,
+          child: Container(
+            width: 3,
+            decoration: const BoxDecoration(
+              color: Color(0xFF43BDC7),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -475,14 +447,12 @@ class StartJourneyScreen extends StatelessWidget {
       padding: const EdgeInsets.all(26),
       child: Column(
         children: [
-          // Start Button
           SizedBox(
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
               onPressed: () {
                 // Navigate to first skill screen
-                // Navigator.push(context, MaterialPageRoute(builder: (context) => FirstSkillScreen()));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF073B4B),
@@ -510,8 +480,6 @@ class StartJourneyScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Back to Home Link
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: const Text(
