@@ -8,10 +8,118 @@ class TimePreferenceScreen extends StatefulWidget {
   State<TimePreferenceScreen> createState() => _TimePreferenceScreenState();
 }
 
-class _TimePreferenceScreenState extends State<TimePreferenceScreen> {
+class _TimePreferenceScreenState extends State<TimePreferenceScreen>
+    with SingleTickerProviderStateMixin {
   String selectedTime = 'morning';
   bool dailyReminder = true;
   bool missDayNudge = true;
+  late AnimationController _controller;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<Offset> _morningSlideAnimation;
+  late Animation<Offset> _middaySlideAnimation;
+  late Animation<Offset> _eveningSlideAnimation;
+  late Animation<Offset> _flexibleSlideAnimation;
+  late Animation<Offset> _settingsSlideAnimation;
+  late Animation<Offset> _continueButtonSlideAnimation;
+  late Animation<Offset> _abilitiesButtonSlideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1600),
+      vsync: this,
+    );
+
+    // Header slides from left
+    _headerSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.35, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Morning option slides from right
+    _morningSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.15, 0.45, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Midday option slides from left
+    _middaySlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.25, 0.55, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Evening option slides from right
+    _eveningSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.35, 0.65, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Flexible option slides from left
+    _flexibleSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.45, 0.75, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Settings container slides from right
+    _settingsSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.55, 0.85, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Continue button slides from left
+    _continueButtonSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.65, 0.95, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Abilities button slides from right
+    _abilitiesButtonSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.7, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,152 +161,201 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    const Text(
-                      '✦ YOUR EQ SNAPSHOT',
-                      style: TextStyle(
-                        color: Color(0xFF50A8C0),
-                        fontSize: 11,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.10,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'When do practices fit best into your day?',
-                      style: TextStyle(
-                        color: Color(0xFF1A2B4A),
-                        fontSize: 24,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        height: 1.33,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'We\'ll send a gentle reminder. You can change this anytime.',
-                      style: TextStyle(
-                        color: Color(0xFF8A96A8),
-                        fontSize: 14,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildTimeOption(
-                      'morning',
-                      '🌅',
-                      'Morning',
-                      '6:00 – 9:00 AM',
-                    ),
-                    const SizedBox(height: 10),
-                    _buildTimeOption(
-                      'midday',
-                      '☀️',
-                      'Midday',
-                      '11:00 AM – 2:00 PM',
-                    ),
-                    const SizedBox(height: 10),
-                    _buildTimeOption(
-                      'evening',
-                      '🌙',
-                      'Evening',
-                      '7:00 – 10:00 PM',
-                    ),
-                    const SizedBox(height: 10),
-                    _buildTimeOption(
-                      'flexible',
-                      '🗓',
-                      'I\'ll decide each day',
-                      'No fixed reminder',
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildToggleOption(
-                            emoji: '🔔',
-                            title: 'Daily reminder',
-                            subtitle: 'At your selected time',
-                            value: dailyReminder,
-                            onChanged: (val) =>
-                                setState(() => dailyReminder = val),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: const BoxDecoration(
-                              border: Border(
-                                top: BorderSide(color: Color(0xFFF5F0E8)),
-                                bottom: BorderSide(color: Color(0xFFF5F0E8)),
+                    // Header - Slides from left
+                    SlideTransition(
+                      position: _headerSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '✦ YOUR EQ SNAPSHOT',
+                              style: TextStyle(
+                                color: Color(0xFF50A8C0),
+                                fontSize: 11,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.10,
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                const Text(
-                                  '📅',
-                                  style: TextStyle(fontSize: 22),
-                                ),
-                                const SizedBox(width: 14),
-                                const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Add to calendar',
-                                        style: TextStyle(
-                                          color: Color(0xFF1A2B4A),
-                                          fontSize: 14,
-                                          fontFamily: 'Poppins',
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        '5-min practice block daily',
-                                        style: TextStyle(
-                                          color: Color(0xFF8A96A8),
-                                          fontSize: 12,
-                                          fontFamily: 'Inter',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF0F1E3C),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Text(
-                                    'Connect',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w500,
+                            const SizedBox(height: 4),
+                            const Text(
+                              'When do practices fit best into your day?',
+                              style: TextStyle(
+                                color: Color(0xFF1A2B4A),
+                                fontSize: 24,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                                height: 1.33,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'We\'ll send a gentle reminder. You can change this anytime.',
+                              style: TextStyle(
+                                color: Color(0xFF8A96A8),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Morning - Slides from right
+                    SlideTransition(
+                      position: _morningSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildTimeOption(
+                          'morning',
+                          '🌅',
+                          'Morning',
+                          '6:00 – 9:00 AM',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Midday - Slides from left
+                    SlideTransition(
+                      position: _middaySlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildTimeOption(
+                          'midday',
+                          '☀️',
+                          'Midday',
+                          '11:00 AM – 2:00 PM',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Evening - Slides from right
+                    SlideTransition(
+                      position: _eveningSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildTimeOption(
+                          'evening',
+                          '🌙',
+                          'Evening',
+                          '7:00 – 10:00 PM',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Flexible - Slides from left
+                    SlideTransition(
+                      position: _flexibleSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildTimeOption(
+                          'flexible',
+                          '🗓',
+                          'I\'ll decide each day',
+                          'No fixed reminder',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Settings container - Slides from right
+                    SlideTransition(
+                      position: _settingsSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildToggleOption(
+                                emoji: '🔔',
+                                title: 'Daily reminder',
+                                subtitle: 'At your selected time',
+                                value: dailyReminder,
+                                onChanged: (val) =>
+                                    setState(() => dailyReminder = val),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(color: Color(0xFFF5F0E8)),
+                                    bottom: BorderSide(
+                                      color: Color(0xFFF5F0E8),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      '📅',
+                                      style: TextStyle(fontSize: 22),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    const Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Add to calendar',
+                                            style: TextStyle(
+                                              color: Color(0xFF1A2B4A),
+                                              fontSize: 14,
+                                              fontFamily: 'Poppins',
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            '5-min practice block daily',
+                                            style: TextStyle(
+                                              color: Color(0xFF8A96A8),
+                                              fontSize: 12,
+                                              fontFamily: 'Inter',
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0F1E3C),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        'Connect',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              _buildToggleOption(
+                                emoji: '💬',
+                                title: 'Miss-day nudge',
+                                subtitle: 'Gentle reminder if 2 days pass',
+                                value: missDayNudge,
+                                onChanged: (val) =>
+                                    setState(() => missDayNudge = val),
+                              ),
+                            ],
                           ),
-                          _buildToggleOption(
-                            emoji: '💬',
-                            title: 'Miss-day nudge',
-                            subtitle: 'Gentle reminder if 2 days pass',
-                            value: missDayNudge,
-                            onChanged: (val) =>
-                                setState(() => missDayNudge = val),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
@@ -209,65 +366,81 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen> {
               padding: const EdgeInsets.all(26),
               child: Column(
                 children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.go('/login');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF073B4B),
-                        padding: const EdgeInsets.all(12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  // Continue button - Slides from left
+                  SlideTransition(
+                    position: _continueButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            context.go('/login');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF073B4B),
+                            padding: const EdgeInsets.all(12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'CONTINUE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Icon(
+                                Icons.arrow_forward,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'CONTINUE',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Abilities button - Slides from right
+                  SlideTransition(
+                    position: _abilitiesButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            context.push('/choose-journey');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 13,
+                            ),
+                            side: BorderSide(
+                              color: Colors.black.withOpacity(0.20),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'See 30 Abilities',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black.withOpacity(0.55),
                               fontSize: 16,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          SizedBox(width: 12),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        context.push('/choose-journey');
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 13,
-                        ),
-                        side: BorderSide(color: Colors.black.withOpacity(0.20)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'See 30 Abilities',
-                        style: TextStyle(
-                          color: Colors.black.withOpacity(0.55),
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),

@@ -8,8 +8,86 @@ class GrowthPaceScreen extends StatefulWidget {
   State<GrowthPaceScreen> createState() => _GrowthPaceScreenState();
 }
 
-class _GrowthPaceScreenState extends State<GrowthPaceScreen> {
+class _GrowthPaceScreenState extends State<GrowthPaceScreen>
+    with SingleTickerProviderStateMixin {
   String selectedPace = 'medium';
+  late AnimationController _controller;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<Offset> _lowPaceSlideAnimation;
+  late Animation<Offset> _mediumPaceSlideAnimation;
+  late Animation<Offset> _highPaceSlideAnimation;
+  late Animation<Offset> _buttonSlideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1400),
+      vsync: this,
+    );
+
+    // Header slides from left
+    _headerSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Low pace card slides from right
+    _lowPaceSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Medium pace card slides from left
+    _mediumPaceSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.3, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // High pace card slides from right
+    _highPaceSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Button slides from left
+    _buttonSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.6, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,57 +129,90 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    const Text(
-                      'How fast do you want to grow?',
-                      style: TextStyle(
-                        color: Color(0xFF1A2B4A),
-                        fontSize: 24,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w700,
-                        height: 1.33,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'You can change this anytime from your settings.',
-                      style: TextStyle(
-                        color: Color(0xFF8A96A8),
-                        fontSize: 14,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w400,
-                        height: 1.50,
+                    // Header - Slides from left
+                    SlideTransition(
+                      position: _headerSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'How fast do you want to grow?',
+                              style: TextStyle(
+                                color: Color(0xFF1A2B4A),
+                                fontSize: 24,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                                height: 1.33,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'You can change this anytime from your settings.',
+                              style: TextStyle(
+                                color: Color(0xFF8A96A8),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w400,
+                                height: 1.50,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
-                    _buildPaceOption(
-                      pace: 'low',
-                      emoji: '🌱',
-                      label: 'LOW',
-                      title: '1 ability per day',
-                      subtitle: '≈ 5 minutes daily',
-                      color: const Color(0xFF4CAF7D),
-                      dots: 1,
+                    // Low pace - Slides from right
+                    SlideTransition(
+                      position: _lowPaceSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildPaceOption(
+                          pace: 'low',
+                          emoji: '🌱',
+                          label: 'LOW',
+                          title: '1 ability per day',
+                          subtitle: '≈ 5 minutes daily',
+                          color: const Color(0xFF4CAF7D),
+                          dots: 1,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _buildPaceOption(
-                      pace: 'medium',
-                      emoji: '🔥',
-                      label: 'MEDIUM',
-                      title: '2 abilities per day',
-                      subtitle: '≈ 10 minutes daily',
-                      color: const Color(0xFF50A8C0),
-                      dots: 2,
-                      isGradient: true,
+                    // Medium pace - Slides from left
+                    SlideTransition(
+                      position: _mediumPaceSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildPaceOption(
+                          pace: 'medium',
+                          emoji: '🔥',
+                          label: 'MEDIUM',
+                          title: '2 abilities per day',
+                          subtitle: '≈ 10 minutes daily',
+                          color: const Color(0xFF50A8C0),
+                          dots: 2,
+                          isGradient: true,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _buildPaceOption(
-                      pace: 'high',
-                      emoji: '🚀',
-                      label: 'HIGH',
-                      title: '3 abilities per day',
-                      subtitle: '≈ 15 minutes daily',
-                      color: const Color(0xFFE07B6A),
-                      dots: 3,
+                    // High pace - Slides from right
+                    SlideTransition(
+                      position: _highPaceSlideAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: _buildPaceOption(
+                          pace: 'high',
+                          emoji: '🚀',
+                          label: 'HIGH',
+                          title: '3 abilities per day',
+                          subtitle: '≈ 15 minutes daily',
+                          color: const Color(0xFFE07B6A),
+                          dots: 3,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -109,34 +220,44 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(26),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.push('/time-preference');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF073B4B),
-                    padding: const EdgeInsets.all(12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'NEXT',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
+              child: SlideTransition(
+                position: _buttonSlideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.push('/time-preference');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF073B4B),
+                        padding: const EdgeInsets.all(12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Icon(Icons.arrow_forward, size: 16, color: Colors.white),
-                    ],
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'NEXT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Icon(
+                            Icons.arrow_forward,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),

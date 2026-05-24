@@ -8,17 +8,75 @@ class AiChatOnboardingScreen extends StatefulWidget {
   State<AiChatOnboardingScreen> createState() => _AiChatOnboardingScreenState();
 }
 
-class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
+class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   double _sliderValue = 6.0;
   List<Map<String, dynamic>> _messages = [];
   bool _showQuickReplies = true;
 
+  late AnimationController _headerController;
+  late AnimationController _avatarController;
+  late AnimationController _buttonController;
+
+  late Animation<double> _headerFadeAnimation;
+  late Animation<double> _avatarPulseAnimation;
+  late Animation<Offset> _buttonSlideAnimation;
+  late Animation<double> _buttonFadeAnimation;
+
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
     _initializeChat();
+    _startAnimations();
+  }
+
+  void _initializeAnimations() {
+    // Header animation
+    _headerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _headerFadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOut),
+    );
+
+    // Avatar pulse animation (continuous)
+    _avatarController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _avatarPulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _avatarController, curve: Curves.easeInOut),
+    );
+
+    // Button animation
+    _buttonController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _buttonSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
+        );
+
+    _buttonFadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
+  }
+
+  void _startAnimations() {
+    _headerController.forward();
+    _avatarController.repeat(reverse: true);
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (mounted) _buttonController.forward();
+    });
   }
 
   void _initializeChat() {
@@ -125,6 +183,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
   void dispose() {
     _messageController.dispose();
     _scrollController.dispose();
+    _headerController.dispose();
+    _avatarController.dispose();
+    _buttonController.dispose();
     super.dispose();
   }
 
@@ -140,7 +201,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(100),
             ),
             child: const Icon(Icons.arrow_back, size: 16, color: Colors.black),
@@ -172,82 +233,100 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
               child: Column(
                 children: [
                   // Header Section
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'AI ASSESSMENT',
-                          style: TextStyle(
-                            color: Color(0xFF50A8C0),
-                            fontSize: 11,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.10,
+                  AnimatedBuilder(
+                    animation: _headerFadeAnimation,
+                    builder: (context, child) {
+                      return FadeTransition(
+                        opacity: _headerFadeAnimation,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 26,
+                            vertical: 8,
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Let\'s find your path.',
-                          style: TextStyle(
-                            color: Color(0xFF1A2B4A),
-                            fontSize: 24,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Based on your answers, here are your highest-impact starting points.',
-                          style: TextStyle(
-                            color: Color(0xFF8A96A8),
-                            fontSize: 14,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Bot Avatar with animation rings
-                        Center(
-                          child: Stack(
-                            alignment: Alignment.center,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Animated rings
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.44),
-                                    width: 0.5,
-                                  ),
+                              const Text(
+                                'AI ASSESSMENT',
+                                style: TextStyle(
+                                  color: Color(0xFF50A8C0),
+                                  fontSize: 11,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.10,
                                 ),
                               ),
-                              // Bot image
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                      'assets/images/botImage.png',
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Let\'s find your path.',
+                                style: TextStyle(
+                                  color: Color(0xFF1A2B4A),
+                                  fontSize: 24,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Based on your answers, here are your highest-impact starting points.',
+                                style: TextStyle(
+                                  color: Color(0xFF8A96A8),
+                                  fontSize: 14,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Animated Bot Avatar with pulse
+                              Center(
+                                child: AnimatedBuilder(
+                                  animation: _avatarPulseAnimation,
+                                  builder: (context, child) {
+                                    return Transform.scale(
+                                      scale: _avatarPulseAnimation.value,
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          // Animated rings
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            decoration: BoxDecoration(
+                                              color: Colors.transparent,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                color: Colors.white.withValues(
+                                                  alpha: 0.44,
+                                                ),
+                                                width: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                          // Bot image
+                                          Container(
+                                            width: 60,
+                                            height: 60,
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              image: const DecorationImage(
+                                                image: AssetImage(
+                                                  'assets/images/botImage.png',
+                                                ),
+                                                fit: BoxFit.cover,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
 
                   // Chat Messages
@@ -323,7 +402,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, -2),
                 ),
@@ -374,7 +453,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF095A70).withOpacity(0.3),
+                          color: const Color(0xFF095A70).withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -391,44 +470,59 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
             ),
           ),
 
-          // Continue Button
-          Container(
-            padding: const EdgeInsets.fromLTRB(26, 0, 26, 8),
-            color: Colors.white,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to results screen
-                  context.go('/result-onboarding');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF073B4B),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'CONTINUE & VIEW THE RESULT',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+          // Animated Continue Button
+          AnimatedBuilder(
+            animation: _buttonFadeAnimation,
+            builder: (context, child) {
+              return FadeTransition(
+                opacity: _buttonFadeAnimation,
+                child: SlideTransition(
+                  position: _buttonSlideAnimation,
+                  child: Container(
+                    padding: const EdgeInsets.fromLTRB(26, 0, 26, 8),
+                    color: Colors.white,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Navigate to results screen
+                          context.go('/result-onboarding');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF073B4B),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'CONTINUE & VIEW THE RESULT',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, size: 18, color: Colors.white),
-                  ],
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -559,7 +653,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.30),
+                        color: Colors.white.withValues(alpha: 0.30),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -588,7 +682,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen> {
                               thumbColor: const Color(0xFF0F1E3C),
                               overlayColor: const Color(
                                 0xFF095A70,
-                              ).withOpacity(0.2),
+                              ).withValues(alpha: 0.2),
                             ),
                             child: Slider(
                               value: _sliderValue,

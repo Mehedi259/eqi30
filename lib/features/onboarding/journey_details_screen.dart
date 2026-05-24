@@ -1,8 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class JourneyDetailsScreen extends StatelessWidget {
+class JourneyDetailsScreen extends StatefulWidget {
   const JourneyDetailsScreen({super.key});
+
+  @override
+  State<JourneyDetailsScreen> createState() => _JourneyDetailsScreenState();
+}
+
+class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _headerSlideAnimation;
+  late Animation<Offset> _bannerSlideAnimation;
+  late Animation<Offset> _nextButtonSlideAnimation;
+  late Animation<Offset> _exploreButtonSlideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    // Header slides from left
+    _headerSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Banner slides from right
+    _bannerSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.2, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Next button slides from left
+    _nextButtonSlideAnimation =
+        Tween<Offset>(begin: const Offset(-1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.4, 0.9, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Explore button slides from right
+    _exploreButtonSlideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,42 +123,54 @@ class JourneyDetailsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(26, 0, 26, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Here\'s your guided journey',
-                        style: TextStyle(
-                          color: Color(0xFF1A2B4A),
-                          fontSize: 24,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w700,
-                          height: 1.33,
-                        ),
+                // Header - Slides from left
+                SlideTransition(
+                  position: _headerSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(26, 0, 26, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Here\'s your guided journey',
+                            style: TextStyle(
+                              color: Color(0xFF1A2B4A),
+                              fontSize: 24,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w700,
+                              height: 1.33,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'List the first 3 abilities here - Emotional Awareness Boundary Awareness Self-Confidence',
+                            style: TextStyle(
+                              color: Color(0xFF8A96A8),
+                              fontSize: 14,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w400,
+                              height: 1.43,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'List the first 3 abilities here - Emotional Awareness Boundary Awareness Self-Confidence',
-                        style: TextStyle(
-                          color: Color(0xFF8A96A8),
-                          fontSize: 14,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w400,
-                          height: 1.43,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
 
-                // Banner Image - Full Width
-                Image.asset(
-                  'assets/images/Details Banner.png',
-                  width: size.width,
-                  fit: BoxFit.cover,
+                // Banner Image - Slides from right
+                SlideTransition(
+                  position: _bannerSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Image.asset(
+                      'assets/images/Details Banner.png',
+                      width: size.width,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
 
                 // Extra space for bottom buttons
@@ -113,71 +199,83 @@ class JourneyDetailsScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Next Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Navigate to growth pace screen
-                        context.push('/growth-pace');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF073B4B),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEXT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
+                  // Next Button - Slides from left
+                  SlideTransition(
+                    position: _nextButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Navigate to growth pace screen
+                            context.push('/growth-pace');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF073B4B),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            elevation: 0,
                           ),
-                          SizedBox(width: 12),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: Colors.white,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'NEXT',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Icon(
+                                Icons.arrow_forward,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 12),
 
-                  // Explore Abilities Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Navigate to choose journey (same as "See 30 Abilities")
-                        context.push('/choose-journey');
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(
-                          color: Colors.black.withOpacity(0.20),
-                          width: 1,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Explore Abilities',
-                        style: TextStyle(
-                          color: Colors.black.withOpacity(0.55),
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
+                  // Explore Abilities Button - Slides from right
+                  SlideTransition(
+                    position: _exploreButtonSlideAnimation,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            // Navigate to choose journey (same as "See 30 Abilities")
+                            context.push('/choose-journey');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(
+                              color: Colors.black.withOpacity(0.20),
+                              width: 1,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Explore Abilities',
+                            style: TextStyle(
+                              color: Colors.black.withOpacity(0.55),
+                              fontSize: 16,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
                       ),
                     ),
