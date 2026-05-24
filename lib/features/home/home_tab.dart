@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeTab extends StatelessWidget {
-  const HomeTab({super.key});
+  const HomeTab({super.key, this.onNavigateToJourney});
+
+  final VoidCallback? onNavigateToJourney;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +220,11 @@ class HomeTab extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => context.go('/home?tab=1'),
+                    onPressed: () {
+                      if (onNavigateToJourney != null) {
+                        onNavigateToJourney!();
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF073B4B),
                       padding: const EdgeInsets.symmetric(vertical: 16),

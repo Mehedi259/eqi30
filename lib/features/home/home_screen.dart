@@ -25,18 +25,27 @@ class _HomeScreenState extends State<HomeScreen> {
     _currentIndex = widget.initialIndex;
   }
 
-  final List<Widget> _tabs = [
-    const HomeTab(),
-    const JourneyTab(),
-    const SizedBox(), // Chat placeholder
-    const ResourcesTab(),
-    const ProfileTab(),
-  ];
+  List<Widget> _buildTabs() {
+    return [
+      HomeTab(
+        onNavigateToJourney: () {
+          setState(() {
+            _currentIndex = 1;
+          });
+        },
+      ),
+      const JourneyTab(),
+      const SizedBox(), // Chat placeholder
+      const ResourcesTab(),
+      const ProfileTab(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final tabs = _buildTabs();
     return Scaffold(
-      body: _tabs[_currentIndex],
+      body: tabs[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
