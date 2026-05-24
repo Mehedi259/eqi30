@@ -109,7 +109,6 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       height: 1.33,
                     ),
-
                   ),
 
                   const SizedBox(height: 4),
@@ -119,7 +118,7 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
                       color: Color(0xFF8A96A8),
                       fontSize: 14,
                       fontFamily: 'Inter',
-         ame               height: 1.43,
+                      height: 1.43,
                     ),
                   ),
                 ],
