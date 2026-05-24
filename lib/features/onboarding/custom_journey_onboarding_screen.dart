@@ -598,15 +598,15 @@ class _CustomJourneyOnboardingScreenState
                     decoration: BoxDecoration(
                       color: isSelected ? borderColor : Colors.white,
                       shape: BoxShape.circle,
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 2,
-                                offset: const Offset(0, 1),
-                              ),
-                            ]
-                          : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isSelected ? 0.05 : 0.0,
+                          ),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: AnimatedDefaultTextStyle(

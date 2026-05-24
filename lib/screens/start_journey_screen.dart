@@ -9,8 +9,10 @@ class StartJourneyScreen extends StatefulWidget {
 }
 
 class _StartJourneyScreenState extends State<StartJourneyScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
+  late AnimationController _pulseController;
+  late AnimationController _shimmerController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _headerSlideAnimation;
   late Animation<Offset> _categorySlideAnimation;
@@ -21,6 +23,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   late Animation<Offset> _learnSlideAnimation;
   late Animation<double> _phaseFadeAnimation;
   late Animation<Offset> _buttonSlideAnimation;
+  late Animation<double> _pulseAnimation;
+  late Animation<double> _shimmerAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
@@ -29,6 +34,16 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
       duration: const Duration(milliseconds: 1600),
       vsync: this,
     );
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _shimmerController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat();
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -105,12 +120,27 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
           ),
         );
 
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _shimmerAnimation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _shimmerController, curve: Curves.linear),
+    );
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
     _controller.forward();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _pulseController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -200,29 +230,55 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0x1443BDC7),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x1443BDC7),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+            AnimatedBuilder(
+              animation: _shimmerAnimation,
+              builder: (context, child) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                ],
-              ),
-              child: const Text(
-                'Self Management',
-                style: TextStyle(
-                  color: Color(0xFF43BDC7),
-                  fontSize: 12,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w500,
-                  height: 1.50,
-                ),
-              ),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1443BDC7),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0x1443BDC7),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ShaderMask(
+                    shaderCallback: (bounds) {
+                      return LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        stops: [
+                          _shimmerAnimation.value - 0.3,
+                          _shimmerAnimation.value,
+                          _shimmerAnimation.value + 0.3,
+                        ],
+                        colors: const [
+                          Color(0xFF43BDC7),
+                          Color(0xFF6DD5DF),
+                          Color(0xFF43BDC7),
+                        ],
+                      ).createShader(bounds);
+                    },
+                    child: const Text(
+                      'Self Management',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w500,
+                        height: 1.50,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
             const Text(
               'Recommended First',
@@ -245,11 +301,14 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
       children: [
         FadeTransition(
           opacity: _card1FadeAnimation,
-          child: _buildInfoCard(
-            title: 'WHAT IT IS',
-            titleColor: const Color(0xFF006767),
-            description: 'Recognizing & naming what you feel in the moment.',
-            width: double.infinity,
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: _buildInfoCard(
+              title: 'WHAT IT IS',
+              titleColor: const Color(0xFF006767),
+              description: 'Recognizing & naming what you feel in the moment.',
+              width: double.infinity,
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -258,12 +317,15 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
             Expanded(
               child: FadeTransition(
                 opacity: _card2FadeAnimation,
-                child: _buildInfoCard(
-                  title: 'WHY IT MATTERS',
-                  titleColor: const Color(0xFFE8A54B),
-                  description:
-                      'Improves self-control, reduces reactivity, clarifies decisions.',
-                  width: double.infinity,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildInfoCard(
+                    title: 'WHY IT MATTERS',
+                    titleColor: const Color(0xFFE8A54B),
+                    description:
+                        'Improves self-control, reduces reactivity, clarifies decisions.',
+                    width: double.infinity,
+                  ),
                 ),
               ),
             ),
@@ -271,12 +333,15 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
             Expanded(
               child: FadeTransition(
                 opacity: _card3FadeAnimation,
-                child: _buildInfoCard(
-                  title: 'WHAT YOU\'LL DO',
-                  titleColor: const Color(0xFF006767),
-                  description:
-                      'Short daily check-ins using simple prompts & a feelings list.',
-                  width: double.infinity,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildInfoCard(
+                    title: 'WHAT YOU\'LL DO',
+                    titleColor: const Color(0xFF006767),
+                    description:
+                        'Short daily check-ins using simple prompts & a feelings list.',
+                    width: double.infinity,
+                  ),
                 ),
               ),
             ),
@@ -545,7 +610,7 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
     required String status,
     required bool isActive,
   }) {
-    return AnimatedContainer(
+    final cardWidget = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
       padding: const EdgeInsets.all(14),
@@ -641,6 +706,12 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
         ],
       ),
     );
+
+    // Add pulse animation to active card
+    if (isActive) {
+      return ScaleTransition(scale: _pulseAnimation, child: cardWidget);
+    }
+    return cardWidget;
   }
 
   Widget _buildBottomActions(BuildContext context) {

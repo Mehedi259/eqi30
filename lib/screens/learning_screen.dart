@@ -9,14 +9,17 @@ class LearningScreen extends StatefulWidget {
 }
 
 class _LearningScreenState extends State<LearningScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   String? selectedFeeling;
   final TextEditingController reflectionController = TextEditingController();
   final TextEditingController practiceController = TextEditingController();
 
   late AnimationController _animController;
+  late AnimationController _bounceController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _bounceAnimation;
+  late Animation<double> _rotateAnimation;
 
   @override
   void initState() {
