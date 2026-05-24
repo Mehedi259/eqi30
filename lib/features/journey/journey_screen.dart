@@ -75,6 +75,8 @@ class JourneyScreen extends StatelessWidget {
                       afterText: 'Confident Calm',
                       competencyId: 'self-management',
                       competencyColor: '#43BDC7',
+                      headerIconPath:
+                          'assets/images/Self Management head icon.png',
                     ),
                     _buildJourneyItem(
                       context: context,
@@ -216,6 +218,7 @@ class JourneyScreen extends StatelessWidget {
     required String afterText,
     required String competencyId,
     required String competencyColor,
+    String? headerIconPath,
   }) {
     return GestureDetector(
       onTap: () {
@@ -259,6 +262,15 @@ class JourneyScreen extends StatelessWidget {
                     style: AppTextStyles.heading5.copyWith(fontSize: 14),
                   ),
                 ),
+                if (headerIconPath != null) ...[
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    headerIconPath,
+                    width: 32,
+                    height: 32,
+                    fit: BoxFit.contain,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 16),

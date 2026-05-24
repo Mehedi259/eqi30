@@ -181,6 +181,8 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                                 color: const Color(0xFF43BDC7),
                                 lightColor: const Color(0xFF72D8E0),
                                 progress: 0.7,
+                                iconPath:
+                                    'assets/images/Self Management head icon.png',
                               ),
                             ),
                           ),
@@ -391,6 +393,7 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
     required Color color,
     required Color lightColor,
     required double progress,
+    String? iconPath,
   }) {
     // Convert title to competency ID
     String competencyId = title.toLowerCase().replaceAll(' ', '-');
@@ -421,7 +424,14 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Center(
-                child: Text(emoji, style: const TextStyle(fontSize: 32)),
+                child: iconPath != null
+                    ? Image.asset(
+                        iconPath,
+                        width: 36,
+                        height: 36,
+                        fit: BoxFit.contain,
+                      )
+                    : Text(emoji, style: const TextStyle(fontSize: 32)),
               ),
             ),
             const SizedBox(height: 8),

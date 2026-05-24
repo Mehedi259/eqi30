@@ -236,7 +236,7 @@ class _AbilitiesUnderCompetencyScreenState
       case 'self-management':
         return {
           'headerEmoji': '🧠',
-          'headerImage': null,
+          'headerImage': 'assets/images/Self Management head icon.png',
           'backgroundImage':
               'assets/images/Self-management element card background.png',
           'abilities': [
