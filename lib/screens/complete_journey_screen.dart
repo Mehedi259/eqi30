@@ -63,7 +63,7 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -91,45 +91,16 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   }
 
   Widget _buildSuccessIcon() {
-    return Container(
+    return SizedBox(
       width: 120,
       height: 120,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFF22C55E),
-            ),
-          ),
-          const Icon(Icons.check, size: 60, color: Colors.white),
-          Positioned(
-            right: 10,
-            top: 15,
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF22C55E).withOpacity(0.3),
-              ),
-            ),
-          ),
-        ],
+      child: Center(
+        child: Image.asset(
+          'assets/images/Practice complete top icon.png',
+          width: 120,
+          height: 120,
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }

@@ -71,7 +71,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -99,14 +99,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildVideoPlayer() {
+    // Determine thumbnail based on title
+    String thumbnailPath = 'assets/images/home.png';
+    if (widget.title.contains('Yoga for Emotional Release')) {
+      thumbnailPath = 'assets/images/Yoga for Emotional Release thamnail.png';
+    }
+
     return Container(
       width: double.infinity,
       height: 220,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: const Color(0xFFE0E0E0),
-        image: const DecorationImage(
-          image: AssetImage('assets/images/home.png'),
+        image: DecorationImage(
+          image: AssetImage(thumbnailPath),
           fit: BoxFit.cover,
         ),
       ),
@@ -119,7 +125,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.black.withOpacity(0.3), Colors.transparent],
+                colors: [
+                  Colors.black.withValues(alpha: 0.3),
+                  Colors.transparent,
+                ],
               ),
             ),
           ),
@@ -146,8 +155,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             bottom: 0,
             child: Container(
               height: 4,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
@@ -159,7 +168,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ),
                 child: LinearProgressIndicator(
                   value: 0.3,
-                  backgroundColor: Colors.white.withOpacity(0.3),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     Color(0xFF2E7D32),
                   ),

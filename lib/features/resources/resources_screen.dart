@@ -216,6 +216,8 @@ class ResourcesScreen extends StatelessWidget {
                   'Yoga for Emotional Release',
                   'Video Guide',
                   '25m',
+                  thumbnailPath:
+                      'assets/images/Yoga for Emotional Release thamnail.png',
                 ),
               ),
               const SizedBox(height: 12),
@@ -312,8 +314,9 @@ class ResourcesScreen extends StatelessWidget {
     String emoji,
     String title,
     String subtitle,
-    String duration,
-  ) {
+    String duration, {
+    String? thumbnailPath,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -329,9 +332,19 @@ class ResourcesScreen extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 24)),
-            ),
+            child: thumbnailPath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      thumbnailPath,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(

@@ -336,6 +336,8 @@ class _ResourcesTabState extends State<ResourcesTab> {
                         duration: '25m',
                         bgColor: const Color(0x194CAF50),
                         borderColor: const Color(0x334CAF50),
+                        thumbnailPath:
+                            'assets/images/Yoga for Emotional Release thamnail.png',
                       ),
                     ),
 
@@ -576,6 +578,7 @@ class _ResourcesTabState extends State<ResourcesTab> {
     required String duration,
     required Color bgColor,
     required Color borderColor,
+    String? thumbnailPath,
   }) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -594,9 +597,19 @@ class _ResourcesTabState extends State<ResourcesTab> {
               border: Border.all(color: borderColor),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 20)),
-            ),
+            child: thumbnailPath != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      thumbnailPath,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                : Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 20)),
+                  ),
           ),
           const SizedBox(width: 16),
           Expanded(
