@@ -13,7 +13,6 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoPlayerController? _controller;
-  bool _isInitialized = false;
 
   @override
   void dispose() {

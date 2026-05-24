@@ -13,7 +13,7 @@ class StartJourneyDetailScreen extends StatelessWidget {
           children: [
             // Header
             _buildHeader(context),
-            
+
             // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
@@ -22,23 +22,23 @@ class StartJourneyDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    
+
                     // Category Badge and Recommendation
                     _buildCategoryRow(),
                     const SizedBox(height: 16),
-                    
+
                     // Info Cards (What it is, Why it matters, What you'll do)
                     _buildInfoCards(),
                     const SizedBox(height: 16),
-                    
+
                     // Journey Details (30-day, 5 min/day, 60 micro-skills)
                     _buildJourneyDetails(),
                     const SizedBox(height: 24),
-                    
+
                     // What You'll Learn Section
                     _buildWhatYouLearnSection(),
                     const SizedBox(height: 24),
-                    
+
                     // Journey Phases Section
                     _buildJourneyPhasesSection(),
                     const SizedBox(height: 32),
@@ -46,7 +46,7 @@ class StartJourneyDetailScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Bottom Action Buttons
             _buildBottomActions(context),
           ],
@@ -66,7 +66,7 @@ class StartJourneyDetailScreen extends StatelessWidget {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.10),
+                color: Colors.black.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(100),
               ),
               child: const Icon(Icons.arrow_back, size: 16),
@@ -115,4 +115,40 @@ class StartJourneyDetailScreen extends StatelessWidget {
         const Text(
           'Recommended First',
           style: TextStyle(
-            color: Col
+            color: Color(0xFF637275),
+            fontSize: 11,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w400,
+            height: 1.50,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCards() {
+    return const Text('Info cards coming soon');
+  }
+
+  Widget _buildJourneyDetails() {
+    return const Text('Journey details coming soon');
+  }
+
+  Widget _buildWhatYouLearnSection() {
+    return const Text('What you\'ll learn coming soon');
+  }
+
+  Widget _buildJourneyPhasesSection() {
+    return const Text('Journey phases coming soon');
+  }
+
+  Widget _buildBottomActions(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(26),
+      child: ElevatedButton(
+        onPressed: () => context.pop(),
+        child: const Text('Continue'),
+      ),
+    );
+  }
+}
