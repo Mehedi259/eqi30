@@ -33,71 +33,163 @@ class _CustomJourneyOnboardingScreenState
   late Animation<Offset> _continueButtonSlideAnimation;
   late Animation<Offset> _backLinkSlideAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _card1FadeAnimation;
+  late Animation<double> _card2FadeAnimation;
+  late Animation<double> _card3FadeAnimation;
+  late Animation<double> _card4FadeAnimation;
+  late Animation<double> _card5FadeAnimation;
+  late Animation<double> _card6FadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1800),
       vsync: this,
     );
 
-    // Very subtle upward slide with smooth fade
-    _headerSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Header animation - slides from top with fade
+    _headerSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, -0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _infoBoxSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Info box animation - slides from right with bounce
+    _infoBoxSlideAnimation =
+        Tween<Offset>(begin: const Offset(0.5, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.1, 0.5, curve: Curves.elasticOut),
+          ),
+        );
 
-    _card1SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Staggered card animations with different timings
+    _card1SlideAnimation =
+        Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.2, 0.5, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _card2SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _card2SlideAnimation =
+        Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.25, 0.55, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _card3SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _card3SlideAnimation =
+        Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.3, 0.6, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _card4SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _card4SlideAnimation =
+        Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.35, 0.65, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _card5SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _card5SlideAnimation =
+        Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.4, 0.7, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _card6SlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _card6SlideAnimation =
+        Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.45, 0.75, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    _continueButtonSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Continue button - slides from bottom with bounce
+    _continueButtonSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.6, 0.9, curve: Curves.elasticOut),
+          ),
+        );
 
-    _backLinkSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    // Back link - fades in at the end
+    _backLinkSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+          ),
+        );
 
-    // Smooth, slow fade animation
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
+    // Main fade animation
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeIn),
+      ),
+    );
+
+    // Scale animation for cards
+    _scaleAnimation = Tween<double>(
+      begin: 0.8,
       end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    // Individual card fade animations with stagger
+    _card1FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.2, 0.5, curve: Curves.easeIn),
+      ),
+    );
+
+    _card2FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.25, 0.55, curve: Curves.easeIn),
+      ),
+    );
+
+    _card3FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _card4FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.35, 0.65, curve: Curves.easeIn),
+      ),
+    );
+
+    _card5FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeIn),
+      ),
+    );
+
+    _card6FadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.45, 0.75, curve: Curves.easeIn),
+      ),
+    );
 
     _controller.forward();
   }
@@ -126,7 +218,7 @@ class _CustomJourneyOnboardingScreenState
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(100),
             ),
             child: const Icon(Icons.arrow_back, size: 16, color: Colors.black),
@@ -236,18 +328,21 @@ class _CustomJourneyOnboardingScreenState
             ),
             const SizedBox(height: 16),
 
-            // Competency Cards with animations
+            // Competency Cards with staggered animations
             SlideTransition(
               position: _card1SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '🔄',
-                  'Self Management',
-                  'Master your reactions',
-                  const Color(0xFF43BDC7),
-                  const Color(0xFFD8F3F3),
-                  'Self Management',
+                opacity: _card1FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '🔄',
+                    'Self Management',
+                    'Master your reactions',
+                    const Color(0xFF43BDC7),
+                    const Color(0xFFD8F3F3),
+                    'Self Management',
+                  ),
                 ),
               ),
             ),
@@ -255,14 +350,17 @@ class _CustomJourneyOnboardingScreenState
             SlideTransition(
               position: _card2SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '🌊',
-                  'Stress Management',
-                  'Stay calm under pressure',
-                  const Color(0xFF249FA9),
-                  const Color(0xFFD8F3F3),
-                  'Stress Management',
+                opacity: _card2FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '🌊',
+                    'Stress Management',
+                    'Stay calm under pressure',
+                    const Color(0xFF249FA9),
+                    const Color(0xFFD8F3F3),
+                    'Stress Management',
+                  ),
                 ),
               ),
             ),
@@ -270,14 +368,17 @@ class _CustomJourneyOnboardingScreenState
             SlideTransition(
               position: _card3SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '🤝',
-                  'Interpersonal Management',
-                  'Connect with others',
-                  const Color(0xFF43C76F),
-                  const Color(0xFFD4EDDD),
-                  'Interpersonal Management',
+                opacity: _card3FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '🤝',
+                    'Interpersonal Management',
+                    'Connect with others',
+                    const Color(0xFF43C76F),
+                    const Color(0xFFD4EDDD),
+                    'Interpersonal Management',
+                  ),
                 ),
               ),
             ),
@@ -285,14 +386,17 @@ class _CustomJourneyOnboardingScreenState
             SlideTransition(
               position: _card4SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '⚡',
-                  'Spirit Management',
-                  'Fuel your daily drive',
-                  const Color(0xFFF37C21),
-                  const Color(0xFFEFE0D5),
-                  'Spirit Management',
+                opacity: _card4FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '⚡',
+                    'Spirit Management',
+                    'Fuel your daily drive',
+                    const Color(0xFFF37C21),
+                    const Color(0xFFEFE0D5),
+                    'Spirit Management',
+                  ),
                 ),
               ),
             ),
@@ -300,14 +404,17 @@ class _CustomJourneyOnboardingScreenState
             SlideTransition(
               position: _card5SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '🧭',
-                  'Executive Functioning',
-                  'Plan and execute',
-                  const Color(0xFF96B6F0),
-                  const Color(0xFFD4DEEF),
-                  'Executive Functioning',
+                opacity: _card5FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '🧭',
+                    'Executive Functioning',
+                    'Plan and execute',
+                    const Color(0xFF96B6F0),
+                    const Color(0xFFD4DEEF),
+                    'Executive Functioning',
+                  ),
                 ),
               ),
             ),
@@ -315,14 +422,17 @@ class _CustomJourneyOnboardingScreenState
             SlideTransition(
               position: _card6SlideAnimation,
               child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: _buildCompetencyCard(
-                  '🎯',
-                  'Decision Making',
-                  'Navigate complex choices',
-                  const Color(0xFF6A95E2),
-                  const Color(0xFFD5DFF1),
-                  'Decision Making',
+                opacity: _card6FadeAnimation,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: _buildCompetencyCard(
+                    '🎯',
+                    'Decision Making',
+                    'Navigate complex choices',
+                    const Color(0xFF6A95E2),
+                    const Color(0xFFD5DFF1),
+                    'Decision Making',
+                  ),
                 ),
               ),
             ),
@@ -426,7 +536,7 @@ class _CustomJourneyOnboardingScreenState
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -480,7 +590,9 @@ class _CustomJourneyOnboardingScreenState
 
                 return GestureDetector(
                   onTap: () => _setPriority(competencyKey, priority),
-                  child: Container(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutBack,
                     width: 32,
                     height: 32,
                     decoration: BoxDecoration(
@@ -489,7 +601,7 @@ class _CustomJourneyOnboardingScreenState
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                                 blurRadius: 2,
                                 offset: const Offset(0, 1),
                               ),
@@ -497,17 +609,18 @@ class _CustomJourneyOnboardingScreenState
                           : null,
                     ),
                     child: Center(
-                      child: Text(
-                        '$priority',
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 300),
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
                               : const Color(0xFF0B191D),
-                          fontSize: 12,
+                          fontSize: isSelected ? 14 : 12,
                           fontFamily: 'Inter',
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.60,
                         ),
+                        child: Text('$priority'),
                       ),
                     ),
                   ),

@@ -1,10 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key, this.onNavigateToJourney});
 
   final VoidCallback? onNavigateToJourney;
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _progressAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 0.34).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOutCubic,
+      ),
+    );
+
+    // Start animation when widget loads
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,36 +163,43 @@ class HomeTab extends StatelessWidget {
                   ),
                   child: Column(
                     children: [
-                      // Circular Progress
-                      SizedBox(
-                        width: 150,
-                        height: 150,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 150,
-                              height: 150,
-                              child: CircularProgressIndicator(
-                                value: 0.34,
-                                strokeWidth: 8,
-                                backgroundColor: const Color(0xFFD9D9D9),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF3CA440),
+                      // Circular Progress with Animation
+                      AnimatedBuilder(
+                        animation: _progressAnimation,
+                        builder: (context, child) {
+                          return SizedBox(
+                            width: 150,
+                            height: 150,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 150,
+                                  height: 150,
+                                  child: CircularProgressIndicator(
+                                    value: _progressAnimation.value,
+                                    strokeWidth: 14,
+                                    strokeCap: StrokeCap.round,
+                                    backgroundColor: const Color(0xFFD9D9D9),
+                                    valueColor:
+                                        const AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF3CA440),
+                                        ),
+                                  ),
                                 ),
-                              ),
+                                Text(
+                                  '${(_progressAnimation.value * 100).toInt()}%',
+                                  style: const TextStyle(
+                                    color: Color(0xFF3CA440),
+                                    fontSize: 36,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const Text(
-                              '34%',
-                              style: TextStyle(
-                                color: Color(0xFF3CA440),
-                                fontSize: 36,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 32),
@@ -196,7 +236,7 @@ class HomeTab extends StatelessWidget {
                 // Action Cards
                 _buildActionCard(
                   context,
-                  icon: Icons.trending_up,
+                  imagePath: 'assets/images/Check My Progress icon.png',
                   iconBgColor: const Color(0xFFD8FFDA),
                   title: 'Check My Progress',
                   subtitle: 'Detailed Insights',
@@ -207,7 +247,7 @@ class HomeTab extends StatelessWidget {
 
                 _buildActionCard(
                   context,
-                  icon: Icons.chat_bubble_outline,
+                  imagePath: 'assets/images/Need Guidance icon.png',
                   iconBgColor: const Color(0xFFD7E4FF),
                   title: 'Need Guidance?',
                   subtitle: 'Talk with AI EQ Coach',
@@ -221,8 +261,8 @@ class HomeTab extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      if (onNavigateToJourney != null) {
-                        onNavigateToJourney!();
+                      if (widget.onNavigateToJourney != null) {
+                        widget.onNavigateToJourney!();
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -262,7 +302,8 @@ class HomeTab extends StatelessWidget {
 
   Widget _buildActionCard(
     BuildContext context, {
-    required IconData icon,
+    String? imagePath,
+    IconData? icon,
     required Color iconBgColor,
     required String title,
     required String subtitle,
@@ -275,7 +316,7 @@ class HomeTab extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Colors.black.withOpacity(0.05)),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(
@@ -294,7 +335,16 @@ class HomeTab extends StatelessWidget {
                 color: iconBgColor,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, size: 28),
+              child: imagePath != null
+                  ? Center(
+                      child: Image.asset(
+                        imagePath,
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : Icon(icon ?? Icons.help_outline, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
