@@ -109,7 +109,9 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       height: 1.33,
                     ),
+
                   ),
+
                   const SizedBox(height: 4),
                   const Text(
                     'Each ability is a focused 30–60 day micro-skill journey. Start with one.',
@@ -117,8 +119,7 @@ class AbilitiesUnderCompetencyScreen extends StatelessWidget {
                       color: Color(0xFF8A96A8),
                       fontSize: 14,
                       fontFamily: 'Inter',
-                      fontWeight: FontWeight.w400,
-                      height: 1.43,
+         ame               height: 1.43,
                     ),
                   ),
                 ],

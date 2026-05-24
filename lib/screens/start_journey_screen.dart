@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'learning_screen.dart';
 
 class StartJourneyScreen extends StatelessWidget {
   const StartJourneyScreen({super.key});
@@ -452,7 +453,12 @@ class StartJourneyScreen extends StatelessWidget {
             height: 54,
             child: ElevatedButton(
               onPressed: () {
-                // Navigate to first skill screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LearningScreen(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF073B4B),
