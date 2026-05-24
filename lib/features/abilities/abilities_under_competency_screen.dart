@@ -31,27 +31,45 @@ class _AbilitiesUnderCompetencyScreenState
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
     // Very subtle upward slide with smooth fade
-    _headerImageSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _headerImageSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.03), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
+          ),
+        );
 
-    _headerTextSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _headerTextSlideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.03), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.1, 0.4, curve: Curves.easeOut),
+          ),
+        );
 
-    // Create 5 ability card animations with subtle upward movement
+    // Create 5 ability card animations with staggered timing from bottom
     _abilityCardAnimations = List.generate(5, (index) {
+      final double startInterval = 0.2 + (index * 0.12);
+      final double endInterval = startInterval + 0.4;
+
       return Tween<Offset>(
-        begin: const Offset(0, 0.02),
+        begin: const Offset(0, 0.15), // Start from bottom
         end: Offset.zero,
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+      ).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: Interval(
+            startInterval,
+            endInterval > 1.0 ? 1.0 : endInterval,
+            curve: Curves.easeOut,
+          ),
+        ),
+      );
     });
 
     // Smooth, slow fade animation
