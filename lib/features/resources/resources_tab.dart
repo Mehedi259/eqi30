@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ResourcesTab extends StatefulWidget {
   const ResourcesTab({super.key});
@@ -219,7 +220,14 @@ class _ResourcesTabState extends State<ResourcesTab> {
                     const SizedBox(height: 12),
 
                     // Featured Card
-                    _buildFeaturedCard(),
+                    GestureDetector(
+                      onTap: () {
+                        context.push(
+                          '/audio-player?title=Morning Calm — Body Scan&subtitle=Audio Guide',
+                        );
+                      },
+                      child: _buildFeaturedCard(),
+                    ),
 
                     const SizedBox(height: 24),
 
@@ -240,40 +248,61 @@ class _ResourcesTabState extends State<ResourcesTab> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                          _buildMeditationCard(
-                            emoji: '🌿',
-                            title: 'Morning Body\nScan',
-                            duration: '10 min',
-                            level: 'Beginner',
-                            levelColor: const Color(0xFF3CA440),
-                            gradient: const [
-                              Color(0x194CAF50),
-                              Color(0x004CAF50),
-                            ],
+                          GestureDetector(
+                            onTap: () {
+                              context.push(
+                                '/audio-player?title=Morning Body Scan&subtitle=Guided Meditation',
+                              );
+                            },
+                            child: _buildMeditationCard(
+                              emoji: '🌿',
+                              title: 'Morning Body\nScan',
+                              duration: '10 min',
+                              level: 'Beginner',
+                              levelColor: const Color(0xFF3CA440),
+                              gradient: const [
+                                Color(0x194CAF50),
+                                Color(0x004CAF50),
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          _buildMeditationCard(
-                            emoji: '🌊',
-                            title: 'Stress Release\nFlow',
-                            duration: '15 min',
-                            level: 'Intermediate',
-                            levelColor: const Color(0xFF238EAB),
-                            gradient: const [
-                              Color(0x33627BB0),
-                              Color(0x008EA2CE),
-                            ],
+                          GestureDetector(
+                            onTap: () {
+                              context.push(
+                                '/audio-player?title=Stress Release Flow&subtitle=Guided Meditation',
+                              );
+                            },
+                            child: _buildMeditationCard(
+                              emoji: '🌊',
+                              title: 'Stress Release\nFlow',
+                              duration: '15 min',
+                              level: 'Intermediate',
+                              levelColor: const Color(0xFF238EAB),
+                              gradient: const [
+                                Color(0x33627BB0),
+                                Color(0x008EA2CE),
+                              ],
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          _buildMeditationCard(
-                            emoji: '🌞',
-                            title: 'Evening Wind\nDown',
-                            duration: '20 min',
-                            level: 'Beginner',
-                            levelColor: const Color(0xFFD87940),
-                            gradient: const [
-                              Color(0x33FFDCC1),
-                              Color(0x00FFDCC1),
-                            ],
+                          GestureDetector(
+                            onTap: () {
+                              context.push(
+                                '/audio-player?title=Evening Wind Down&subtitle=Guided Meditation',
+                              );
+                            },
+                            child: _buildMeditationCard(
+                              emoji: '🌞',
+                              title: 'Evening Wind\nDown',
+                              duration: '20 min',
+                              level: 'Beginner',
+                              levelColor: const Color(0xFFD87940),
+                              gradient: const [
+                                Color(0x33FFDCC1),
+                                Color(0x00FFDCC1),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -294,35 +323,56 @@ class _ResourcesTabState extends State<ResourcesTab> {
 
                     const SizedBox(height: 12),
 
-                    _buildYogaItem(
-                      emoji: '🧘',
-                      title: 'Yoga for Emotional Release',
-                      subtitle: 'Video Guide',
-                      duration: '25m',
-                      bgColor: const Color(0x194CAF50),
-                      borderColor: const Color(0x334CAF50),
+                    GestureDetector(
+                      onTap: () {
+                        context.push(
+                          '/video-player?title=Yoga for Emotional Release',
+                        );
+                      },
+                      child: _buildYogaItem(
+                        emoji: '🧘',
+                        title: 'Yoga for Emotional Release',
+                        subtitle: 'Video Guide',
+                        duration: '25m',
+                        bgColor: const Color(0x194CAF50),
+                        borderColor: const Color(0x334CAF50),
+                      ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    _buildYogaItem(
-                      emoji: '🌬️',
-                      title: 'Breathwork & Pranayama',
-                      subtitle: 'Guided Session',
-                      duration: '15m',
-                      bgColor: const Color(0x4CD6E3FF),
-                      borderColor: const Color(0x7FD6E3FF),
+                    GestureDetector(
+                      onTap: () {
+                        context.push(
+                          '/audio-player?title=Breathwork & Pranayama&subtitle=Guided Session',
+                        );
+                      },
+                      child: _buildYogaItem(
+                        emoji: '🌬️',
+                        title: 'Breathwork & Pranayama',
+                        subtitle: 'Guided Session',
+                        duration: '15m',
+                        bgColor: const Color(0x4CD6E3FF),
+                        borderColor: const Color(0x7FD6E3FF),
+                      ),
                     ),
 
                     const SizedBox(height: 12),
 
-                    _buildYogaItem(
-                      emoji: '💪',
-                      title: 'Yoga for Stress Recovery',
-                      subtitle: 'Video Guide',
-                      duration: '30m',
-                      bgColor: const Color(0x4CFFDCC1),
-                      borderColor: const Color(0x7FFFDCC1),
+                    GestureDetector(
+                      onTap: () {
+                        context.push(
+                          '/video-player?title=Yoga for Stress Recovery',
+                        );
+                      },
+                      child: _buildYogaItem(
+                        emoji: '💪',
+                        title: 'Yoga for Stress Recovery',
+                        subtitle: 'Video Guide',
+                        duration: '30m',
+                        bgColor: const Color(0x4CFFDCC1),
+                        borderColor: const Color(0x7FFFDCC1),
+                      ),
                     ),
 
                     const SizedBox(height: 24),

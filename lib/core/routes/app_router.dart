@@ -36,10 +36,16 @@ import '../../features/resources/resources_screen.dart';
 import '../../features/progress/progress_tracker_screen.dart';
 import '../../features/chat/chat_screen.dart';
 import '../../features/feedback/feedback_screen.dart';
+import '../../screens/audio_player_screen.dart';
+import '../../screens/video_player_screen.dart';
+import '../../screens/learning_screen.dart';
+import '../../screens/complete_journey_screen.dart';
+import '../../screens/journey_completed_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
+    debugLogDiagnostics: true, // Enable route logging
     routes: [
       // Auth Routes
       GoRoute(
@@ -208,6 +214,44 @@ class AppRouter {
       GoRoute(
         path: '/feedback',
         builder: (context, state) => const FeedbackScreen(),
+      ),
+      GoRoute(
+        path: '/audio-player',
+        builder: (context, state) {
+          final title =
+              state.uri.queryParameters['title'] ?? 'Morning Body Scan';
+          final subtitle =
+              state.uri.queryParameters['subtitle'] ??
+              'Guided by Dr. Sheela Reddy';
+          final audioUrl = state.uri.queryParameters['audioUrl'];
+          return AudioPlayerScreen(
+            title: title,
+            subtitle: subtitle,
+            audioUrl: audioUrl,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/video-player',
+        builder: (context, state) {
+          final title =
+              state.uri.queryParameters['title'] ??
+              'Yoga for Emotional Release';
+          final videoUrl = state.uri.queryParameters['videoUrl'];
+          return VideoPlayerScreen(title: title, videoUrl: videoUrl);
+        },
+      ),
+      GoRoute(
+        path: '/learning',
+        builder: (context, state) => const LearningScreen(),
+      ),
+      GoRoute(
+        path: '/complete-journey',
+        builder: (context, state) => const CompleteJourneyScreen(),
+      ),
+      GoRoute(
+        path: '/journey-completed',
+        builder: (context, state) => const JourneyCompletedScreen(),
       ),
     ],
   );
