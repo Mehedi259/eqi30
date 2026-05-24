@@ -8,13 +8,45 @@ class LearningScreen extends StatefulWidget {
   State<LearningScreen> createState() => _LearningScreenState();
 }
 
-class _LearningScreenState extends State<LearningScreen> {
+class _LearningScreenState extends State<LearningScreen>
+    with SingleTickerProviderStateMixin {
   String? selectedFeeling;
   final TextEditingController reflectionController = TextEditingController();
   final TextEditingController practiceController = TextEditingController();
 
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animController,
+            curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    _animController.forward();
+  }
+
   @override
   void dispose() {
+    _animController.dispose();
     reflectionController.dispose();
     practiceController.dispose();
     super.dispose();
@@ -64,129 +96,144 @@ class _LearningScreenState extends State<LearningScreen> {
   }
 
   Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.10),
-                borderRadius: BorderRadius.circular(100),
-              ),
-              child: const Icon(Icons.arrow_back, size: 16),
-            ),
-          ),
-          const Expanded(
-            child: Text(
-              'Learning',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF0B191D),
-                fontSize: 18,
-                fontFamily: 'Archivo',
-                fontWeight: FontWeight.w600,
-                height: 1.11,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 8),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: const Icon(Icons.arrow_back, size: 16),
               ),
             ),
-          ),
-          const SizedBox(width: 24),
-        ],
+            const Expanded(
+              child: Text(
+                'Learning',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 18,
+                  fontFamily: 'Archivo',
+                  fontWeight: FontWeight.w600,
+                  height: 1.11,
+                ),
+              ),
+            ),
+            const SizedBox(width: 24),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildProgressSection() {
-    return Column(
-      children: [
-        Container(
-          height: 3,
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: 0.033,
-              child: Container(
-                height: 3,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3D8C8C), Color(0xFFE8A54B)],
+    return SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Column(
+          children: [
+            Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(3),
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: 0.033,
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3D8C8C), Color(0xFFE8A54B)],
+                      ),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Emotional Awareness',
-                  style: TextStyle(
-                    color: Color(0xFF637275),
-                    fontSize: 12,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w400,
-                    height: 1.50,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Emotional Awareness',
+                      style: TextStyle(
+                        color: Color(0xFF637275),
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w400,
+                        height: 1.50,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Day 1 of 30',
+                      style: TextStyle(
+                        color: Color(0xFF0B191D),
+                        fontSize: 15,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                        height: 1.50,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 3),
-                const Text(
-                  'Day 1 of 30',
-                  style: TextStyle(
-                    color: Color(0xFF0B191D),
-                    fontSize: 15,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    height: 1.50,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 9,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33E8A54B),
+                    border: Border.all(color: const Color(0x66E8A54B)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    '🔥 3-day streak',
+                    style: TextStyle(
+                      color: Color(0xFFE8A54B),
+                      fontSize: 12,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w600,
+                      height: 1.50,
+                    ),
                   ),
                 ),
               ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-              decoration: BoxDecoration(
-                color: const Color(0x33E8A54B),
-                border: Border.all(color: const Color(0x66E8A54B)),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Text(
-                '🔥 3-day streak',
-                style: TextStyle(
-                  color: Color(0xFFE8A54B),
-                  fontSize: 12,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w600,
-                  height: 1.50,
-                ),
-              ),
-            ),
           ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildTitle() {
-    return const Text(
-      'From \'Fine\' to a Feeling',
-      style: TextStyle(
-        color: Color(0xFF1A2B4A),
-        fontSize: 24,
-        fontFamily: 'Poppins',
-        fontWeight: FontWeight.w600,
-        height: 1.33,
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: const Text(
+        'From \'Fine\' to a Feeling',
+        style: TextStyle(
+          color: Color(0xFF1A2B4A),
+          fontSize: 24,
+          fontFamily: 'Poppins',
+          fontWeight: FontWeight.w600,
+          height: 1.33,
+        ),
       ),
     );
   }
