@@ -1,21 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
+<!-- Native splash screen - solid color only -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Background gradient colors -->
+    <!-- Solid white background -->
     <item>
         <shape android:shape="rectangle">
-            <gradient
-                android:angle="90"
-                android:startColor="#FFE7DB"
-                android:endColor="#DAF8FF"
-                android:type="linear" />
+            <solid android:color="#FFFFFF" />
         </shape>
-    </item>
-
-    <!-- App logo centered -->
-    <item>
-        <bitmap
-            android:gravity="center"
-            android:src="@drawable/splash_logo" />
     </item>
 </layer-list>
