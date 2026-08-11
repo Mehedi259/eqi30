@@ -353,6 +353,7 @@ class _AbilitiesUnderCompetencyScreenState
           ],
         };
 
+      case 'interpersonal-management':
       case 'interpersonal':
         return {
           'headerEmoji': '🤝',
@@ -582,12 +583,8 @@ class _AbilitiesUnderCompetencyScreenState
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage(backgroundImage),
-          fit: BoxFit.cover,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
@@ -598,10 +595,23 @@ class _AbilitiesUnderCompetencyScreenState
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 4,
+                color: primaryColor,
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -690,7 +700,13 @@ class _AbilitiesUnderCompetencyScreenState
               ),
             ),
           ),
-        ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

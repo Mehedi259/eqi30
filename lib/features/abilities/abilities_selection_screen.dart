@@ -230,10 +230,10 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                               child: _buildAbilityCard(
                                 context,
                                 emoji: '🤝',
-                                title: 'Interpersonal',
+                                title: 'Interpersonal Management',
                                 subtitle: 'Empathy · Communication · Conflict',
-                                color: const Color(0xFF43C76F),
-                                lightColor: const Color(0xFF87E6A6),
+                                color: const Color(0xFF249FA9),
+                                lightColor: const Color(0xFF5BBEC6),
                                 progress: 0.8,
                               ),
                             ),
@@ -255,8 +255,8 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                                 emoji: '🌊',
                                 title: 'Stress Management',
                                 subtitle: 'Resilience · Flexibility · Optimism',
-                                color: const Color(0xFF249FA9),
-                                lightColor: const Color(0xFF5BBEC6),
+                                color: const Color(0xFF43C76F),
+                                lightColor: const Color(0xFF87E6A6),
                                 progress: 0.6,
                               ),
                             ),
@@ -380,30 +380,39 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                       opacity: _fadeAnimation,
                       child: SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            context.pop();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 15,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0xFFBCD9DE),
+                                Color(0xFFE8F6F8),
+                              ],
                             ),
-                            side: const BorderSide(color: Colors.transparent),
-                            backgroundColor: const Color(
-                              0xFFDCF7FB,
-                            ).withOpacity(0.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Go Back',
-                            style: TextStyle(
-                              color: Color(0xFF0B191D),
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
+                          child: TextButton(
+                            onPressed: () {
+                              context.pop();
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 15,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Go Back',
+                              style: TextStyle(
+                                color: Color(0xFF0B191D),
+                                fontSize: 16,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),
@@ -431,8 +440,7 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
   }) {
     // Convert title to competency ID
     String competencyId = title.toLowerCase().replaceAll(' ', '-');
-    String colorHex =
-        '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
+    String colorHex = color.value.toRadixString(16).substring(2).toUpperCase();
 
     return GestureDetector(
       onTap: () {
