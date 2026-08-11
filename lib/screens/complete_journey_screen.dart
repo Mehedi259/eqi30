@@ -56,25 +56,18 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Container(
-              width: 40,
-              height: 40,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: Colors.black.withValues(alpha: 0.10),
+                shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.arrow_back, size: 20),
+              child: const Icon(Icons.arrow_back, size: 18),
             ),
           ),
           const Expanded(
             child: Text(
-              'Complete Journey',
+              'Emotional Awareness Journey',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF0B191D),
@@ -84,7 +77,7 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
               ),
             ),
           ),
-          const SizedBox(width: 40),
+          const SizedBox(width: 32),
         ],
       ),
     );
@@ -232,29 +225,17 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   }
 
   Widget _buildMotivationalText() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: RichText(
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: Text(
+        'Small daily practices like this are how your EQi30 abilities grow — week by week, not all at once.',
         textAlign: TextAlign.center,
-        text: const TextSpan(
-          style: TextStyle(
-            color: Color(0xFF637275),
-            fontSize: 14,
-            fontFamily: 'Inter',
-            fontStyle: FontStyle.italic,
-            height: 1.5,
-          ),
-          children: [
-            TextSpan(text: 'Small daily practices like this are '),
-            TextSpan(
-              text: 'how your EQi30 abilities grow',
-              style: TextStyle(
-                color: Color(0xFF3D8C8C),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            TextSpan(text: ' — week by week, not all at once.'),
-          ],
+        style: TextStyle(
+          color: Color(0xFF637275),
+          fontSize: 14,
+          fontFamily: 'Inter',
+          fontStyle: FontStyle.italic,
+          height: 1.5,
         ),
       ),
     );
@@ -263,29 +244,59 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.all(26),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const JourneyCompletedScreen(),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF073B4B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF073B4B),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.arrow_back, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Go Back',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Let\'s try a 2-minute exercise',
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const JourneyCompletedScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF073B4B),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Save and Exit',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -293,11 +304,9 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(width: 12),
-              Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
