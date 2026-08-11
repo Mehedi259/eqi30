@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../screens/start_journey_screen.dart';
 
 class JourneyTab extends StatelessWidget {
@@ -107,6 +108,68 @@ class JourneyTab extends StatelessWidget {
                       buttonText: 'Lets start with ...',
                       iconColor: const Color(0xFFE5E2E1),
                       icon: Icons.water_drop_outlined,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    GestureDetector(
+                      onTap: () => context.push('/previous-journey'),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x0C000000),
+                              blurRadius: 30,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F2F4),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.route_outlined, size: 28),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: const [
+                                  Text(
+                                    'View previous journey',
+                                    style: TextStyle(
+                                      color: Color(0xFF0B191D),
+                                      fontSize: 16,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Review your history',
+                                    style: TextStyle(
+                                      color: Color(0xFF637275),
+                                      fontSize: 12,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 24),

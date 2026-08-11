@@ -250,8 +250,19 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                   imagePath: 'assets/images/Need Guidance icon.png',
                   iconBgColor: const Color(0xFFD7E4FF),
                   title: 'Need Guidance?',
-                  subtitle: 'Talk with AI EQ Coach',
+                  subtitle: 'Talk with Ember',
                   onTap: () => context.push('/chat'),
+                ),
+
+                const SizedBox(height: 12),
+
+                _buildActionCard(
+                  context,
+                  icon: Icons.route_outlined,
+                  iconBgColor: const Color(0xFFF1F2F4),
+                  title: 'View previous journey',
+                  subtitle: 'Review your history',
+                  onTap: () => context.push('/previous-journey'),
                 ),
 
                 const SizedBox(height: 24),

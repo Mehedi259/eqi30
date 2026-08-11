@@ -44,6 +44,8 @@ import '../../screens/learning_screen.dart';
 import '../../screens/complete_journey_screen.dart';
 import '../../screens/journey_completed_screen.dart';
 
+import '../../features/journey/previous_journey_screen.dart';
+
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
@@ -120,6 +122,10 @@ class AppRouter {
       GoRoute(
         path: '/result',
         builder: (context, state) => const ResultScreen(),
+      ),
+      GoRoute(
+        path: '/previous-journey',
+        builder: (context, state) => const PreviousJourneyScreen(),
       ),
       GoRoute(
         path: '/journey',

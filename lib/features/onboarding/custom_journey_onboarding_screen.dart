@@ -447,8 +447,8 @@ class _CustomJourneyOnboardingScreenState
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Navigate to register/login screen
-                      context.push('/register');
+                      // Navigate to journey details (Here's your guided journey)
+                      context.push('/journey-details');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF073B4B),

@@ -340,7 +340,7 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            context.push('/journey');
+                            context.push('/register');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF073B4B),
