@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../core/constants/app_colors.dart';
+import '../core/constants/app_text_styles.dart';
 import 'complete_journey_screen.dart';
 
 class LearningScreen extends StatefulWidget {
@@ -71,13 +74,13 @@ class _LearningScreenState extends State<LearningScreen>
                     const SizedBox(height: 24),
                     _buildTitle(),
                     const SizedBox(height: 12),
-                    _buildRealLifePlan(),
-                    const SizedBox(height: 16),
-                    _buildQuickReflection(),
-                    const SizedBox(height: 16),
                     _buildTodaysTeaching(),
                     const SizedBox(height: 16),
                     _buildInAppPractice(),
+                    const SizedBox(height: 16),
+                    _buildRealLifePlan(),
+                    const SizedBox(height: 16),
+                    _buildQuickReflection(),
                     const SizedBox(height: 24),
                     _buildCompletionIndicators(),
                     const SizedBox(height: 16),
@@ -86,6 +89,125 @@ class _LearningScreenState extends State<LearningScreen>
                     _buildActionButtons(),
                     const SizedBox(height: 32),
                   ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadowCard,
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            BottomNavigationBar(
+              currentIndex: 1, // Journey is selected
+              onTap: (index) {
+                if (index == 2) {
+                  context.push('/chat');
+                } else if (index != 1) {
+                  context.go('/home?tab=$index');
+                }
+              },
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.white,
+              selectedItemColor: AppColors.primaryDark,
+              unselectedItemColor: AppColors.textGray,
+              selectedLabelStyle: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: AppTextStyles.caption,
+              items: [
+                BottomNavigationBarItem(
+                  icon: Image.asset(
+                    'assets/images/home.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/homeActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Image.asset(
+                    'assets/images/journey.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/journeyActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  label: 'Journey',
+                ),
+                const BottomNavigationBarItem(
+                  icon: SizedBox(height: 24),
+                  label: '',
+                ),
+                BottomNavigationBarItem(
+                  icon: Image.asset(
+                    'assets/images/resource.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/resourceActive.png',
+                    width: 28,
+                    height: 28,
+                  ),
+                  label: 'Resource',
+                ),
+                BottomNavigationBarItem(
+                  icon: Image.asset(
+                    'assets/images/profile.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  activeIcon: Image.asset(
+                    'assets/images/profileActive.png',
+                    width: 24,
+                    height: 24,
+                  ),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+            // Floating Chat Button
+            Positioned(
+              top: -28,
+              child: GestureDetector(
+                onTap: () => context.push('/chat'),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFF8FAFC),
+                      width: 6,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: AppColors.primaryDark,
+                    child: Image.asset(
+                      'assets/images/messageActive.png',
+                      width: 24,
+                      height: 24,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -240,10 +362,8 @@ class _LearningScreenState extends State<LearningScreen>
 
   Widget _buildRealLifePlan() {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE0EEEE)),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
@@ -253,7 +373,24 @@ class _LearningScreenState extends State<LearningScreen>
           ),
         ],
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: const Color(0xFFEF4444)), // Red border
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Color(0xFFE0EEEE)),
+                      right: BorderSide(color: Color(0xFFE0EEEE)),
+                      bottom: BorderSide(color: Color(0xFFE0EEEE)),
+                    ),
+                  ),
+                  child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -367,16 +504,20 @@ class _LearningScreenState extends State<LearningScreen>
             ),
           ),
         ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildQuickReflection() {
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFFF5FCFF),
-        border: Border.all(color: const Color(0xFFE2F9FF)),
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
@@ -386,7 +527,24 @@ class _LearningScreenState extends State<LearningScreen>
           ),
         ],
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: const Color(0xFF095A70)), // Teal/Blue border
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Color(0xFFE2F9FF)),
+                      right: BorderSide(color: Color(0xFFE2F9FF)),
+                      bottom: BorderSide(color: Color(0xFFE2F9FF)),
+                    ),
+                  ),
+                  child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -436,16 +594,20 @@ class _LearningScreenState extends State<LearningScreen>
             ),
           ),
         ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTodaysTeaching() {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFF3D8C8C), width: 4),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -455,7 +617,24 @@ class _LearningScreenState extends State<LearningScreen>
           ),
         ],
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: const Color(0xFF3D8C8C)), // Teal border
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Color(0xFFE5E7EB)),
+                      right: BorderSide(color: Color(0xFFE5E7EB)),
+                      bottom: BorderSide(color: Color(0xFFE5E7EB)),
+                    ),
+                  ),
+                  child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -512,6 +691,12 @@ class _LearningScreenState extends State<LearningScreen>
             ),
           ),
         ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -523,10 +708,8 @@ class _LearningScreenState extends State<LearningScreen>
     ];
 
     return Container(
-      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(color: const Color(0xFFE8A54B), width: 4),
         borderRadius: BorderRadius.circular(18),
         boxShadow: const [
           BoxShadow(
@@ -536,7 +719,24 @@ class _LearningScreenState extends State<LearningScreen>
           ),
         ],
       ),
-      child: Column(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: const Color(0xFFE8A54B)), // Orange border
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Color(0xFFE5E7EB)),
+                      right: BorderSide(color: Color(0xFFE5E7EB)),
+                      bottom: BorderSide(color: Color(0xFFE5E7EB)),
+                    ),
+                  ),
+                  child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -616,6 +816,12 @@ class _LearningScreenState extends State<LearningScreen>
             ),
           ),
         ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -652,20 +858,20 @@ class _LearningScreenState extends State<LearningScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildIndicator('📖', 'Teaching'),
+        _buildIndicator(Icons.check_circle_outline, const Color(0xFF22C55E), 'Teaching'),
         const SizedBox(width: 16),
-        _buildIndicator('✏️', 'Practice'),
+        _buildIndicator(Icons.radio_button_unchecked, const Color(0xFFE8A54B), 'Practice'),
         const SizedBox(width: 16),
-        _buildIndicator('💭', 'Reflection'),
+        _buildIndicator(Icons.radio_button_unchecked, Colors.black, 'Reflection'),
       ],
     );
   }
 
-  Widget _buildIndicator(String emoji, String label) {
+  Widget _buildIndicator(IconData iconData, Color color, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
+        Icon(iconData, color: color, size: 18),
         const SizedBox(width: 6),
         Text(
           label,
