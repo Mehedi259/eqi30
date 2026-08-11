@@ -931,7 +931,10 @@ class _LearningScreenState extends State<LearningScreen>
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Continue action
+              showDialog(
+                context: context,
+                builder: (context) => const WeeklyCheckInDialog(),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF073B4B),
@@ -981,3 +984,302 @@ class _LearningScreenState extends State<LearningScreen>
     );
   }
 }
+
+class WeeklyCheckInDialog extends StatefulWidget {
+  const WeeklyCheckInDialog({super.key});
+
+  @override
+  State<WeeklyCheckInDialog> createState() => _WeeklyCheckInDialogState();
+}
+
+class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
+  String q1Selected = 'yes';
+  String q2Selected = 'good';
+  String q3Selected = 'definitely';
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF2A8B8B), width: 2),
+                      image: const DecorationImage(
+                        image: AssetImage('assets/images/guide maskot.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Hi !! heres your weekly check in',
+                      style: TextStyle(
+                        color: Color(0xFF637275),
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: const Icon(Icons.close, color: Color(0xFF0B191D)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Title
+              const Text(
+                'You practiced 6 skills this week! 🎉',
+                style: TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 20,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Check list
+              _buildCheckListItem('Noticed 3 emotions today'),
+              const SizedBox(height: 8),
+              _buildCheckListItem('Said no to one request'),
+              const SizedBox(height: 8),
+              _buildCheckListItem('Took a mindful pause'),
+              const SizedBox(height: 24),
+
+              // Question 1
+              const Text(
+                '1. Did you practice any of these in real life this week?',
+                style: TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _buildOptionBtn(
+                    label: '✅ Yes, I did!',
+                    isSelected: q1Selected == 'yes',
+                    onTap: () => setState(() => q1Selected = 'yes'),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildOptionBtn(
+                    label: 'Not yet',
+                    isSelected: q1Selected == 'no',
+                    onTap: () => setState(() => q1Selected = 'no'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Question 2
+              const Text(
+                '2. How did it feel when you tried it?',
+                style: TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildOptionBtn(
+                    label: '😌 Good',
+                    isSelected: q2Selected == 'good',
+                    onTap: () => setState(() => q2Selected = 'good'),
+                  ),
+                  _buildOptionBtn(
+                    label: '😐 Mixed',
+                    isSelected: q2Selected == 'mixed',
+                    onTap: () => setState(() => q2Selected = 'mixed'),
+                  ),
+                  _buildOptionBtn(
+                    label: '😕 Hard',
+                    isSelected: q2Selected == 'hard',
+                    onTap: () => setState(() => q2Selected = 'hard'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              // Question 3
+              const Text(
+                '3. Will you try again this week?',
+                style: TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 16,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _buildOptionBtn(
+                    label: 'Definitely 🙌',
+                    isSelected: q3Selected == 'definitely',
+                    onTap: () => setState(() => q3Selected = 'definitely'),
+                  ),
+                  _buildOptionBtn(
+                    label: 'Need help 🤝',
+                    isSelected: q3Selected == 'help',
+                    onTap: () => setState(() => q3Selected = 'help'),
+                  ),
+                  _buildOptionBtn(
+                    label: 'Maybe 🤔',
+                    isSelected: q3Selected == 'maybe',
+                    onTap: () => setState(() => q3Selected = 'maybe'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Action Buttons
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CompleteJourneyScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF073B4B),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        'continue',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: const Text(
+                    'I\'ll answer this later',
+                    style: TextStyle(
+                      color: Color(0xFF637275),
+                      fontSize: 14,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCheckListItem(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFAFAFA),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, color: Color(0xFF2A8B8B), size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFF0B191D),
+                fontSize: 14,
+                fontFamily: 'Inter',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOptionBtn({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFFE0F2F1) : const Color(0xFFF8FAFA),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF2A8B8B) : const Color(0xFFE0EEEE),
+            width: isSelected ? 1.5 : 1,
+          ),
+          borderRadius: BorderRadius.circular(9999),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF2A8B8B) : const Color(0xFF637275),
+            fontSize: 14,
+            fontFamily: 'Inter',
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+

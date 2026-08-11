@@ -184,47 +184,53 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
           colors: [Color(0xFFD8F3F3), Colors.white],
         ),
       ),
-      child: Stack(
-        children: [
-          // Decorative shapes
-          _buildDecorativeShape(
-            113.14,
-            102,
-            8,
-            16,
-            const Color(0xFF006767),
-            0.26,
+      child: Center(
+        child: SizedBox(
+          width: 386,
+          height: 280,
+          child: Stack(
+            children: [
+              // Decorative shapes
+              _buildDecorativeShape(
+                113.14,
+                102,
+                8,
+                16,
+                const Color(0xFF006767),
+                0.26,
+              ),
+              _buildDecorativeShape(
+                312,
+                167.38,
+                8,
+                16,
+                const Color(0xFF855400),
+                -0.44,
+              ),
+              _buildDecorativeShape(
+                241.66,
+                94,
+                16,
+                8,
+                const Color(0xFF8B4B27),
+                0.79,
+              ),
+              _buildDecorativeShape(
+                67,
+                169.07,
+                8,
+                16,
+                const Color(0xFFBA1A1A),
+                -0.26,
+              ),
+              _buildDecorativeSquare(58.50, 120, 8, const Color(0xFF006767)),
+              _buildDecorativeSquare(197, 116, 8, const Color(0xFFFFB95D)),
+              _buildDecorativeSquare(312, 135, 8, const Color(0xFFA9633D)),
+              // Trophy icon
+              Positioned(left: 133, top: 53, child: _buildTrophyIcon()),
+            ],
           ),
-          _buildDecorativeShape(
-            312,
-            167.38,
-            8,
-            16,
-            const Color(0xFF855400),
-            -0.44,
-          ),
-          _buildDecorativeShape(
-            241.66,
-            94,
-            16,
-            8,
-            const Color(0xFF8B4B27),
-            0.79,
-          ),
-          _buildDecorativeShape(
-            67,
-            169.07,
-            8,
-            16,
-            const Color(0xFFBA1A1A),
-            -0.26,
-          ),
-          _buildDecorativeSquare(58.50, 120, 8, const Color(0xFF006767)),
-          _buildDecorativeSquare(197, 116, 8, const Color(0xFFFFB95D)),
-          _buildDecorativeSquare(312, 135, 8, const Color(0xFFA9633D)),
-          // Trophy icon
-          Positioned(left: 133, top: 53, child: _buildTrophyIcon()),
-        ],
+        ),
       ),
     );
   }
@@ -456,7 +462,6 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.white,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -465,14 +470,15 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
                       offset: const Offset(0, 1),
                     ),
                   ],
-                ),
-                child: const Center(
-                  child: Text('🤖', style: TextStyle(fontSize: 20)),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/images/guide maskot.png'),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               const Text(
-                'Your AI Coach has a suggestion...',
+                'Ember Says I have a suggestion...',
                 style: TextStyle(
                   color: Color(0xFF855400),
                   fontSize: 12,
@@ -594,7 +600,7 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
               ),
             ),
             child: const Text(
-              'No thanks - I\'m done for now',
+              'No thanks — I\'m done for now',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color(0xFF006767),
