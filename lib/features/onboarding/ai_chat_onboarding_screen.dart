@@ -310,7 +310,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                               shape: BoxShape.circle,
                                               image: const DecorationImage(
                                                 image: AssetImage(
-                                                  'assets/images/botImage.png',
+                                                  'assets/images/guide maskot.png',
                                                 ),
                                                 fit: BoxFit.cover,
                                               ),
@@ -543,7 +543,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 image: const DecorationImage(
-                  image: AssetImage('assets/images/botImage.png'),
+                  image: AssetImage('assets/images/guide maskot.png'),
                   fit: BoxFit.cover,
                 ),
               ),
@@ -610,7 +610,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             image: DecorationImage(
-              image: AssetImage('assets/images/botImage.png'),
+              image: AssetImage('assets/images/guide maskot.png'),
               fit: BoxFit.cover,
             ),
           ),

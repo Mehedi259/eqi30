@@ -193,7 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           width: double.infinity,
                           child: ElevatedButton(
                             onPressed: () {
-                              context.go('/ai-chat-onboarding');
+                              context.go('/lets-breathe');
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0F3B4A),
@@ -231,7 +231,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
           // Side mascot - properly positioned relative to the screen to match design
           Positioned(
-            right: 10, // Moved to the left to ensure it's fully visible
+            right: 0, // Positioned exactly at the right edge
             bottom: size.height * 0.22, // Place it just above the bottom container
             child: IgnorePointer(
               child: AnimatedOpacity(

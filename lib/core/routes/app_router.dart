@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 import '../../features/auth/splash_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/onboarding/lets_breathe_screen.dart';
+import '../../features/onboarding/privacy_pledge_screen.dart';
 import '../../features/onboarding/ai_chat_onboarding_screen.dart';
 import '../../features/onboarding/result_screen.dart' as onboarding;
 import '../../features/onboarding/custom_journey_onboarding_screen.dart';
@@ -55,6 +57,14 @@ class AppRouter {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/lets-breathe',
+        builder: (context, state) => const LetsBreatheScreen(),
+      ),
+      GoRoute(
+        path: '/privacy-pledge',
+        builder: (context, state) => const PrivacyPledgeScreen(),
       ),
       GoRoute(
         path: '/ai-chat-onboarding',
