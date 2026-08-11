@@ -150,9 +150,10 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(26),
-        child: Column(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(26, 26, 26, 48),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Animated Header
@@ -179,17 +180,6 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                       fontSize: 24,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Selfmanagement Stress management Interpersonal Management Spirit Management Executive functioning and Decision Making.',
-                    style: TextStyle(
-                      color: Color(0xFF8A96A8),
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w400,
-                      height: 1.43,
                     ),
                   ),
                 ],
@@ -298,13 +288,23 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
               opacity: _buttonAnimation,
               child: Column(
                 children: [
-                  const Text(
-                    'Improve your skills in under 5 minutes daily  second line See you recommended journey',
+                  const Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Improve your skills in under 5 minutes daily\n',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        TextSpan(
+                          text: 'See your recommended journey',
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
                     style: TextStyle(
                       color: Color(0xFF0B191D),
                       fontSize: 14,
                       fontFamily: 'Inter',
-                      fontWeight: FontWeight.w600,
                       height: 1.43,
                     ),
                   ),
@@ -325,7 +325,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'START YOUR JOURNEY',
+                            'START',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -385,6 +385,7 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
             ),
           ],
         ),
+      ),
       ),
     );
   }

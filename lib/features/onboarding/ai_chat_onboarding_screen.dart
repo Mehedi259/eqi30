@@ -479,9 +479,11 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                 child: SlideTransition(
                   position: _buttonSlideAnimation,
                   child: Container(
-                    padding: const EdgeInsets.fromLTRB(26, 0, 26, 8),
+                    padding: const EdgeInsets.fromLTRB(26, 0, 26, 16),
                     color: Colors.white,
-                    child: SizedBox(
+                    child: SafeArea(
+                      top: false,
+                      child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
@@ -519,9 +521,10 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                         ),
                       ),
                     ),
-                  ),
-                ),
-              );
+                    ), // Closed SafeArea
+                  ), // Closed Container
+                ), // Closed SlideTransition
+              ); // Closed FadeTransition
             },
           ),
         ],
