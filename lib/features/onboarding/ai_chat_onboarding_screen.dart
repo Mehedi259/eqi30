@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class AiChatOnboardingScreen extends StatefulWidget {
   const AiChatOnboardingScreen({super.key});
@@ -486,9 +488,27 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Navigate to results screen
-                          context.go('/result-onboarding');
+                        onPressed: () async {
+                          final userResponses = _messages
+                              .where((m) => m['type'] == 'user')
+                              .map((m) => m['message'] as String)
+                              .toList();
+                          
+                          try {
+                            final prefs = await SharedPreferences.getInstance();
+                            final sessionId = prefs.getString('onboarding_session_id');
+                            if (sessionId != null) {
+                              await OnboardingService().submitAssessment(sessionId, {
+                                'responses': userResponses,
+                              });
+                            }
+                          } catch (e) {
+                            debugPrint('Failed to submit assessment: $e');
+                          }
+                          
+                          if (context.mounted) {
+                            context.go('/result-onboarding');
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF073B4B),

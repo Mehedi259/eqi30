@@ -2,9 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/services/profile_service.dart';
+import '../../core/services/auth_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final ProfileService _profileService = ProfileService();
+  final AuthService _authService = AuthService();
+  
+  bool _isLoading = true;
+  String _name = 'Guest';
+  String _email = '';
+  
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+  
+  Future<void> _loadProfile() async {
+    try {
+      final profileData = await _profileService.getProfile();
+      if (mounted) {
+        setState(() {
+          _name = profileData['name'] ?? 'Guest';
+          _email = profileData['email'] ?? '';
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    await _authService.logout();
+    if (mounted) {
+      context.go('/login');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +68,9 @@ class ProfileScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
@@ -53,7 +99,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       child: Center(
                         child: Text(
-                          'A',
+                          _name.isNotEmpty ? _name[0].toUpperCase() : 'U',
                           style: AppTextStyles.heading2.copyWith(
                             color: Colors.white,
                           ),
@@ -68,13 +114,13 @@ class ProfileScreen extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Alex Johnson',
+                                _name,
                                 style: AppTextStyles.heading4,
                               ),
                               const SizedBox(width: 8),
                               IconButton(
                                 icon: const Icon(Icons.edit, size: 20),
-                                onPressed: () => context.push('/edit-profile'),
+                                onPressed: () => context.push('/edit-profile').then((_) => _loadProfile()),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
@@ -82,9 +128,9 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Sign in to save your progress >',
+                            _email.isEmpty ? 'Sign in to save your progress >' : _email,
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.accentOrange,
+                              color: _email.isEmpty ? AppColors.accentOrange : AppColors.textGray,
                             ),
                           ),
                         ],
@@ -166,9 +212,7 @@ class ProfileScreen extends StatelessWidget {
               
               // Log Out Button
               OutlinedButton(
-                onPressed: () {
-                  context.go('/login');
-                },
+                onPressed: _handleLogout,
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.error),
                   shape: RoundedRectangleBorder(

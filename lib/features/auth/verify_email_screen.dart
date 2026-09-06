@@ -4,6 +4,7 @@ import 'package:pinput/pinput.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../shared/widgets/custom_button.dart';
+import '../../core/services/auth_service.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
   const VerifyEmailScreen({super.key});
@@ -22,14 +23,29 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     super.dispose();
   }
 
+  final _authService = AuthService();
+
   Future<void> _handleVerify() async {
     if (_pinController.text.length == 6) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
       
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.push('/create-new-password');
+      try {
+        await _authService.verifyEmail(_pinController.text);
+        
+        if (mounted) {
+          setState(() => _isLoading = false);
+          context.push('/create-new-password');
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

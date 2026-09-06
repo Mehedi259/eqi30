@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -192,8 +194,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {
-                              context.go('/lets-breathe');
+                            onPressed: () async {
+                              try {
+                                final OnboardingService onboardingService = OnboardingService();
+                                final session = await onboardingService.createSession();
+                                if (session['session_id'] != null) {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setString('onboarding_session_id', session['session_id']);
+                                }
+                              } catch (e) {
+                                // Ignore error and continue with local mock session if backend is down
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setString('onboarding_session_id', 'mock_session_id');
+                              }
+                              if (context.mounted) {
+                                context.go('/lets-breathe');
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0F3B4A),

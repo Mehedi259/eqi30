@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/ai_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -10,24 +11,15 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final AiService _aiService = AiService();
+  bool _isLoading = false;
+
   final List<ChatMessage> _messages = [
     ChatMessage(
-      text:
-          'Hi Sarah! 👋 I\'m here to support your practice. What\'s on your mind today?',
+      text: 'Hi Sarah! 👋 I\'m here to support your practice. What\'s on your mind today?',
       isUser: false,
       timestamp: '10:02 AM',
-    ),
-    ChatMessage(
-      text: 'I\'m having trouble planning this week.',
-      isUser: true,
-      timestamp: '10:02 AM',
-    ),
-    ChatMessage(
-      text:
-          'I hear you — planning stress is really common when we\'re focused on high-performance goals. Let\'s break it down into manageable emotional chunks.',
-      isUser: false,
-      timestamp: '10:02 AM',
-      showActionButtons: true,
     ),
   ];
 
@@ -40,31 +32,67 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _sendMessage(String text) {
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  Future<void> _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
+    final timestamp = '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+    
     setState(() {
       _messages.add(
-        ChatMessage(text: text, isUser: true, timestamp: '10:02 AM'),
+        ChatMessage(text: text, isUser: true, timestamp: timestamp),
       );
+      _isLoading = true;
     });
     _messageController.clear();
+    _scrollToBottom();
 
-    // Simulate AI response
-    Future.delayed(const Duration(milliseconds: 800), () {
-      setState(() {
-        _messages.add(
-          ChatMessage(
-            text: 'That\'s a great question! Let me help you with that.',
-            isUser: false,
-            timestamp: '10:02 AM',
-          ),
-        );
-      });
-    });
+    try {
+      final response = await _aiService.respondToChat(text);
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              text: response['message'] ?? 'I received your message.',
+              isUser: false,
+              timestamp: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+              showActionButtons: response.containsKey('recommended_action'),
+            ),
+          );
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _messages.add(
+            ChatMessage(
+              text: 'Sorry, I am having trouble connecting right now.',
+              isUser: false,
+              timestamp: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
+            ),
+          );
+          _isLoading = false;
+        });
+        _scrollToBottom();
+      }
+    }
   }
 
   @override
@@ -112,6 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
             // Messages
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 26),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
@@ -119,6 +148,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 },
               ),
             ),
+            
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
 
             // Quick Reply Buttons
             Container(

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/journey_service.dart';
+import '../../core/services/profile_service.dart';
 
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key, this.onNavigateToJourney});
@@ -13,6 +15,14 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
+  
+  final ProfileService _profileService = ProfileService();
+  final JourneyService _journeyService = JourneyService();
+
+  String _userName = 'Guest';
+  double _progress = 0.0;
+  int _activitiesCompleted = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -22,15 +32,42 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       vsync: this,
     );
 
-    _progressAnimation = Tween<double>(begin: 0.0, end: 0.34).animate(
+    _progressAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeInOutCubic,
       ),
     );
 
-    // Start animation when widget loads
-    _animationController.forward();
+    _loadData();
+  }
+  
+  Future<void> _loadData() async {
+    try {
+      final profile = await _profileService.getProfile();
+      final dashboard = await _journeyService.getHomeDashboard();
+      
+      if (mounted) {
+        setState(() {
+          _userName = profile['name'] ?? 'Guest';
+          _progress = (dashboard['progress_percentage'] ?? 0) / 100.0;
+          _activitiesCompleted = dashboard['activities_completed'] ?? 0;
+          
+          _progressAnimation = Tween<double>(begin: 0.0, end: _progress).animate(
+            CurvedAnimation(
+              parent: _animationController,
+              curve: Curves.easeInOutCubic,
+            ),
+          );
+          _isLoading = false;
+        });
+        _animationController.forward();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -41,6 +78,13 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -58,10 +102,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            'Good Evening, Alex',
-                            style: TextStyle(
+                            'Good Evening, $_userName',
+                            style: const TextStyle(
                               color: Color(0xFF0B191D),
                               fontSize: 18,
                               fontFamily: 'Poppins',
@@ -69,8 +113,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                               height: 1.56,
                             ),
                           ),
-                          SizedBox(height: 2),
-                          Text(
+                          const SizedBox(height: 2),
+                          const Text(
                             'You\'re on Day 1 of Emotional Control',
                             style: TextStyle(
                               color: Color(0xFF44474D),
@@ -216,10 +260,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'You have completed 12 growth activities this week.',
+                      Text(
+                        'You have completed $_activitiesCompleted growth activities this week.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Color(0xFF637275),
                           fontSize: 16,
                           fontFamily: 'Inter',

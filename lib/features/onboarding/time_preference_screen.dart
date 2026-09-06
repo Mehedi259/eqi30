@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class TimePreferenceScreen extends StatefulWidget {
   const TimePreferenceScreen({super.key});
@@ -341,8 +343,23 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            context.go('/login');
+                          onPressed: () async {
+                            try {
+                              final prefs = await SharedPreferences.getInstance();
+                              final sessionId = prefs.getString('onboarding_session_id');
+                              if (sessionId != null) {
+                                await OnboardingService().savePracticeTime(sessionId, {
+                                  'time_preference': selectedTime,
+                                  'daily_reminder': dailyReminder,
+                                  'miss_day_nudge': missDayNudge,
+                                });
+                              }
+                            } catch (e) {
+                              debugPrint('Failed to save practice time: $e');
+                            }
+                            if (context.mounted) {
+                              context.go('/login');
+                            }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF073B4B),

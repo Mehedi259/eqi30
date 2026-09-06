@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class GrowthPaceScreen extends StatefulWidget {
   const GrowthPaceScreen({super.key});
@@ -206,8 +208,21 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/time-preference');
+                      onPressed: () async {
+                        try {
+                          final prefs = await SharedPreferences.getInstance();
+                          final sessionId = prefs.getString('onboarding_session_id');
+                          if (sessionId != null) {
+                            await OnboardingService().saveGrowthPlan(sessionId, {
+                              'pace': selectedPace,
+                            });
+                          }
+                        } catch (e) {
+                          debugPrint('Failed to save growth plan: $e');
+                        }
+                        if (context.mounted) {
+                          context.push('/time-preference');
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF073B4B),

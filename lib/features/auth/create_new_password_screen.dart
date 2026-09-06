@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
+import '../../core/services/auth_service.dart';
 
 class CreateNewPasswordScreen extends StatefulWidget {
   const CreateNewPasswordScreen({super.key});
@@ -26,14 +27,31 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     super.dispose();
   }
 
+  final _authService = AuthService();
+
   Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
+      
+      try {
+        // We assume token was saved/passed from the verify step or email link
+        // Currently hardcoding token as 'token' since routing doesn't pass it yet
+        await _authService.resetPassword(_passwordController.text, 'token');
 
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _showSuccessDialog();
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showSuccessDialog();
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString().replaceAll('Exception: ', '')),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

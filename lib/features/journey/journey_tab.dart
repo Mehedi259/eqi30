@@ -1,16 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../screens/start_journey_screen.dart';
+import '../../core/services/journey_service.dart';
 
-class JourneyTab extends StatelessWidget {
+class JourneyTab extends StatefulWidget {
   const JourneyTab({super.key});
+
+  @override
+  State<JourneyTab> createState() => _JourneyTabState();
+}
+
+class _JourneyTabState extends State<JourneyTab> {
+  final JourneyService _journeyService = JourneyService();
+  bool _isLoading = true;
+  
+  List<dynamic> _todaySessions = [];
+  int _sessionsLeft = 0;
+  List<dynamic> _activeAbilities = [];
+  Map<String, dynamic>? _journeyDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJourneyData();
+  }
+
+  Future<void> _loadJourneyData() async {
+    try {
+      final details = await _journeyService.getJourneyDetails();
+      final today = await _journeyService.getTodayJourney();
+      
+      if (mounted) {
+        setState(() {
+          _journeyDetails = details;
+          _todaySessions = today['sessions'] ?? [];
+          _sessionsLeft = today['sessions_left'] ?? 2;
+          _activeAbilities = details['active_abilities'] ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading 
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           child: Column(
             children: [
               // Header
@@ -70,9 +115,9 @@ class JourneyTab extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const Text(
-                          '2 SESSIONS LEFT',
-                          style: TextStyle(
+                        Text(
+                          '$_sessionsLeft SESSIONS LEFT',
+                          style: const TextStyle(
                             color: Color(0xFF7587A7),
                             fontSize: 12,
                             fontFamily: 'Inter',
@@ -84,31 +129,47 @@ class JourneyTab extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // Session Card 1
-                    _buildSessionCard(
-                      context: context,
-                      category: 'MINDSET',
-                      title: 'Emotional Awareness – Day 1',
-                      subtitle: 'Pause & Label Your Emotion',
-                      duration: '~5 min session',
-                      buttonText: 'lets start x ability',
-                      iconColor: const Color(0xFFE5E2E1),
-                      icon: Icons.psychology_outlined,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Session Card 2
-                    _buildSessionCard(
-                      context: context,
-                      category: 'RESILIENCE',
-                      title: 'Stress Tolerance – Day 2',
-                      subtitle: null,
-                      duration: '~5 min session',
-                      buttonText: 'Lets start with ...',
-                      iconColor: const Color(0xFFE5E2E1),
-                      icon: Icons.water_drop_outlined,
-                    ),
+                    if (_todaySessions.isEmpty)
+                       // Fallback UI if API is empty
+                      Column(
+                        children: [
+                          _buildSessionCard(
+                            context: context,
+                            category: 'MINDSET',
+                            title: 'Emotional Awareness – Day 1',
+                            subtitle: 'Pause & Label Your Emotion',
+                            duration: '~5 min session',
+                            buttonText: 'lets start x ability',
+                            iconColor: const Color(0xFFE5E2E1),
+                            icon: Icons.psychology_outlined,
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSessionCard(
+                            context: context,
+                            category: 'RESILIENCE',
+                            title: 'Stress Tolerance – Day 2',
+                            subtitle: null,
+                            duration: '~5 min session',
+                            buttonText: 'Lets start with ...',
+                            iconColor: const Color(0xFFE5E2E1),
+                            icon: Icons.water_drop_outlined,
+                          ),
+                        ],
+                      )
+                    else
+                      ..._todaySessions.map((session) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildSessionCard(
+                          context: context,
+                          category: session['category'] ?? 'MINDSET',
+                          title: session['title'] ?? 'Session',
+                          subtitle: session['subtitle'],
+                          duration: session['duration'] ?? '~5 min session',
+                          buttonText: 'Lets start',
+                          iconColor: const Color(0xFFE5E2E1),
+                          icon: Icons.psychology_outlined,
+                        ),
+                      )),
 
                     const SizedBox(height: 16),
 
@@ -191,7 +252,7 @@ class JourneyTab extends StatelessWidget {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: [
+                        children: _activeAbilities.isEmpty ? [
                           _buildAbilityCard(
                             title: 'Self-Regard',
                             proficiency: 65,
@@ -212,7 +273,17 @@ class JourneyTab extends StatelessWidget {
                             iconColor: const Color(0xFFDCE2F2),
                             icon: Icons.person_outline,
                           ),
-                        ],
+                        ] : _activeAbilities.map((ability) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 16),
+                            child: _buildAbilityCard(
+                              title: ability['name'] ?? 'Ability',
+                              proficiency: ability['proficiency'] ?? 0,
+                              iconColor: const Color(0xFFD6E3FF),
+                              icon: Icons.psychology,
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
 
