@@ -226,9 +226,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               try {
                                 final OnboardingService onboardingService = OnboardingService();
                                 final session = await onboardingService.createSession();
-                                if (session['session_id'] != null) {
+                                final sessionUuid = session['session_uuid'] ?? session['session_id'];
+                                if (sessionUuid != null) {
                                   final prefs = await SharedPreferences.getInstance();
-                                  await prefs.setString('onboarding_session_id', session['session_id']);
+                                  await prefs.setString('onboarding_session_id', sessionUuid);
                                 }
                               } catch (e) {
                                 // Ignore error and continue with local mock session if backend is down

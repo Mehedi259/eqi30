@@ -18,6 +18,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
   double _sliderValue = 6.0;
   List<Map<String, dynamic>> _messages = [];
   bool _showQuickReplies = true;
+  bool _isAnalyzing = false;
 
   late AnimationController _headerController;
   late AnimationController _avatarController;
@@ -83,40 +84,51 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
   }
 
   void _initializeChat() {
-    _messages = [
-      {
+    _messages = [];
+    _fetchInitialAiMessage();
+  }
+
+  Future<void> _fetchInitialAiMessage() async {
+    // Show a loading indicator in chat
+    setState(() {
+      _messages.add({
         'type': 'bot',
-        'message':
-            'Hi Sarah! I\'m your EQ guide. I\'ll ask you a few questions to understand where you are right now. There are no right or wrong answers. 😊',
-        'time': '10:02 AM',
-      },
-      {
-        'type': 'bot',
-        'message':
-            'On a scale of 1–10, how well do you manage your emotions when things get stressful at work?',
-        'time': '10:02 AM',
-        'hasSlider': true,
-      },
-      {
-        'type': 'user',
-        'message':
-            'I\'d say about a 6. I know what I feel but sometimes I react too fast.',
-        'time': '10:02 AM',
-      },
-      {
-        'type': 'bot',
-        'message':
-            'That\'s really good self-awareness! Noticing that you react quickly is already a huge first step. 💡\n\nBased on what you\'ve shared so far, Emotional Regulation might be a great starting point for you.',
-        'time': '10:02 AM',
-      },
-      {'type': 'user', 'message': 'Tell me more', 'time': '10:02 AM'},
-      {
-        'type': 'bot',
-        'message':
-            'Thanks for sharing that. Let me analyze your responses and suggest the best starting point for your EQ journey... 🔍',
-        'time': '10:02 AM',
-      },
-    ];
+        'message': 'Loading...',
+        'time': '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
+        'isLoading': true,
+      });
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sessionId = prefs.getString('onboarding_session_id');
+
+      // Send a hidden trigger message to start the assessment
+      final initialPrompt = "Hello! I am ready to begin the EQ onboarding assessment. Please ask me questions to evaluate my emotional intelligence. Ask the first question now. If you want me to rate something, mention 'on a scale of 1-10'.";
+
+      final response = await AiService().respondToChat(
+        initialPrompt,
+        sessionId: sessionId,
+        history: [], // Empty history for the first message
+      );
+
+      setState(() {
+        _messages.removeWhere((m) => m['isLoading'] == true);
+      });
+
+      if (response.containsKey('reply')) {
+        String reply = response['reply'];
+        bool hasSlider = reply.toLowerCase().contains('scale') && reply.contains('10');
+        _addMessage('bot', reply, hasSlider: hasSlider);
+      } else {
+        _addMessage('bot', 'Hi! I am ready to start. Please tell me a bit about yourself.');
+      }
+    } catch (e) {
+      setState(() {
+        _messages.removeWhere((m) => m['isLoading'] == true);
+      });
+      _addMessage('bot', 'Hi! I am ready to start. Please tell me a bit about yourself.');
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -138,12 +150,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     await _fetchAiResponse(message);
   }
 
-  void _addMessage(String type, String message) {
+  void _addMessage(String type, String message, {bool hasSlider = false}) {
     setState(() {
       _messages.add({
         'type': type,
         'message': message,
         'time': '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
+        if (hasSlider) 'hasSlider': true,
       });
     });
     _scrollToBottom();
@@ -188,7 +201,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       );
 
       if (response.containsKey('reply')) {
-        _addMessage('bot', response['reply']);
+        String reply = response['reply'];
+        bool hasSlider = reply.toLowerCase().contains('scale') && reply.contains('10');
+        _addMessage('bot', reply, hasSlider: hasSlider);
       } else {
         _addMessage('bot', 'I encountered an error. Could you try again?');
       }
@@ -505,27 +520,39 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       child: SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () async {
+                        onPressed: _isAnalyzing ? null : () async {
+                          setState(() {
+                            _isAnalyzing = true;
+                          });
                           try {
                             final prefs = await SharedPreferences.getInstance();
                             final sessionId = prefs.getString('onboarding_session_id');
                             if (sessionId != null) {
-                              // We simulate the AI generated assessment based on the chat history.
-                              // The backend doesn't currently have an endpoint that converts text chat 
-                              // directly to EQ scores, so we provide a valid payload format here.
-                              await OnboardingService().submitAssessment(sessionId, {
-                                'results': [
-                                  {'competency': 'SELF_MANAGEMENT', 'score': 65.0, 'ai_priority': 1},
-                                  {'competency': 'INTERPERSONAL_MANAGEMENT', 'score': 72.0, 'ai_priority': 2},
-                                  {'competency': 'STRESS_MANAGEMENT', 'score': 58.0, 'ai_priority': 3},
-                                  {'competency': 'SPIRIT_MANAGEMENT', 'score': 81.0, 'ai_priority': 4},
-                                  {'competency': 'EXECUTIVE_FUNCTION', 'score': 69.0, 'ai_priority': 5},
-                                  {'competency': 'DECISION_MAKING', 'score': 75.0, 'ai_priority': 6},
-                                ],
-                              });
+                              // Send the chat history for AI assessment calculation
+                              final history = _messages
+                                  .where((m) => m['type'] != null && m['message'] != null)
+                                  .map((m) => {
+                                        'role': m['type'] == 'bot' ? 'assistant' : 'user',
+                                        'content': m['message'] as String,
+                                      })
+                                  .toList();
+                                  
+                              final assessmentResult = await AiService().analyzeChatAssessment(history);
+                              
+                              if (assessmentResult.containsKey('results')) {
+                                await OnboardingService().submitAssessment(sessionId, {
+                                  'results': assessmentResult['results'],
+                                });
+                              }
                             }
                           } catch (e) {
                             debugPrint('Failed to submit assessment: $e');
+                          } finally {
+                            if (mounted) {
+                              setState(() {
+                                _isAnalyzing = false;
+                              });
+                            }
                           }
                           
                           if (context.mounted) {
@@ -540,12 +567,24 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                           ),
                           elevation: 0,
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            if (_isAnalyzing)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 12.0),
+                                child: SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                ),
+                              ),
                             Text(
-                              'CONTINUE & VIEW THE RESULT',
-                              style: TextStyle(
+                              _isAnalyzing ? 'ANALYZING...' : 'CONTINUE & VIEW THE RESULT',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 15,
                                 fontFamily: 'Inter',
@@ -553,12 +592,14 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                 letterSpacing: 0.5,
                               ),
                             ),
-                            SizedBox(width: 8),
-                            Icon(
-                              Icons.arrow_forward,
-                              size: 18,
-                              color: Colors.white,
-                            ),
+                            if (!_isAnalyzing) ...[
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_forward,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -829,18 +870,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                 ),
               ),
             ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          width: 40,
-          height: 40,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            image: DecorationImage(
-              image: AssetImage('assets/images/profile image.png'),
-              fit: BoxFit.cover,
-            ),
           ),
         ),
       ],

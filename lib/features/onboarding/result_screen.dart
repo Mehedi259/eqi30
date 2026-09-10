@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class OnboardingResultScreen extends StatefulWidget {
   const OnboardingResultScreen({super.key});
@@ -17,12 +19,10 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
   late Animation<double> _buttonAnimation;
 
   // Progress animations for each card
-  late Animation<double> _progress1Animation;
-  late Animation<double> _progress2Animation;
-  late Animation<double> _progress3Animation;
-  late Animation<double> _progress4Animation;
-  late Animation<double> _progress5Animation;
-  late Animation<double> _progress6Animation;
+  List<Animation<double>> _progressAnimations = [];
+  
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _results = [];
 
   @override
   void initState() {
@@ -58,48 +58,69 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
       ),
     );
 
-    // Staggered progress bar animations
-    _progress1Animation = Tween<double>(begin: 0.0, end: 0.42).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
-      ),
-    );
+    _fetchResults();
+  }
 
-    _progress2Animation = Tween<double>(begin: 0.0, end: 0.55).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.1, 0.5, curve: Curves.easeOutCubic),
-      ),
-    );
+  Future<void> _fetchResults() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sessionId = prefs.getString('onboarding_session_id');
+      if (sessionId != null) {
+        final response = await OnboardingService().getAssessmentResult(sessionId);
+        debugPrint('Assessment response: $response');
+        if (response.containsKey('results')) {
+          final results = List<Map<String, dynamic>>.from(response['results']);
+          results.sort((a, b) => (a['ai_priority'] as int).compareTo(b['ai_priority'] as int));
+          
+          if (mounted) {
+            setState(() {
+              _results = results;
+              _isLoading = false;
+            });
+            _setupAnimations();
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to load results: $e');
+    }
+    
+    // Fallback if failing or missing
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _results = [
+          {'competency': 'SELF_MANAGEMENT', 'score': 42.0},
+          {'competency': 'STRESS_MANAGEMENT', 'score': 55.0},
+          {'competency': 'INTERPERSONAL_MANAGEMENT', 'score': 65.0},
+          {'competency': 'SPIRIT_MANAGEMENT', 'score': 78.0},
+          {'competency': 'EXECUTIVE_FUNCTION', 'score': 85.0},
+          {'competency': 'DECISION_MAKING', 'score': 92.0},
+        ];
+      });
+      _setupAnimations();
+    }
+  }
 
-    _progress3Animation = Tween<double>(begin: 0.0, end: 0.65).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _progress4Animation = Tween<double>(begin: 0.0, end: 0.78).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.3, 0.7, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _progress5Animation = Tween<double>(begin: 0.0, end: 0.85).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _progress6Animation = Tween<double>(begin: 0.0, end: 0.92).animate(
-      CurvedAnimation(
-        parent: _progressController,
-        curve: const Interval(0.5, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
+  void _setupAnimations() {
+    _progressAnimations = [];
+    
+    for (int i = 0; i < _results.length; i++) {
+      double score = (_results[i]['score'] as num).toDouble();
+      double targetValue = score / 100.0;
+      
+      double startInterval = i * 0.1;
+      double endInterval = startInterval + 0.4;
+      if (endInterval > 1.0) endInterval = 1.0;
+      
+      _progressAnimations.add(Tween<double>(begin: 0.0, end: targetValue).animate(
+        CurvedAnimation(
+          parent: _progressController,
+          curve: Interval(startInterval, endInterval, curve: Curves.easeOutCubic),
+        ),
+      ));
+    }
 
     _controller.forward();
 
@@ -151,7 +172,9 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(26, 26, 26, 48),
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,88 +219,63 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                   end: Offset.zero,
                 ).animate(_cardAnimation),
                 child: Column(
-                  children: [
-                    AnimatedBuilder(
-                      animation: _progress1Animation,
-                      builder: (context, child) {
-                        return _buildHighlightedCard(
-                          'Self-Management',
-                          'Needs Attention',
-                          (_progress1Animation.value * 100).toInt(),
-                          _progress1Animation.value,
-                          const Color(0xFF43BDC7),
-                          const Color(0xFFEBFDFF),
-                          const Color(0xFF002B2E),
-                          showBadge: true,
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: _progress2Animation,
-                      builder: (context, child) {
-                        return _buildResultCard(
-                          'Stress Management',
-                          'Developing',
-                          (_progress2Animation.value * 100).toInt(),
-                          _progress2Animation.value,
-                          const Color(0xFF249FA9),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: _progress3Animation,
-                      builder: (context, child) {
-                        return _buildResultCard(
-                          'Interpersonal Management',
-                          'Good',
-                          (_progress3Animation.value * 100).toInt(),
-                          _progress3Animation.value,
-                          const Color(0xFF43C76F),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: _progress4Animation,
-                      builder: (context, child) {
-                        return _buildResultCard(
-                          'Spirit Management',
-                          'Strong',
-                          (_progress4Animation.value * 100).toInt(),
-                          _progress4Animation.value,
-                          const Color(0xFFF37C21),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: _progress5Animation,
-                      builder: (context, child) {
-                        return _buildResultCard(
-                          'Executive Function Skill',
-                          'Strong',
-                          (_progress5Animation.value * 100).toInt(),
-                          _progress5Animation.value,
-                          const Color(0xFF96B6F0),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    AnimatedBuilder(
-                      animation: _progress6Animation,
-                      builder: (context, child) {
-                        return _buildResultCard(
-                          'Decision Making',
-                          'Strong',
-                          (_progress6Animation.value * 100).toInt(),
-                          _progress6Animation.value,
-                          const Color(0xFF6A95E2),
-                        );
-                      },
-                    ),
-                  ],
+                  children: List.generate(_results.length, (index) {
+                    final item = _results[index];
+                    final rawName = item['competency'] as String;
+                    // Use competency_name from API if available, else format from code
+                    final title = (item['competency_name'] as String?)?.isNotEmpty == true
+                        ? item['competency_name'] as String
+                        : rawName.split('_').map((w) => w.isNotEmpty ? w[0].toUpperCase() + w.substring(1).toLowerCase() : '').join(' ');
+                    
+                    final score = (item['score'] as num).toDouble();
+                    
+                    String status = 'Developing';
+                    if (score < 50) status = 'Needs Attention';
+                    else if (score >= 50 && score < 65) status = 'Developing';
+                    else if (score >= 65 && score < 75) status = 'Good';
+                    else status = 'Strong';
+                    
+                    final progressAnimation = _progressAnimations.length > index ? _progressAnimations[index] : const AlwaysStoppedAnimation(0.0);
+                    
+                    Color mainColor = const Color(0xFF249FA9);
+                    if (score < 50) mainColor = const Color(0xFF43BDC7);
+                    else if (score >= 50 && score < 65) mainColor = const Color(0xFF249FA9);
+                    else if (score >= 65 && score < 75) mainColor = const Color(0xFF43C76F);
+                    else if (score >= 75 && score < 80) mainColor = const Color(0xFFF37C21);
+                    else if (score >= 80 && score < 90) mainColor = const Color(0xFF96B6F0);
+                    else mainColor = const Color(0xFF6A95E2);
+
+                    return Column(
+                      children: [
+                        AnimatedBuilder(
+                          animation: progressAnimation,
+                          builder: (context, child) {
+                            if (index == 0) {
+                              return _buildHighlightedCard(
+                                title,
+                                status,
+                                (progressAnimation.value * 100).toInt(),
+                                progressAnimation.value,
+                                mainColor,
+                                const Color(0xFFEBFDFF),
+                                const Color(0xFF002B2E),
+                                showBadge: true,
+                              );
+                            } else {
+                              return _buildResultCard(
+                                title,
+                                status,
+                                (progressAnimation.value * 100).toInt(),
+                                progressAnimation.value,
+                                mainColor,
+                              );
+                            }
+                          },
+                        ),
+                        if (index < _results.length - 1) const SizedBox(height: 12),
+                      ],
+                    );
+                  }),
                 ),
               ),
             ),

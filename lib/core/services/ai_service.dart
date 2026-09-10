@@ -27,4 +27,8 @@ class AiService {
   Future<Map<String, dynamic>> recommendJourney(Map<String, dynamic> data) async {
     return await _apiClient.post('/ai/journey/recommend/', body: data);
   }
+
+  Future<Map<String, dynamic>> analyzeChatAssessment(List<Map<String, String>> history) async {
+    return await _apiClient.post('/ai/chat/analyze/', body: {'history': history});
+  }
 }

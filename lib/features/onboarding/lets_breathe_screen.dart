@@ -92,24 +92,41 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 16),
-                // Back Button
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFD3D3D3), // Light gray circle
-                        shape: BoxShape.circle,
+                // Top Navigation (Back & Skip)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFD3D3D3), // Light gray circle
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                       ),
-                      child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        }
+                      },
                     ),
-                    onPressed: () {
-                      if (context.canPop()) {
-                        context.pop();
-                      }
-                    },
-                  ),
+                    TextButton(
+                      onPressed: () {
+                        _countdownTimer?.cancel();
+                        _breathingTimer?.cancel();
+                        context.go('/privacy-pledge');
+                      },
+                      child: Text(
+                        "Skip",
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF4A6F75),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 20),
                 
