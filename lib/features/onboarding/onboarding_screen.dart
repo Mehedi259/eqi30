@@ -23,6 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   int _activeMessages = 0;
   bool _showFinalElements = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -44,6 +45,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             setState(() {
               _activeMessages++;
             });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToBottom();
+            });
           }
         });
       } else {
@@ -52,10 +56,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             setState(() {
               _showFinalElements = true;
             });
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToBottom();
+            });
           }
         });
       }
     }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent + 100, // extra offset
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -119,7 +142,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    controller: _scrollController,
+                    padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 24.0),
                     itemCount: _activeMessages,
                     itemBuilder: (context, index) {
                       return MessageItem(
