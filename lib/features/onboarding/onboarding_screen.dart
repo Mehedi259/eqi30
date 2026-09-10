@@ -23,6 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   int _activeMessages = 0;
   bool _showFinalElements = false;
+  bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -218,7 +219,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () async {
+                            onPressed: _isLoading ? null : () async {
+                              setState(() {
+                                _isLoading = true;
+                              });
                               try {
                                 final OnboardingService onboardingService = OnboardingService();
                                 final session = await onboardingService.createSession();
@@ -230,6 +234,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                 // Ignore error and continue with local mock session if backend is down
                                 final prefs = await SharedPreferences.getInstance();
                                 await prefs.setString('onboarding_session_id', 'mock_session_id');
+                              } finally {
+                                if (mounted) {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                }
                               }
                               if (context.mounted) {
                                 context.go('/lets-breathe');
@@ -237,27 +247,34 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0F3B4A),
+                              disabledBackgroundColor: const Color(0xFF0F3B4A).withOpacity(0.7),
                               padding: const EdgeInsets.symmetric(vertical: 22),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               elevation: 0,
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  "Try a quick Exercise",
-                                  style: GoogleFonts.inter(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                            child: _isLoading 
+                              ? const SizedBox(
+                                  height: 24, 
+                                  width: 24, 
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Try a quick Exercise",
+                                      style: GoogleFonts.inter(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Icon(Icons.arrow_forward, color: Colors.white),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                const Icon(Icons.arrow_forward, color: Colors.white),
-                              ],
-                            ),
                           ),
                         ),
                         const SizedBox(height: 16),
