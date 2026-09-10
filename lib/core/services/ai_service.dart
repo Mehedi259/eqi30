@@ -3,12 +3,19 @@ import '../network/api_client.dart';
 class AiService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<Map<String, dynamic>> respondToChat(String message, {String? sessionId}) async {
+  Future<Map<String, dynamic>> respondToChat(String message, {String? sessionId, List<Map<String, String>> history = const []}) async {
     return await _apiClient.post(
       '/ai/chat/respond/',
       body: {
+        'user_ref': sessionId ?? 'anonymous',
         'message': message,
-        if (sessionId != null) 'session_id': sessionId,
+        'history': history,
+        'context': {
+          'journey': {},
+          'competency': {},
+          'ability': {},
+          'progress': {}
+        }
       },
     );
   }

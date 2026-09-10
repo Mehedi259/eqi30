@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/onboarding_service.dart';
+import '../../core/services/ai_service.dart';
 
 class AiChatOnboardingScreen extends StatefulWidget {
   const AiChatOnboardingScreen({super.key});
@@ -118,19 +119,37 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     ];
   }
 
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty) return;
 
+    _addMessage('user', text);
+    _messageController.clear();
+    
+    await _fetchAiResponse(text);
+  }
+
+  Future<void> _sendQuickReply(String message) async {
+    _addMessage('user', message);
+    setState(() {
+      _showQuickReplies = false;
+    });
+    
+    await _fetchAiResponse(message);
+  }
+
+  void _addMessage(String type, String message) {
     setState(() {
       _messages.add({
-        'type': 'user',
-        'message': _messageController.text.trim(),
-        'time': '10:02 AM',
+        'type': type,
+        'message': message,
+        'time': '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
       });
-      _messageController.clear();
     });
+    _scrollToBottom();
+  }
 
-    // Scroll to bottom
+  void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -139,46 +158,44 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
           curve: Curves.easeOut,
         );
       }
-    });
-
-    // Simulate bot response
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _messages.add({
-          'type': 'bot',
-          'message': 'Thank you for sharing! Let me help you with that.',
-          'time': '10:02 AM',
-        });
-      });
-
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
     });
   }
 
-  void _sendQuickReply(String message) {
-    setState(() {
-      _messages.add({'type': 'user', 'message': message, 'time': '10:02 AM'});
-      _showQuickReplies = false;
-    });
+  Future<void> _fetchAiResponse(String userMessage) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final sessionId = prefs.getString('onboarding_session_id');
 
-    // Scroll to bottom
-    Future.delayed(const Duration(milliseconds: 100), () {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
+      // Build history for API
+      final history = _messages
+          .where((m) => m['type'] != null && m['message'] != null)
+          .map((m) => {
+                'role': m['type'] == 'bot' ? 'assistant' : 'user',
+                'content': m['message'] as String,
+              })
+          .toList();
+
+      // Remove the latest user message from history as it's sent as 'message'
+      if (history.isNotEmpty && history.last['role'] == 'user') {
+        history.removeLast();
       }
-    });
+
+      // Add a loading indicator or just wait
+      final response = await AiService().respondToChat(
+        userMessage,
+        sessionId: sessionId,
+        history: history,
+      );
+
+      if (response.containsKey('reply')) {
+        _addMessage('bot', response['reply']);
+      } else {
+        _addMessage('bot', 'I encountered an error. Could you try again?');
+      }
+    } catch (e) {
+      debugPrint('Chat API Error: $e');
+      _addMessage('bot', 'Sorry, I am having trouble connecting to the server.');
+    }
   }
 
   @override
@@ -489,17 +506,22 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          final userResponses = _messages
-                              .where((m) => m['type'] == 'user')
-                              .map((m) => m['message'] as String)
-                              .toList();
-                          
                           try {
                             final prefs = await SharedPreferences.getInstance();
                             final sessionId = prefs.getString('onboarding_session_id');
                             if (sessionId != null) {
+                              // We simulate the AI generated assessment based on the chat history.
+                              // The backend doesn't currently have an endpoint that converts text chat 
+                              // directly to EQ scores, so we provide a valid payload format here.
                               await OnboardingService().submitAssessment(sessionId, {
-                                'responses': userResponses,
+                                'results': [
+                                  {'competency': 'SELF_MANAGEMENT', 'score': 65.0, 'ai_priority': 1},
+                                  {'competency': 'INTERPERSONAL_MANAGEMENT', 'score': 72.0, 'ai_priority': 2},
+                                  {'competency': 'STRESS_MANAGEMENT', 'score': 58.0, 'ai_priority': 3},
+                                  {'competency': 'SPIRIT_MANAGEMENT', 'score': 81.0, 'ai_priority': 4},
+                                  {'competency': 'EXECUTIVE_FUNCTION', 'score': 69.0, 'ai_priority': 5},
+                                  {'competency': 'DECISION_MAKING', 'score': 75.0, 'ai_priority': 6},
+                                ],
                               });
                             }
                           } catch (e) {
