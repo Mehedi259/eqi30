@@ -45,14 +45,33 @@ class AuthService {
         'password': password,
       },
     );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('verify_email', email);
     return response;
   }
 
   Future<Map<String, dynamic>> verifyEmail(String otp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('verify_email') ?? '';
     // Requires email verification endpoint to accept OTP
     final response = await _apiClient.post(
       '/auth/verify-email/',
-      body: {'otp': otp},
+      body: {'email': email, 'otp': otp},
+    );
+    
+    if (response['tokens'] != null && response['tokens']['access'] != null) {
+      await _saveToken(response['tokens']['access']);
+    }
+    
+    return response;
+  }
+
+  Future<Map<String, dynamic>> verifyOtp(String otp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('verify_email') ?? '';
+    final response = await _apiClient.post(
+      '/auth/verify-otp/',
+      body: {'email': email, 'otp': otp},
     );
     return response;
   }
@@ -62,14 +81,19 @@ class AuthService {
       '/auth/forgot-password/',
       body: {'email': email},
     );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('verify_email', email);
   }
 
-  Future<void> resetPassword(String password, String token) async {
+  Future<void> resetPassword(String password, String otp) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('verify_email') ?? '';
     await _apiClient.post(
       '/auth/reset-password/',
       body: {
-        'password': password,
-        'token': token,
+        'email': email,
+        'new_password': password,
+        'otp': otp,
       },
     );
   }

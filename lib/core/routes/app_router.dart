@@ -103,11 +103,17 @@ class AppRouter {
       ),
       GoRoute(
         path: '/verify-email',
-        builder: (context, state) => const VerifyEmailScreen(),
+        builder: (context, state) {
+          final isFromRegister = state.extra as bool? ?? true;
+          return VerifyEmailScreen(isFromRegister: isFromRegister);
+        },
       ),
       GoRoute(
         path: '/create-new-password',
-        builder: (context, state) => const CreateNewPasswordScreen(),
+        builder: (context, state) {
+          final otp = state.extra as String? ?? '';
+          return CreateNewPasswordScreen(otp: otp);
+        },
       ),
 
       // Main App Routes

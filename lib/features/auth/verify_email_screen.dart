@@ -7,7 +7,8 @@ import '../../shared/widgets/custom_button.dart';
 import '../../core/services/auth_service.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
-  const VerifyEmailScreen({super.key});
+  final bool isFromRegister;
+  const VerifyEmailScreen({super.key, this.isFromRegister = true});
 
   @override
   State<VerifyEmailScreen> createState() => _VerifyEmailScreenState();
@@ -30,11 +31,18 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
       setState(() => _isLoading = true);
       
       try {
-        await _authService.verifyEmail(_pinController.text);
-        
-        if (mounted) {
-          setState(() => _isLoading = false);
-          context.push('/create-new-password');
+        if (widget.isFromRegister) {
+          await _authService.verifyEmail(_pinController.text);
+          if (mounted) {
+            setState(() => _isLoading = false);
+            context.go('/home'); // Skip onboarding for now, go straight to home
+          }
+        } else {
+          await _authService.verifyOtp(_pinController.text);
+          if (mounted) {
+            setState(() => _isLoading = false);
+            context.push('/create-new-password', extra: _pinController.text);
+          }
         }
       } catch (e) {
         if (mounted) {

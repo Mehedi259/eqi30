@@ -53,6 +53,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final timestamp = '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}';
     
+    final history = _messages.map((m) => {
+      'role': m.isUser ? 'user' : 'assistant',
+      'content': m.text,
+    }).toList();
+
     setState(() {
       _messages.add(
         ChatMessage(text: text, isUser: true, timestamp: timestamp),
@@ -63,12 +68,12 @@ class _ChatScreenState extends State<ChatScreen> {
     _scrollToBottom();
 
     try {
-      final response = await _aiService.respondToChat(text);
+      final response = await _aiService.respondToChat(text, history: history);
       if (mounted) {
         setState(() {
           _messages.add(
             ChatMessage(
-              text: response['message'] ?? 'I received your message.',
+              text: response['reply'] ?? 'I received your message.',
               isUser: false,
               timestamp: '${DateTime.now().hour}:${DateTime.now().minute.toString().padLeft(2, '0')}',
               showActionButtons: response.containsKey('recommended_action'),

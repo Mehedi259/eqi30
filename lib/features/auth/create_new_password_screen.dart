@@ -7,7 +7,8 @@ import '../../shared/widgets/custom_text_field.dart';
 import '../../core/services/auth_service.dart';
 
 class CreateNewPasswordScreen extends StatefulWidget {
-  const CreateNewPasswordScreen({super.key});
+  final String otp;
+  const CreateNewPasswordScreen({super.key, required this.otp});
 
   @override
   State<CreateNewPasswordScreen> createState() =>
@@ -34,9 +35,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
       setState(() => _isLoading = true);
       
       try {
-        // We assume token was saved/passed from the verify step or email link
-        // Currently hardcoding token as 'token' since routing doesn't pass it yet
-        await _authService.resetPassword(_passwordController.text, 'token');
+        await _authService.resetPassword(_passwordController.text, widget.otp);
 
         if (mounted) {
           setState(() => _isLoading = false);
