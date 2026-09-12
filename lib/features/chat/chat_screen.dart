@@ -178,13 +178,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
             // Input Field
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
+                        horizontal: 20,
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
@@ -221,8 +227,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   GestureDetector(
                     onTap: () => _sendMessage(_messageController.text),
                     child: Container(
-                      width: 44,
-                      height: 44,
+                      width: 48,
+                      height: 48,
                       decoration: const BoxDecoration(
                         color: Color(0xFF095A70),
                         shape: BoxShape.circle,
@@ -389,20 +395,6 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-          if (message.isUser) ...[
-            const SizedBox(width: 12),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/profile image.png'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );
