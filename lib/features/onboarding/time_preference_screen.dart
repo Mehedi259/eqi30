@@ -349,7 +349,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               final sessionId = prefs.getString('onboarding_session_id');
                               if (sessionId != null) {
                                 await OnboardingService().savePracticeTime(sessionId, {
-                                  'practice_time': selectedTime,
+                                  'practice_time': selectedTime.toUpperCase(),
                                 });
                               }
                             } catch (e) {
