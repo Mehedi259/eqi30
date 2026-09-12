@@ -449,7 +449,7 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
         );
       },
       child: Container(
-        height: 196,
+        height: 220,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: color,
@@ -479,6 +479,8 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
             const SizedBox(height: 8),
             Text(
               title,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF0B191D),
                 fontSize: 16,
@@ -490,6 +492,8 @@ class _AbilitiesSelectionScreenState extends State<AbilitiesSelectionScreen>
             const SizedBox(height: 6),
             Text(
               subtitle,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: const Color(0xFF0B191D).withOpacity(0.6),
                 fontSize: 12,
