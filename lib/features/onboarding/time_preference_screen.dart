@@ -349,9 +349,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               final sessionId = prefs.getString('onboarding_session_id');
                               if (sessionId != null) {
                                 await OnboardingService().savePracticeTime(sessionId, {
-                                  'time_preference': selectedTime,
-                                  'daily_reminder': dailyReminder,
-                                  'miss_day_nudge': missDayNudge,
+                                  'practice_time': selectedTime,
                                 });
                               }
                             } catch (e) {

@@ -214,7 +214,7 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
                           final sessionId = prefs.getString('onboarding_session_id');
                           if (sessionId != null) {
                             await OnboardingService().saveGrowthPlan(sessionId, {
-                              'pace': selectedPace,
+                              'growth_plan': selectedPace,
                             });
                           }
                         } catch (e) {
