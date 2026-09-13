@@ -402,7 +402,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
           constraints: const BoxConstraints(),
         ),
         GestureDetector(
-          onTap: _togglePlayPause,
+          onTap: isDownloading ? null : _togglePlayPause,
           child: Container(
             width: 64,
             height: 64,
@@ -410,11 +410,19 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
               color: Color(0xFF0B191D),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              isPlaying ? Icons.pause : Icons.play_arrow,
-              color: Colors.white,
-              size: 32,
-            ),
+            child: isDownloading
+                ? const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Icon(
+                    isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 32,
+                  ),
           ),
         ),
         IconButton(
