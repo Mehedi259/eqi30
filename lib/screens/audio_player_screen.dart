@@ -24,6 +24,8 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
   bool isDownloading = false;
+  bool isLooping = false;
+  bool isShuffling = false;
   double downloadProgress = 0.0;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
@@ -103,6 +105,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
           });
         }
         await _audioPlayer.setSource(DeviceFileSource(file.path));
+        
+        // Explicitly fetch duration in case the event stream missed the initial trigger
+        final d = await _audioPlayer.getDuration();
+        if (d != null && mounted) {
+          setState(() => duration = d);
+        }
+        
         // Auto-play when loaded
         await _audioPlayer.resume();
       } catch (e) {
@@ -129,12 +138,47 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
     super.dispose();
   }
 
-  void _togglePlayPause() async {
+  void _togglePlayPause() {
     if (isPlaying) {
-      await _audioPlayer.pause();
+      _audioPlayer.pause();
     } else {
-      await _audioPlayer.resume();
+      _audioPlayer.resume();
     }
+  }
+
+  void _skipForward() {
+    final newPosition = position + const Duration(seconds: 10);
+    _audioPlayer.seek(newPosition > duration ? duration : newPosition);
+  }
+
+  void _skipBackward() {
+    final newPosition = position - const Duration(seconds: 10);
+    _audioPlayer.seek(newPosition.isNegative ? Duration.zero : newPosition);
+  }
+
+  void _toggleLoop() {
+    setState(() {
+      isLooping = !isLooping;
+    });
+    _audioPlayer.setReleaseMode(isLooping ? ReleaseMode.loop : ReleaseMode.release);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isLooping ? 'Loop mode enabled' : 'Loop mode disabled'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _toggleShuffle() {
+    setState(() {
+      isShuffling = !isShuffling;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isShuffling ? 'Shuffle mode enabled' : 'Shuffle mode disabled'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -162,8 +206,6 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
                     _buildProgressBar(),
                     const SizedBox(height: 32),
                     _buildControls(),
-                    const SizedBox(height: 32),
-                    _buildActionButtons(),
                     const SizedBox(height: 32),
                     _buildUpNext(),
                     const SizedBox(height: 32),
@@ -347,14 +389,13 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
       mainAxisSize: MainAxisSize.max,
       children: [
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.shuffle, size: 22),
-          color: const Color(0xFF637275),
+          onPressed: _toggleShuffle,
+          icon: Icon(Icons.shuffle, size: 22, color: isShuffling ? const Color(0xFF2E7D32) : const Color(0xFF637275)),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: _skipBackward,
           icon: const Icon(Icons.skip_previous, size: 28),
           color: const Color(0xFF0B191D),
           padding: EdgeInsets.zero,
@@ -377,57 +418,19 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTicker
           ),
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: _skipForward,
           icon: const Icon(Icons.skip_next, size: 28),
           color: const Color(0xFF0B191D),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
         IconButton(
-          onPressed: () {},
-          icon: const Icon(Icons.repeat, size: 22),
-          color: const Color(0xFF637275),
+          onPressed: _toggleLoop,
+          icon: Icon(Icons.repeat, size: 22, color: isLooping ? const Color(0xFF2E7D32) : const Color(0xFF637275)),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
       ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildActionButton(Icons.bookmark_border, 'Save'),
-        _buildActionButton(Icons.add, 'Journey'),
-        _buildActionButton(Icons.share_outlined, 'Share'),
-      ],
-    );
-  }
-
-  Widget _buildActionButton(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0EEEE)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: const Color(0xFF0B191D)),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF0B191D),
-              fontSize: 14,
-              fontFamily: 'Inter',
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

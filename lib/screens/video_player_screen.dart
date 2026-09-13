@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:go_router/go_router.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String title;
@@ -12,22 +12,13 @@ class VideoPlayerScreen extends StatefulWidget {
 }
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  VideoPlayerController? _controller;
-
   @override
   void initState() {
     super.initState();
-    if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl!))
-        ..initialize().then((_) {
-          if (mounted) setState(() {});
-        });
-    }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
     super.dispose();
   }
 
@@ -109,61 +100,6 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildVideoPlayer() {
-    if (_controller != null && _controller!.value.isInitialized) {
-      return Container(
-        width: double.infinity,
-        height: 220,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          color: Colors.black,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              AspectRatio(
-                aspectRatio: _controller!.value.aspectRatio,
-                child: VideoPlayer(_controller!),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
-                  });
-                },
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: const Color(0xFF0B191D),
-                    size: 36,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: VideoProgressIndicator(
-                  _controller!,
-                  allowScrubbing: true,
-                  colors: const VideoProgressColors(
-                    playedColor: Color(0xFF2E7D32),
-                    backgroundColor: Colors.white30,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
 
     // Fallback dummy thumbnail
     String thumbnailPath = 'assets/images/home.png';
@@ -337,7 +273,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       height: 54,
       child: ElevatedButton(
         onPressed: () {
-          // Start practice
+          if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
+            final uri = Uri(
+              path: '/video-playback',
+              queryParameters: {
+                'title': widget.title,
+                'videoUrl': widget.videoUrl,
+              },
+            );
+            context.push(uri.toString());
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF073B4B),

@@ -5,15 +5,19 @@ class AuthService {
   final ApiClient _apiClient = ApiClient();
 
   // Save tokens to SharedPreferences
-  Future<void> _saveToken(String token) async {
+  Future<void> _saveToken(String token, {String? refreshToken}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    if (refreshToken != null) {
+      await prefs.setString('refresh_token', refreshToken);
+    }
   }
 
   // Clear tokens
   Future<void> _clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('refresh_token');
   }
 
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -24,7 +28,10 @@ class AuthService {
     
     // Check if the response contains tokens (usually access/refresh or token)
     if (response['tokens'] != null && response['tokens']['access'] != null) {
-      await _saveToken(response['tokens']['access']);
+      await _saveToken(
+        response['tokens']['access'],
+        refreshToken: response['tokens']['refresh'],
+      );
     } else if (response['access'] != null) {
       await _saveToken(response['access']);
     } else if (response['token'] != null) {
@@ -62,7 +69,10 @@ class AuthService {
     );
     
     if (response['tokens'] != null && response['tokens']['access'] != null) {
-      await _saveToken(response['tokens']['access']);
+      await _saveToken(
+        response['tokens']['access'],
+        refreshToken: response['tokens']['refresh'],
+      );
     }
     
     return response;

@@ -40,6 +40,7 @@ import '../../features/chat/chat_screen.dart';
 import '../../features/feedback/feedback_screen.dart';
 import '../../screens/audio_player_screen.dart';
 import '../../screens/video_player_screen.dart';
+import '../../screens/video_playback_screen.dart';
 import '../../screens/learning_screen.dart';
 import '../../screens/complete_journey_screen.dart';
 import '../../screens/journey_completed_screen.dart';
@@ -261,6 +262,14 @@ class AppRouter {
               'Yoga for Emotional Release';
           final videoUrl = state.uri.queryParameters['videoUrl'];
           return VideoPlayerScreen(title: title, videoUrl: videoUrl);
+        },
+      ),
+      GoRoute(
+        path: '/video-playback',
+        builder: (context, state) {
+          final title = state.uri.queryParameters['title'] ?? 'Video';
+          final videoUrl = state.uri.queryParameters['videoUrl'] ?? '';
+          return VideoPlaybackScreen(title: title, videoUrl: videoUrl);
         },
       ),
       GoRoute(
