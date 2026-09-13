@@ -23,7 +23,9 @@ class AuthService {
     );
     
     // Check if the response contains tokens (usually access/refresh or token)
-    if (response['access'] != null) {
+    if (response['tokens'] != null && response['tokens']['access'] != null) {
+      await _saveToken(response['tokens']['access']);
+    } else if (response['access'] != null) {
       await _saveToken(response['access']);
     } else if (response['token'] != null) {
       await _saveToken(response['token']);

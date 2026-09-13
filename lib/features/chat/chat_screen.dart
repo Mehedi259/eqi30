@@ -263,10 +263,10 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: const Color(0xFF095A70),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(1000),
                 image: const DecorationImage(
-                  image: AssetImage('assets/images/botImage.png'),
+                  image: AssetImage('assets/images/guide maskot.png'),
                   fit: BoxFit.cover,
                 ),
               ),
