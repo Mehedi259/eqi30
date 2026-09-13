@@ -35,18 +35,8 @@ class _ResourcesTabState extends State<ResourcesTab> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: const Icon(Icons.arrow_back, size: 16),
-                      ),
-                    ),
+                    // Removed back button because this is a root tab
+                    const SizedBox(width: 24),
                     const Text(
                       'Resource',
                       textAlign: TextAlign.center,
