@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/notification_service.dart';
 
 class ReminderScreen extends StatefulWidget {
   const ReminderScreen({super.key});
@@ -17,8 +19,30 @@ class _ReminderScreenState extends State<ReminderScreen> {
     'Daily',
     'Weekdays',
     'Weekends',
+    // Custom is omitted from scheduling implementation for simplicity, 
+    // but kept in UI as per original code.
     'Custom',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isReminderEnabled = prefs.getBool('isReminderEnabled') ?? true;
+      selectedRepeat = prefs.getString('selectedRepeat') ?? 'Daily';
+      
+      final hour = prefs.getInt('reminderHour');
+      final minute = prefs.getInt('reminderMinute');
+      if (hour != null && minute != null) {
+        selectedTime = TimeOfDay(hour: hour, minute: minute);
+      }
+    });
+  }
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -333,15 +357,31 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Save reminder settings
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Reminder settings saved'),
-                        backgroundColor: Color(0xFF095A70),
-                      ),
-                    );
-                    context.pop();
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setBool('isReminderEnabled', isReminderEnabled);
+                    await prefs.setString('selectedRepeat', selectedRepeat);
+                    await prefs.setInt('reminderHour', selectedTime.hour);
+                    await prefs.setInt('reminderMinute', selectedTime.minute);
+
+                    if (isReminderEnabled) {
+                      await NotificationService().scheduleDailyReminder(
+                        selectedTime,
+                        selectedRepeat,
+                      );
+                    } else {
+                      await NotificationService().cancelAllReminders();
+                    }
+
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Reminder settings saved'),
+                          backgroundColor: Color(0xFF095A70),
+                        ),
+                      );
+                      context.pop();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF095A70),

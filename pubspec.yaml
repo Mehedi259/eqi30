@@ -50,6 +50,10 @@ dependencies:
   # Icons
   flutter_svg: ^2.0.10+1
   
+  # Notifications
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+  
   # Video Player
   video_player: ^2.9.2
   

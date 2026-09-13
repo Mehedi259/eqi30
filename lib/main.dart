@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/theme/app_theme.dart';
 import 'core/routes/app_router.dart';
+import 'core/services/notification_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await NotificationService().init();
+  await NotificationService().requestPermissions();
   
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
