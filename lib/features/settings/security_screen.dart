@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/auth_service.dart';
 
-class SecurityScreen extends StatelessWidget {
+class SecurityScreen extends StatefulWidget {
   const SecurityScreen({super.key});
+
+  @override
+  State<SecurityScreen> createState() => _SecurityScreenState();
+}
+
+class _SecurityScreenState extends State<SecurityScreen> {
+  final AuthService _authService = AuthService();
+  bool _isDeleting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -86,25 +95,34 @@ class SecurityScreen extends StatelessWidget {
                       color: Colors.black.withValues(alpha: 0.05),
                     ),
                     GestureDetector(
-                      onTap: () => _showDeleteDialog(context),
+                      onTap: _isDeleting ? null : () => _showDeleteDialog(context),
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
+                          children: [
                             Text(
-                              'Delete Account',
-                              style: TextStyle(
+                              _isDeleting ? 'Deleting...' : 'Delete Account',
+                              style: const TextStyle(
                                 color: Color(0xFFEF4444),
                                 fontSize: 16,
                                 fontFamily: 'Inter',
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            Icon(
-                              Icons.delete_outline,
-                              color: Color(0xFFEF4444),
-                            ),
+                            _isDeleting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFFEF4444),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.delete_outline,
+                                    color: Color(0xFFEF4444),
+                                  ),
                           ],
                         ),
                       ),
@@ -122,20 +140,33 @@ class SecurityScreen extends StatelessWidget {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Account'),
         content: const Text(
           'Are you sure you want to delete your account? This action cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.go('/login');
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              setState(() => _isDeleting = true);
+              try {
+                await _authService.deleteAccount();
+                if (mounted) {
+                  context.go('/login');
+                }
+              } catch (e) {
+                if (mounted) {
+                  setState(() => _isDeleting = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e')),
+                  );
+                }
+              }
             },
             child: const Text(
               'Delete',

@@ -112,4 +112,19 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.containsKey('auth_token');
   }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    await _apiClient.put(
+      '/auth/change-password/',
+      body: {
+        'current_password': currentPassword,
+        'new_password': newPassword,
+      },
+    );
+  }
+
+  Future<void> deleteAccount() async {
+    await _apiClient.delete('/user/account/');
+    await _clearToken();
+  }
 }
