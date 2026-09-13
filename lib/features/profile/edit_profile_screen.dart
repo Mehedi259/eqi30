@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/profile_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,11 +10,76 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Alex Johnson');
-  final _emailController = TextEditingController(
-    text: 'alex.johnson@email.com',
-  );
-  final _phoneController = TextEditingController(text: '(555) 123-4567');
+  final ProfileService _profileService = ProfileService();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  
+  bool _isLoading = true;
+  bool _isSaving = false;
+  String _avatarInitial = 'U';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profileData = await _profileService.getProfile();
+      if (mounted) {
+        setState(() {
+          final name = profileData['full_name'] ?? profileData['name'] ?? '';
+          _nameController.text = name;
+          _emailController.text = profileData['email'] ?? profileData['user']?['email'] ?? '';
+          _phoneController.text = profileData['phone'] ?? '';
+          if (name.isNotEmpty) {
+            _avatarInitial = name[0].toUpperCase();
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load profile')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name cannot be empty')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      await _profileService.updateProfile({
+        'full_name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        // email is usually read-only, but we can pass it if backend allows
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save profile: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -65,7 +131,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
 
             Expanded(
-              child: SingleChildScrollView(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
                 padding: const EdgeInsets.all(26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,10 +149,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               color: Color(0xFF073B4B),
                               shape: BoxShape.circle,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Text(
-                                'A',
-                                style: TextStyle(
+                                _avatarInitial,
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 40,
                                   fontFamily: 'Inter',
@@ -154,9 +222,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Email
+                    // Email (Read only)
                     const Text(
-                      'Email',
+                      'Email (Read-only)',
                       style: TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 14,
@@ -168,9 +236,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
+                      readOnly: true,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: const Color(0xFFF1F5F9), // Slightly grey to indicate read-only
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
@@ -233,36 +302,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Profile updated successfully!'),
-                      ),
-                    );
-                    context.pop();
-                  },
+                  onPressed: _isSaving ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF095A70),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w600,
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              'Save Changes',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.arrow_forward,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ],
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.arrow_forward, size: 20),
-                    ],
-                  ),
                 ),
               ),
             ),

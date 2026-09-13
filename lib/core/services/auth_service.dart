@@ -40,7 +40,7 @@ class AuthService {
     final response = await _apiClient.post(
       '/auth/register/',
       body: {
-        'name': name,
+        'full_name': name,
         'email': email,
         'password': password,
       },
