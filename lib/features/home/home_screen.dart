@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../journey/journey_tab.dart';
-import '../resources/resources_tab.dart';
+import '../resources/resources_screen.dart';
 import '../profile/profile_tab.dart';
 import 'home_tab.dart';
 
@@ -36,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const JourneyTab(),
       const SizedBox(), // Chat placeholder
-      const ResourcesTab(),
+      const ResourcesScreen(showBackButton: false),
       const ProfileTab(),
     ];
   }

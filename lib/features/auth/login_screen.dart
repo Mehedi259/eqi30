@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen>
                     opacity: _fadeAnimation,
                     child: CustomTextField(
                       label: 'Email',
-                      hint: 'brooklynsim@gm',
+                      hint: 'example@gmail.com',
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                     ),

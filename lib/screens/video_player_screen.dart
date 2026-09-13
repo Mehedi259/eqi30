@@ -15,6 +15,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoPlayerController? _controller;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.videoUrl != null && widget.videoUrl!.isNotEmpty) {
+      _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl!))
+        ..initialize().then((_) {
+          if (mounted) setState(() {});
+        });
+    }
+  }
+
+  @override
   void dispose() {
     _controller?.dispose();
     super.dispose();
@@ -98,7 +109,63 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildVideoPlayer() {
-    // Determine thumbnail based on title
+    if (_controller != null && _controller!.value.isInitialized) {
+      return Container(
+        width: double.infinity,
+        height: 220,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.black,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AspectRatio(
+                aspectRatio: _controller!.value.aspectRatio,
+                child: VideoPlayer(_controller!),
+              ),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
+                  });
+                },
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                    color: const Color(0xFF0B191D),
+                    size: 36,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: VideoProgressIndicator(
+                  _controller!,
+                  allowScrubbing: true,
+                  colors: const VideoProgressColors(
+                    playedColor: Color(0xFF2E7D32),
+                    backgroundColor: Colors.white30,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Fallback dummy thumbnail
     String thumbnailPath = 'assets/images/home.png';
     if (widget.title.contains('Yoga for Emotional Release')) {
       thumbnailPath = 'assets/images/Yoga for Emotional Release thamnail.png';
@@ -115,67 +182,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           fit: BoxFit.cover,
         ),
       ),
-      child: Stack(
-        children: [
-          // Gradient overlay
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.3),
-                  Colors.transparent,
-                ],
-              ),
-            ),
+      child: Center(
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
           ),
-          // Play button
-          Center(
-            child: Container(
-              width: 64,
-              height: 64,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: Color(0xFF0B191D),
-                size: 36,
-              ),
-            ),
+          child: const Icon(
+            Icons.play_arrow,
+            color: Color(0xFF0B191D),
+            size: 36,
           ),
-          // Progress bar at bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: 4,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                child: LinearProgressIndicator(
-                  value: 0.3,
-                  backgroundColor: Colors.white.withValues(alpha: 0.3),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF2E7D32),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

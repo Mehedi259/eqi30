@@ -24,15 +24,59 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   Duration position = const Duration(minutes: 4, seconds: 12);
 
   @override
+  void initState() {
+    super.initState();
+    _initAudio();
+  }
+
+  Future<void> _initAudio() async {
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          isPlaying = state == PlayerState.playing;
+        });
+      }
+    });
+
+    _audioPlayer.onDurationChanged.listen((d) {
+      if (mounted) setState(() => duration = d);
+    });
+
+    _audioPlayer.onPositionChanged.listen((p) {
+      if (mounted) setState(() => position = p);
+    });
+
+    if (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) {
+      try {
+        await _audioPlayer.setSource(UrlSource(widget.audioUrl!));
+        // Auto-play when loaded
+        await _audioPlayer.resume();
+      } catch (e) {
+        debugPrint('AudioPlayer error: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to load audio. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  @override
   void dispose() {
     _audioPlayer.dispose();
     super.dispose();
   }
 
-  void _togglePlayPause() {
-    setState(() {
-      isPlaying = !isPlaying;
-    });
+  void _togglePlayPause() async {
+    if (isPlaying) {
+      await _audioPlayer.pause();
+    } else {
+      await _audioPlayer.resume();
+    }
   }
 
   @override
@@ -204,7 +248,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
-            value: position.inSeconds / duration.inSeconds,
+            value: duration.inSeconds > 0 ? position.inSeconds / duration.inSeconds : 0.0,
             minHeight: 4,
             backgroundColor: const Color(0xFFE0E0E0),
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
