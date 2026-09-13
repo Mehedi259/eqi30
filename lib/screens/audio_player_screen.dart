@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class AudioPlayerScreen extends StatefulWidget {
   final String title;
@@ -17,15 +20,22 @@ class AudioPlayerScreen extends StatefulWidget {
   State<AudioPlayerScreen> createState() => _AudioPlayerScreenState();
 }
 
-class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
+class _AudioPlayerScreenState extends State<AudioPlayerScreen> with SingleTickerProviderStateMixin {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool isPlaying = false;
-  Duration duration = const Duration(minutes: 12);
-  Duration position = const Duration(minutes: 4, seconds: 12);
+  bool isDownloading = false;
+  double downloadProgress = 0.0;
+  Duration duration = Duration.zero;
+  Duration position = Duration.zero;
+  late AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
     _initAudio();
   }
 
@@ -34,6 +44,11 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
       if (mounted) {
         setState(() {
           isPlaying = state == PlayerState.playing;
+          if (isPlaying) {
+            _animationController.repeat();
+          } else {
+            _animationController.stop();
+          }
         });
       }
     });
@@ -47,13 +62,55 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     });
 
     if (widget.audioUrl != null && widget.audioUrl!.isNotEmpty) {
+      setState(() {
+        isDownloading = true;
+      });
       try {
-        await _audioPlayer.setSource(UrlSource(widget.audioUrl!));
+        // Download the file locally to bypass Android MediaPlayer strict HTTP streaming issues
+        final tempDir = await getTemporaryDirectory();
+        final fileName = widget.audioUrl!.split('/').last;
+        final file = File('${tempDir.path}/$fileName');
+
+        if (!await file.exists()) {
+          final request = http.Request('GET', Uri.parse(widget.audioUrl!));
+          final response = await http.Client().send(request);
+          final contentLength = response.contentLength ?? 1;
+
+          int received = 0;
+          final sink = file.openWrite();
+          try {
+            await response.stream.map((chunk) {
+              received += chunk.length;
+              if (mounted) {
+                setState(() {
+                  downloadProgress = received / contentLength;
+                });
+              }
+              return chunk;
+            }).pipe(sink);
+          } catch (e) {
+            await sink.close();
+            if (await file.exists()) {
+              await file.delete();
+            }
+            throw Exception('Download failed: $e');
+          }
+        }
+
+        if (mounted) {
+          setState(() {
+            isDownloading = false;
+          });
+        }
+        await _audioPlayer.setSource(DeviceFileSource(file.path));
         // Auto-play when loaded
         await _audioPlayer.resume();
       } catch (e) {
         debugPrint('AudioPlayer error: $e');
         if (mounted) {
+          setState(() {
+            isDownloading = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Unable to load audio. Please try again.'),
@@ -67,6 +124,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
 
   @override
   void dispose() {
+    _animationController.dispose();
     _audioPlayer.dispose();
     super.dispose();
   }
@@ -162,31 +220,34 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   Widget _buildArtwork() {
-    return Container(
-      width: 200,
-      height: 200,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
+    return RotationTransition(
+      turns: _animationController,
       child: Container(
-        margin: const EdgeInsets.all(20),
+        width: 200,
+        height: 200,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF5B6FD8), Color(0xFF4DB8B8)],
-          ),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
-        child: const Center(child: Text('🌿', style: TextStyle(fontSize: 60))),
+        child: Container(
+          margin: const EdgeInsets.all(20),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF5B6FD8), Color(0xFF4DB8B8)],
+            ),
+          ),
+          child: const Center(child: Text('🌿', style: TextStyle(fontSize: 60))),
+        ),
       ),
     );
   }
