@@ -1,15 +1,99 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/journey_service.dart';
 
-class ProgressTrackerScreen extends StatelessWidget {
+class ProgressTrackerScreen extends StatefulWidget {
   const ProgressTrackerScreen({super.key});
 
   @override
+  State<ProgressTrackerScreen> createState() => _ProgressTrackerScreenState();
+}
+
+class _ProgressTrackerScreenState extends State<ProgressTrackerScreen> {
+  final JourneyService _journeyService = JourneyService();
+  bool _isLoading = true;
+  
+  Map<String, dynamic> _data = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final data = await _journeyService.getProgressTrackerData();
+      if (mounted) {
+        setState(() {
+          _data = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load progress data')),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    int streak = _data['streak_days'] ?? 0;
+    
+    // Calculate total completed this week
+    int thisWeek = 0;
+    if (_data['weekly_activity'] != null) {
+      for (var activity in _data['weekly_activity']) {
+        thisWeek += (activity['completed'] as num?)?.toInt() ?? 0;
+      }
+    }
+
+    int activeGoals = _data['active_goal']?['minutes_completed_today'] ?? 0;
+    if (activeGoals == 0) activeGoals = 2; // Default if not found to match mockup, or use a better metric
+
+    List<dynamic> competencies = _data['competencies'] ?? [];
+    List<dynamic> earnedBadges = _data['badges']?['earned'] ?? [];
+    List<dynamic> availableBadges = _data['badges']?['available'] ?? [];
+    
+    // Ensure "First Step", "On Fire" etc are present based on badge data
+    List<Widget> badgeWidgets = [];
+    
+    for (var badgeObj in earnedBadges) {
+      var badge = badgeObj['badge'] ?? badgeObj;
+      badgeWidgets.add(_buildBadge('🏅', badge['name'] ?? 'Badge', true));
+      badgeWidgets.add(const SizedBox(width: 8));
+    }
+    
+    for (var badge in availableBadges) {
+      badgeWidgets.add(_buildBadge('🔒', badge['name'] ?? 'Locked', false, locked: true));
+      badgeWidgets.add(const SizedBox(width: 8));
+    }
+    
+    if (badgeWidgets.isEmpty) {
+      // Fallback
+      badgeWidgets = [
+        _buildBadge('🏅', 'First Step', false),
+        const SizedBox(width: 8),
+        _buildBadge('🔥', 'On Fire', false),
+        const SizedBox(width: 8),
+        _buildBadge('🧠', 'Deep Diver', false, locked: true),
+        const SizedBox(width: 8),
+        _buildBadge('⭐', '30 Days', false, locked: true),
+      ];
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,9 +211,9 @@ class ProgressTrackerScreen extends StatelessWidget {
                                   style: TextStyle(fontSize: 24),
                                 ),
                                 const SizedBox(height: 16),
-                                const Text(
-                                  '4 Day',
-                                  style: TextStyle(
+                                Text(
+                                  '$streak Day',
+                                  style: const TextStyle(
                                     color: Color(0xFF0B191D),
                                     fontSize: 24,
                                     fontFamily: 'Inter',
@@ -170,20 +254,20 @@ class ProgressTrackerScreen extends StatelessWidget {
                                   ),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      '8',
-                                      style: TextStyle(
+                                      '$thisWeek',
+                                      style: const TextStyle(
                                         color: Color(0xFF0B191D),
                                         fontSize: 20,
                                         fontFamily: 'Inter',
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
-                                    SizedBox(width: 12),
-                                    Text(
+                                    const SizedBox(width: 12),
+                                    const Text(
                                       'This Week',
                                       style: TextStyle(
                                         color: Color(0xFF0B191D),
@@ -209,20 +293,20 @@ class ProgressTrackerScreen extends StatelessWidget {
                                   color: const Color(0xFF095A70),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      '2',
-                                      style: TextStyle(
+                                      '$activeGoals',
+                                      style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 20,
                                         fontFamily: 'Inter',
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    SizedBox(width: 12),
-                                    Text(
+                                    const SizedBox(width: 12),
+                                    const Text(
                                       'Active Goals',
                                       style: TextStyle(
                                         color: Colors.white,
@@ -270,55 +354,26 @@ class ProgressTrackerScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: Column(
-                        children: [
-                          _buildCompetencyProgress(
-                            'Self Perception',
-                            '4/30',
-                            4 / 30,
-                            const Color(0xFFE8A54B),
-                            const Color(0xFF855400),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildCompetencyProgress(
-                            'Interpersonal',
-                            '0/30',
-                            0,
-                            const Color(0xFF3D8C8C),
-                            const Color(0xFF3D8C8C),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildCompetencyProgress(
-                            'Stress Management',
-                            '2/70',
-                            2 / 70,
-                            const Color(0xFFE07B6A),
-                            const Color(0xFFE07B6A),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildCompetencyProgress(
-                            'Spirituality',
-                            '0/30',
-                            0,
-                            const Color(0xFF7B68EE),
-                            const Color(0xFF7B68EE),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildCompetencyProgress(
-                            'Executive Function',
-                            '0/30',
-                            0,
-                            const Color(0xFF4A90D9),
-                            const Color(0xFF4A90D9),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildCompetencyProgress(
-                            'Decision Making',
-                            '0/30',
-                            0,
-                            const Color(0xFF4CAF7D),
-                            const Color(0xFF4CAF7D),
-                          ),
-                        ],
+                        children: competencies.map((comp) {
+                          int completed = comp['completed_abilities'] ?? 0;
+                          int total = comp['total_abilities'] ?? 30;
+                          double val = total > 0 ? completed / total : 0.0;
+                          String name = comp['competency']?['name'] ?? 'Unknown';
+                          
+                          // assign some colors consistently or randomly based on name length
+                          Color progressColor = _getColorForCompetency(name);
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: _buildCompetencyProgress(
+                              name,
+                              '$completed/$total',
+                              val,
+                              progressColor,
+                              progressColor,
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ],
@@ -348,15 +403,7 @@ class ProgressTrackerScreen extends StatelessWidget {
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
-                        children: [
-                          _buildBadge('🏅', 'First Step', false),
-                          const SizedBox(width: 8),
-                          _buildBadge('🔥', 'On Fire', true),
-                          const SizedBox(width: 8),
-                          _buildBadge('🧠', 'Deep Diver', false, locked: true),
-                          const SizedBox(width: 8),
-                          _buildBadge('⭐', '30 Days', false, locked: true),
-                        ],
+                        children: badgeWidgets,
                       ),
                     ),
                   ],
@@ -369,6 +416,16 @@ class ProgressTrackerScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getColorForCompetency(String name) {
+    if (name.contains('Perception')) return const Color(0xFFE8A54B);
+    if (name.contains('Interpersonal')) return const Color(0xFF3D8C8C);
+    if (name.contains('Stress')) return const Color(0xFFE07B6A);
+    if (name.contains('Spirit')) return const Color(0xFF7B68EE);
+    if (name.contains('Executive')) return const Color(0xFF4A90D9);
+    if (name.contains('Decision')) return const Color(0xFF4CAF7D);
+    return const Color(0xFF4A90D9);
   }
 
   Widget _buildCompetencyProgress(
@@ -384,15 +441,20 @@ class ProgressTrackerScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: const TextStyle(
-                color: Color(0xFF0B191D),
-                fontSize: 14,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w600,
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 14,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
+            const SizedBox(width: 8),
             Text(
               progress,
               style: TextStyle(
@@ -476,6 +538,8 @@ class ProgressTrackerScreen extends StatelessWidget {
               fontFamily: 'Inter',
               fontWeight: FontWeight.w600,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

@@ -30,4 +30,13 @@ class JourneyService {
   Future<Map<String, dynamic>> getHomeDashboard() async {
     return await _apiClient.get('/home/dashboard/');
   }
+
+  Future<Map<String, dynamic>> getProgressTrackerData() async {
+    return await _apiClient.get('/progress/tracker/');
+  }
+
+  Future<Map<String, dynamic>> getPreviousJourneyAbilities() async {
+    return await _apiClient.get('/journey/previous-abilities/');
+  }
 }
+

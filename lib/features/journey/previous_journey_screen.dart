@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/journey_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
-class PreviousJourneyScreen extends StatelessWidget {
+class PreviousJourneyScreen extends StatefulWidget {
   const PreviousJourneyScreen({super.key});
+
+  @override
+  State<PreviousJourneyScreen> createState() => _PreviousJourneyScreenState();
+}
+
+class _PreviousJourneyScreenState extends State<PreviousJourneyScreen> {
+  final JourneyService _journeyService = JourneyService();
+  bool _isLoading = true;
+  List<dynamic> _inProgress = [];
+  List<dynamic> _completed = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final data = await _journeyService.getPreviousJourneyAbilities();
+      if (mounted) {
+        setState(() {
+          _inProgress = data['in_progress'] ?? [];
+          _completed = data['completed'] ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load previous journey')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,60 +73,71 @@ class PreviousJourneyScreen extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(26),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'IN PROGRESS',
-              style: TextStyle(
-                color: Color(0xFF38434A),
-                fontSize: 12,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(26),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_inProgress.isNotEmpty) ...[
+                    const Text(
+                      'IN PROGRESS',
+                      style: TextStyle(
+                        color: Color(0xFF38434A),
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ..._inProgress.map((item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: _buildInProgressCard(item),
+                        )),
+                    const SizedBox(height: 32),
+                  ],
+                  if (_completed.isNotEmpty) ...[
+                    const Text(
+                      'COMPLETED',
+                      style: TextStyle(
+                        color: Color(0xFF38434A),
+                        fontSize: 12,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ..._completed.map((item) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16.0),
+                          child: _buildCompletedCard(item),
+                        )),
+                    const SizedBox(height: 40),
+                  ],
+                  if (_inProgress.isEmpty && _completed.isEmpty)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 40),
+                        child: Text(
+                          'No previous journey data found.',
+                          style: TextStyle(
+                            color: Color(0xFF38434A),
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            _buildInProgressCard(),
-            const SizedBox(height: 32),
-            const Text(
-              'COMPLETED',
-              style: TextStyle(
-                color: Color(0xFF38434A),
-                fontSize: 12,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildCompletedCard(
-              emoji: '🧠',
-              title: 'Emotional Awareness',
-              subtitle: 'Completed 2 days ago  •  30 days',
-            ),
-            const SizedBox(height: 16),
-            _buildCompletedCard(
-              emoji: '🚧',
-              title: 'Boundary Awareness',
-              subtitle: 'Completed 2 weeks ago  •  15 days',
-            ),
-            const SizedBox(height: 16),
-            _buildCompletedCard(
-              emoji: '🌱',
-              title: 'Self-Actualization',
-              subtitle: 'Completed 1 month ago  •  7 days',
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
     );
   }
 
-  Widget _buildInProgressCard() {
+  Widget _buildInProgressCard(Map<String, dynamic> item) {
+    final int progressPercent = item['progress_percent'] ?? 0;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -126,8 +177,10 @@ class PreviousJourneyScreen extends StatelessWidget {
                               color: const Color(0xFFE5F5F8),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(
-                              child: Text('💪', style: TextStyle(fontSize: 24)),
+                            child: Center(
+                              child: item['icon'] != null
+                                  ? Image.network(item['icon'], width: 24, height: 24)
+                                  : const Text('💪', style: TextStyle(fontSize: 24)),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -135,9 +188,9 @@ class PreviousJourneyScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Self-Confidence',
-                                  style: TextStyle(
+                                Text(
+                                  item['name'] ?? 'Ability',
+                                  style: const TextStyle(
                                     color: Color(0xFF0B191D),
                                     fontSize: 16,
                                     fontFamily: 'Poppins',
@@ -145,9 +198,9 @@ class PreviousJourneyScreen extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 4),
-                                const Text(
-                                  'Day 12 of 20',
-                                  style: TextStyle(
+                                Text(
+                                  'Day ${item['current_day'] ?? 0} of ${item['total_days'] ?? 0}',
+                                  style: const TextStyle(
                                     color: Color(0xFF38434A),
                                     fontSize: 13,
                                     fontFamily: 'Inter',
@@ -156,9 +209,9 @@ class PreviousJourneyScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const Text(
-                            '60%',
-                            style: TextStyle(
+                          Text(
+                            '$progressPercent%',
+                            style: const TextStyle(
                               color: Color(0xFF2E8B57),
                               fontSize: 14,
                               fontFamily: 'Inter',
@@ -172,7 +225,7 @@ class PreviousJourneyScreen extends StatelessWidget {
                       Row(
                         children: [
                           Expanded(
-                            flex: 60,
+                            flex: progressPercent,
                             child: Container(
                               height: 6,
                               decoration: BoxDecoration(
@@ -181,16 +234,17 @@ class PreviousJourneyScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          Expanded(
-                            flex: 40,
-                            child: Container(
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE9ECF1),
-                                borderRadius: BorderRadius.circular(3),
+                          if (progressPercent < 100)
+                            Expanded(
+                              flex: 100 - progressPercent,
+                              child: Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE9ECF1),
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                     ],
@@ -204,11 +258,14 @@ class PreviousJourneyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCompletedCard({
-    required String emoji,
-    required String title,
-    required String subtitle,
-  }) {
+  Widget _buildCompletedCard(Map<String, dynamic> item) {
+    String completedAgo = '';
+    if (item['completed_at'] != null) {
+      final DateTime date = DateTime.parse(item['completed_at']);
+      completedAgo = 'Completed ' + timeago.format(date);
+    }
+    final String subtitle = '$completedAgo  •  ${item['total_days'] ?? 0} days';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -234,7 +291,9 @@ class PreviousJourneyScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 28)),
+              child: item['icon'] != null
+                  ? Image.network(item['icon'], width: 28, height: 28)
+                  : const Text('🧠', style: TextStyle(fontSize: 28)),
             ),
           ),
           const SizedBox(width: 16),
@@ -243,7 +302,7 @@ class PreviousJourneyScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  item['name'] ?? 'Ability',
                   style: const TextStyle(
                     color: Color(0xFF0B191D),
                     fontSize: 16,

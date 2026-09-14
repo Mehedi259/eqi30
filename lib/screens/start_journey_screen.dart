@@ -5,7 +5,18 @@ import '../core/constants/app_text_styles.dart';
 import 'learning_screen.dart';
 
 class StartJourneyScreen extends StatefulWidget {
-  const StartJourneyScreen({super.key});
+  final int sessionId;
+  final int abilityId;
+  final int dayNumber;
+  final String abilityName;
+
+  const StartJourneyScreen({
+    super.key,
+    required this.sessionId,
+    required this.abilityId,
+    required this.dayNumber,
+    required this.abilityName,
+  });
 
   @override
   State<StartJourneyScreen> createState() => _StartJourneyScreenState();
@@ -858,7 +869,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
-                  context.push('/learning?abilityId=1&dayNumber=1&abilityName=Emotional Awareness');
+                  context.push(
+                    '/learning?sessionId=${widget.sessionId}&abilityId=${widget.abilityId}&dayNumber=${widget.dayNumber}&abilityName=${widget.abilityName}',
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF073B4B),

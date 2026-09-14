@@ -7,12 +7,14 @@ import 'complete_journey_screen.dart';
 import '../core/services/learning_service.dart';
 
 class LearningScreen extends StatefulWidget {
+  final int sessionId;
   final int abilityId;
   final int dayNumber;
   final String abilityName;
 
   const LearningScreen({
     super.key,
+    required this.sessionId,
     required this.abilityId,
     required this.dayNumber,
     required this.abilityName,
@@ -36,11 +38,11 @@ class _LearningScreenState extends State<LearningScreen>
   bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic>? _dayContent;
+  bool _practiceCompleted = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchDayContent();
     _fetchDayContent();
     _animController = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -81,12 +83,39 @@ class _LearningScreenState extends State<LearningScreen>
   }
 
   Future<void> _completeSession() async {
-    if (_dayContent == null) return;
+    if (widget.sessionId == 0) {
+      context.go('/home?tab=1');
+      return;
+    }
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Session completed successfully!')),
-    );
-    context.pop();
+    // Submit reflection if present
+    if (reflectionController.text.isNotEmpty || selectedFeeling != null) {
+      try {
+        await _learningService.submitReflection(
+          widget.sessionId,
+          reflectionText: reflectionController.text,
+          practiceAnswer: selectedFeeling ?? "",
+        );
+      } catch (e) {
+        // Continue even if reflection fails
+      }
+    }
+
+    try {
+      await _learningService.completeSession(widget.sessionId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Session completed successfully!')),
+        );
+        context.go('/home?tab=1');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to complete session.')),
+        );
+      }
+    }
   }
 
   @override
@@ -957,18 +986,15 @@ class _LearningScreenState extends State<LearningScreen>
   Widget _buildCompletedButton() {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CompleteJourneyScreen(),
-          ),
-        );
+        setState(() {
+          _practiceCompleted = true;
+        });
       },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(1),
         decoration: BoxDecoration(
-          color: const Color(0xFF4B8FE8),
+          color: _practiceCompleted ? const Color(0xFF22C55E) : const Color(0xFF4B8FE8),
           border: Border.all(color: const Color(0x140F1E3C)),
           borderRadius: BorderRadius.circular(12),
         ),
@@ -978,10 +1004,10 @@ class _LearningScreenState extends State<LearningScreen>
           decoration: BoxDecoration(
             border: Border.all(color: const Color(0x0F0F1E3C)),
           ),
-          child: const Text(
-            'COMPLETED IN APP PRACTICE',
+          child: Text(
+            _practiceCompleted ? 'PRACTICE COMPLETED ✅' : 'COMPLETED IN APP PRACTICE',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontFamily: 'Inter',
@@ -1002,7 +1028,7 @@ class _LearningScreenState extends State<LearningScreen>
             onPressed: () {
               showDialog(
                 context: context,
-                builder: (context) => const WeeklyCheckInDialog(),
+                builder: (context) => WeeklyCheckInDialog(onComplete: _completeSession),
               );
             },
             style: ElevatedButton.styleFrom(
@@ -1055,7 +1081,9 @@ class _LearningScreenState extends State<LearningScreen>
 }
 
 class WeeklyCheckInDialog extends StatefulWidget {
-  const WeeklyCheckInDialog({super.key});
+  final VoidCallback onComplete;
+  
+  const WeeklyCheckInDialog({super.key, required this.onComplete});
 
   @override
   State<WeeklyCheckInDialog> createState() => _WeeklyCheckInDialogState();
@@ -1238,12 +1266,7 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CompleteJourneyScreen(),
-                      ),
-                    );
+                    widget.onComplete();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF073B4B),

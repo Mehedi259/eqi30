@@ -31,6 +31,8 @@ import '../../features/settings/privacy_terms_screen.dart';
 import '../../features/settings/privacy_policy_screen.dart';
 import '../../features/settings/terms_of_service_screen.dart';
 import '../../features/settings/help_faq_screen.dart';
+import '../../features/settings/personal_details_screen.dart';
+import '../../features/settings/password_manager_screen.dart';
 import '../../features/settings/subscription_screen.dart';
 import '../../features/settings/reminder_screen.dart';
 import '../../features/settings/goal_screen.dart';
@@ -42,6 +44,7 @@ import '../../screens/audio_player_screen.dart';
 import '../../screens/video_player_screen.dart';
 import '../../screens/video_playback_screen.dart';
 import '../../screens/learning_screen.dart';
+import '../../screens/start_journey_screen.dart' as session_intro;
 import '../../screens/complete_journey_screen.dart';
 import '../../screens/journey_completed_screen.dart';
 
@@ -273,12 +276,29 @@ class AppRouter {
         },
       ),
       GoRoute(
+        path: '/session-intro',
+        builder: (context, state) {
+          final sessionId = int.tryParse(state.uri.queryParameters['sessionId'] ?? '0') ?? 0;
+          final abilityId = int.tryParse(state.uri.queryParameters['abilityId'] ?? '1') ?? 1;
+          final dayNumber = int.tryParse(state.uri.queryParameters['dayNumber'] ?? '1') ?? 1;
+          final abilityName = state.uri.queryParameters['abilityName'] ?? 'Emotional Awareness';
+          return session_intro.StartJourneyScreen(
+            sessionId: sessionId,
+            abilityId: abilityId,
+            dayNumber: dayNumber,
+            abilityName: abilityName,
+          );
+        },
+      ),
+      GoRoute(
         path: '/learning',
         builder: (context, state) {
+          final sessionId = int.tryParse(state.uri.queryParameters['sessionId'] ?? '0') ?? 0;
           final abilityId = int.tryParse(state.uri.queryParameters['abilityId'] ?? '1') ?? 1;
           final dayNumber = int.tryParse(state.uri.queryParameters['dayNumber'] ?? '1') ?? 1;
           final abilityName = state.uri.queryParameters['abilityName'] ?? 'Emotional Awareness';
           return LearningScreen(
+            sessionId: sessionId,
             abilityId: abilityId,
             dayNumber: dayNumber,
             abilityName: abilityName,

@@ -17,7 +17,7 @@ class _JourneyTabState extends State<JourneyTab> {
   List<dynamic> _todaySessions = [];
   int _sessionsLeft = 0;
   List<dynamic> _activeAbilities = [];
-  Map<String, dynamic>? _journeyDetails;
+  Map<String, dynamic>? _currentFocus;
 
   @override
   void initState() {
@@ -32,10 +32,10 @@ class _JourneyTabState extends State<JourneyTab> {
       
       if (mounted) {
         setState(() {
-          _journeyDetails = details;
           _todaySessions = today['sessions'] ?? [];
           _sessionsLeft = today['sessions_left'] ?? 2;
           _activeAbilities = details['active_abilities'] ?? [];
+          _currentFocus = details['current_focus'];
           _isLoading = false;
         });
       }
@@ -139,6 +139,9 @@ class _JourneyTabState extends State<JourneyTab> {
                         children: [
                           _buildSessionCard(
                             context: context,
+                            sessionId: 0,
+                            abilityId: 1,
+                            dayNumber: 1,
                             category: 'MINDSET',
                             title: 'Emotional Awareness – Day 1',
                             subtitle: 'Pause & Label Your Emotion',
@@ -150,6 +153,9 @@ class _JourneyTabState extends State<JourneyTab> {
                           const SizedBox(height: 12),
                           _buildSessionCard(
                             context: context,
+                            sessionId: 0,
+                            abilityId: 2,
+                            dayNumber: 2,
                             category: 'RESILIENCE',
                             title: 'Stress Tolerance – Day 2',
                             subtitle: null,
@@ -161,19 +167,26 @@ class _JourneyTabState extends State<JourneyTab> {
                         ],
                       )
                     else
-                      ..._todaySessions.map((session) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _buildSessionCard(
-                          context: context,
-                          category: session['category'] ?? 'MINDSET',
-                          title: session['title'] ?? 'Session',
-                          subtitle: session['subtitle'],
-                          duration: session['duration'] ?? '~5 min session',
-                          buttonText: 'Lets start',
-                          iconColor: const Color(0xFFE5E2E1),
-                          icon: Icons.psychology_outlined,
-                        ),
-                      )),
+                      ..._todaySessions.map((session) {
+                        final ability = session['ability'] ?? {};
+                        final competency = session['competency'] ?? {};
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _buildSessionCard(
+                            context: context,
+                            sessionId: session['session_id'] ?? 0,
+                            abilityId: ability['id'] ?? 1,
+                            dayNumber: session['content_day'] ?? 1,
+                            category: (competency['name'] ?? 'MINDSET').toString().toUpperCase(),
+                            title: '${ability['name'] ?? 'Session'} – Day ${session['content_day'] ?? 1}',
+                            subtitle: session['subtitle'],
+                            duration: '~${session['estimated_minutes'] ?? 5} min session',
+                            buttonText: 'Lets start',
+                            iconColor: const Color(0xFFE5E2E1),
+                            icon: Icons.psychology_outlined,
+                          ),
+                        );
+                      }),
 
                     const SizedBox(height: 16),
 
@@ -206,10 +219,10 @@ class _JourneyTabState extends State<JourneyTab> {
                               child: const Icon(Icons.route_outlined, size: 28),
                             ),
                             const SizedBox(width: 16),
-                            Expanded(
+                            const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
+                                children: [
                                   Text(
                                     'View previous journey',
                                     style: TextStyle(
@@ -253,188 +266,178 @@ class _JourneyTabState extends State<JourneyTab> {
                     const SizedBox(height: 12),
 
                     // Abilities Cards
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _activeAbilities.isEmpty ? [
-                          _buildAbilityCard(
-                            title: 'Self-Regard',
-                            proficiency: 65,
-                            iconColor: const Color(0xFF94F990),
-                            icon: Icons.self_improvement,
-                          ),
-                          const SizedBox(width: 16),
-                          _buildAbilityCard(
-                            title: 'Empathy',
-                            proficiency: 42,
-                            iconColor: const Color(0xFFD6E3FF),
-                            icon: Icons.people_outline,
-                          ),
-                          const SizedBox(width: 16),
-                          _buildAbilityCard(
-                            title: 'Independence',
-                            proficiency: 80,
-                            iconColor: const Color(0xFFDCE2F2),
-                            icon: Icons.person_outline,
-                          ),
-                        ] : _activeAbilities.map((ability) {
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 16),
-                            child: _buildAbilityCard(
-                              title: ability['name'] ?? 'Ability',
-                              proficiency: ability['proficiency'] ?? 0,
-                              iconColor: const Color(0xFFD6E3FF),
-                              icon: Icons.psychology,
-                            ),
-                          );
-                        }).toList(),
+                    if (_activeAbilities.isEmpty)
+                      const Text(
+                        'No active abilities yet. Start a session!',
+                        style: TextStyle(
+                          color: Color(0xFF637275),
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                        ),
+                      )
+                    else
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _activeAbilities.map((ability) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 16),
+                              child: _buildAbilityCard(
+                                title: ability['name'] ?? 'Ability',
+                                proficiency: ability['proficiency'] ?? 0,
+                                iconColor: const Color(0xFFD6E3FF),
+                                icon: Icons.psychology,
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    ),
 
                     const SizedBox(height: 24),
 
                     // Progress Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFF073B4B), Color(0xFF0A5266)],
+                    if (_currentFocus != null)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFF073B4B), Color(0xFF0A5266)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF073B4B,
+                              ).withValues(alpha: 0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF073B4B,
-                            ).withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        clipBehavior: Clip.none,
-                        children: [
-                          // Background decorative circles
-                          Positioned(
-                            right: -30,
-                            top: -20,
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.05),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            left: -40,
-                            bottom: -30,
-                            child: Container(
-                              width: 150,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.03),
-                              ),
-                            ),
-                          ),
-                          // Content
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.trending_up,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'Day 3',
-                                    style: TextStyle(
-                                      color: Color(0xFF94F990),
-                                      fontSize: 14,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'You\'re 3 days into building\nEmotional Awareness...',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontFamily: 'Poppins',
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.4,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(16),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            // Background decorative circles
+                            Positioned(
+                              right: -30,
+                              top: -20,
+                              child: Container(
+                                width: 120,
+                                height: 120,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    width: 1,
-                                  ),
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.05),
                                 ),
-                                child: Row(
+                              ),
+                            ),
+                            Positioned(
+                              left: -40,
+                              bottom: -30,
+                              child: Container(
+                                width: 150,
+                                height: 150,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withValues(alpha: 0.03),
+                                ),
+                              ),
+                            ),
+                            // Content
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFF94F990,
-                                        ).withValues(alpha: 0.2),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Icon(
-                                        Icons.emoji_events_outlined,
-                                        color: Color(0xFF94F990),
+                                        Icons.trending_up,
+                                        color: Colors.white,
                                         size: 20,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    const Expanded(
-                                      child: Text(
-                                        'Keep up the momentum! You\'re already identifying patterns faster than 60% of new learners.',
-                                        style: TextStyle(
-                                          color: Color(0xFFE8F4F8),
-                                          fontSize: 14,
-                                          fontFamily: 'Inter',
-                                          fontWeight: FontWeight.w400,
-                                          height: 1.5,
-                                        ),
+                                    Text(
+                                      'Day ${_currentFocus?['day'] ?? 1}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF94F990),
+                                        fontSize: 14,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                                const SizedBox(height: 16),
+                                Text(
+                                  'You\'re ${_currentFocus?['day'] ?? 1} days into building\n${_currentFocus?['ability_name'] ?? 'Self-Regard'}...',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.4,
+                                    letterSpacing: -0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.1),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFF94F990,
+                                          ).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.emoji_events_outlined,
+                                          color: Color(0xFF94F990),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _currentFocus?['message'] ?? 'Keep up the momentum!',
+                                          style: const TextStyle(
+                                            color: Color(0xFFE8F4F8),
+                                            fontSize: 14,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w400,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
 
                     const SizedBox(height: 24),
                   ],
@@ -449,6 +452,9 @@ class _JourneyTabState extends State<JourneyTab> {
 
   Widget _buildSessionCard({
     required BuildContext context,
+    required int sessionId,
+    required int abilityId,
+    required int dayNumber,
     required String category,
     required String title,
     String? subtitle,
@@ -544,12 +550,8 @@ class _JourneyTabState extends State<JourneyTab> {
           const SizedBox(height: 16),
           GestureDetector(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const StartJourneyScreen(),
-                ),
-              );
+              final abilityName = title.split(' – ').first;
+              context.push('/session-intro?sessionId=$sessionId&abilityId=$abilityId&dayNumber=$dayNumber&abilityName=$abilityName');
             },
             child: Container(
               width: double.infinity,

@@ -22,6 +22,10 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   String _userName = 'Guest';
   double _progress = 0.0;
   int _activitiesCompleted = 0;
+  String _greeting = 'Good Evening';
+  String _journeySubtitle = 'Loading your journey...';
+  int _streak = 0;
+  int _level = 0;
   bool _isLoading = true;
 
   @override
@@ -49,9 +53,33 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
       
       if (mounted) {
         setState(() {
-          _userName = profile['name'] ?? 'Guest';
-          _progress = (dashboard['progress_percentage'] ?? 0) / 100.0;
-          _activitiesCompleted = dashboard['activities_completed'] ?? 0;
+          final userObj = dashboard['user'] ?? {};
+          _userName = userObj['name'] ?? profile['full_name'] ?? 'Guest';
+          
+          final overallProgress = dashboard['overall_progress'] ?? {};
+          _progress = (overallProgress['percent'] ?? 0) / 100.0;
+          _level = overallProgress['completed_abilities'] ?? 0;
+          
+          _activitiesCompleted = dashboard['completed_activities'] ?? 0;
+          _streak = dashboard['streak_days'] ?? 0;
+          
+          final journey = dashboard['journey'] ?? {};
+          final currentDay = journey['current_day'] ?? 1;
+          
+          final currentAbility = dashboard['current_ability'] ?? {};
+          final ability = currentAbility['ability'] ?? {};
+          final abilityName = ability['name'] ?? 'Your Journey';
+          
+          _journeySubtitle = 'You\'re on Day $currentDay of $abilityName';
+          
+          final hour = DateTime.now().hour;
+          if (hour < 12) {
+            _greeting = 'Good Morning';
+          } else if (hour < 17) {
+            _greeting = 'Good Afternoon';
+          } else {
+            _greeting = 'Good Evening';
+          }
           
           _progressAnimation = Tween<double>(begin: 0.0, end: _progress).animate(
             CurvedAnimation(
@@ -104,7 +132,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Good Evening, $_userName',
+                            '$_greeting, $_userName',
                             style: const TextStyle(
                               color: Color(0xFF0B191D),
                               fontSize: 18,
@@ -114,8 +142,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                             ),
                           ),
                           const SizedBox(height: 2),
-                          const Text(
-                            'You\'re on Day 1 of Emotional Control',
+                          Text(
+                            _journeySubtitle,
                             style: TextStyle(
                               color: Color(0xFF44474D),
                               fontSize: 12,
@@ -141,11 +169,11 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              Icon(Icons.star_border, size: 16),
-                              SizedBox(width: 4),
+                            children: [
+                              const Icon(Icons.star_border, size: 16),
+                              const SizedBox(width: 4),
                               Text(
-                                '0',
+                                '$_streak',
                                 style: TextStyle(
                                   color: Color(0xFF0B191D),
                                   fontSize: 16,
@@ -168,9 +196,9 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
+                            children: [
                               Text(
-                                'Lv.0',
+                                'Lv.$_level',
                                 style: TextStyle(
                                   color: Color(0xFF0B191D),
                                   fontSize: 16,
@@ -178,8 +206,8 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Icon(Icons.trending_up, size: 16),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.trending_up, size: 16),
                             ],
                           ),
                         ),

@@ -26,13 +26,15 @@ class LearningService {
   }
 
   /// Submit daily reflection for a session
-  Future<void> submitReflection(int sessionId, String reflectionText, {String response = ''}) async {
+  Future<void> submitReflection(int sessionId, {String reflectionText = '', String response = '', String practiceAnswer = '', String realLifeAnswer = ''}) async {
     try {
       await _apiClient.post(
         '/sessions/$sessionId/reflection/',
         body: {
-          'reflection_text': reflectionText,
-          'response': response,
+          if (reflectionText.isNotEmpty) 'reflection_text': reflectionText,
+          if (response.isNotEmpty) 'response': response,
+          if (practiceAnswer.isNotEmpty) 'practice_answer': practiceAnswer,
+          if (realLifeAnswer.isNotEmpty) 'real_life_answer': realLifeAnswer,
         },
       );
     } catch (e) {
