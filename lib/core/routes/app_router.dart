@@ -274,7 +274,16 @@ class AppRouter {
       ),
       GoRoute(
         path: '/learning',
-        builder: (context, state) => const LearningScreen(),
+        builder: (context, state) {
+          final abilityId = int.tryParse(state.uri.queryParameters['abilityId'] ?? '1') ?? 1;
+          final dayNumber = int.tryParse(state.uri.queryParameters['dayNumber'] ?? '1') ?? 1;
+          final abilityName = state.uri.queryParameters['abilityName'] ?? 'Emotional Awareness';
+          return LearningScreen(
+            abilityId: abilityId,
+            dayNumber: dayNumber,
+            abilityName: abilityName,
+          );
+        },
       ),
       GoRoute(
         path: '/complete-journey',

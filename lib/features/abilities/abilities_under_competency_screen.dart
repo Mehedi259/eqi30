@@ -581,9 +581,20 @@ class _AbilitiesUnderCompetencyScreenState
     required String backgroundImage,
     String? iconPath,
   }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        // Find ability ID dynamically or pass a default (e.g. 1)
+        int defaultAbilityId = 1;
+        if (title.contains('Emotional Awareness')) defaultAbilityId = 1;
+        if (title.contains('Boundary Awareness')) defaultAbilityId = 2;
+        if (title.contains('Self-Confidence')) defaultAbilityId = 3;
+        if (title.contains('Self-Actualization')) defaultAbilityId = 4;
+        
+        context.push('/learning?abilityId=$defaultAbilityId&dayNumber=1&abilityName=$title');
+      },
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
@@ -707,7 +718,8 @@ class _AbilitiesUnderCompetencyScreenState
             ],
           ),
         ),
-      ),
-    );
+        ),
+      ), // closes Container
+    ); // closes GestureDetector
   }
 }

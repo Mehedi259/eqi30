@@ -4,8 +4,19 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
 import 'complete_journey_screen.dart';
 
+import '../core/services/learning_service.dart';
+
 class LearningScreen extends StatefulWidget {
-  const LearningScreen({super.key});
+  final int abilityId;
+  final int dayNumber;
+  final String abilityName;
+
+  const LearningScreen({
+    super.key,
+    required this.abilityId,
+    required this.dayNumber,
+    required this.abilityName,
+  });
 
   @override
   State<LearningScreen> createState() => _LearningScreenState();
@@ -21,9 +32,16 @@ class _LearningScreenState extends State<LearningScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  final LearningService _learningService = LearningService();
+  bool _isLoading = true;
+  String? _errorMessage;
+  Map<String, dynamic>? _dayContent;
+
   @override
   void initState() {
     super.initState();
+    _fetchDayContent();
+    _fetchDayContent();
     _animController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -47,6 +65,30 @@ class _LearningScreenState extends State<LearningScreen>
     _animController.forward();
   }
 
+  Future<void> _fetchDayContent() async {
+    try {
+      final data = await _learningService.getAbilityDayContent(widget.abilityId, widget.dayNumber);
+      setState(() {
+        _dayContent = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Failed to load content. Please try again.";
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _completeSession() async {
+    if (_dayContent == null) return;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Session completed successfully!')),
+    );
+    context.pop();
+  }
+
   @override
   void dispose() {
     _animController.dispose();
@@ -57,6 +99,33 @@ class _LearningScreenState extends State<LearningScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFFF8FAFC),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_errorMessage!),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() => _isLoading = true);
+                  _fetchDayContent();
+                },
+                child: const Text("Retry"),
+              )
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
@@ -292,9 +361,9 @@ class _LearningScreenState extends State<LearningScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Emotional Awareness',
-                      style: TextStyle(
+                    Text(
+                      widget.abilityName,
+                      style: const TextStyle(
                         color: Color(0xFF637275),
                         fontSize: 12,
                         fontFamily: 'Inter',
@@ -303,9 +372,9 @@ class _LearningScreenState extends State<LearningScreen>
                       ),
                     ),
                     const SizedBox(height: 3),
-                    const Text(
-                      'Day 1 of 30',
-                      style: TextStyle(
+                    Text(
+                      'Day ${widget.dayNumber} of 70',
+                      style: const TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 15,
                         fontFamily: 'Poppins',
@@ -347,9 +416,9 @@ class _LearningScreenState extends State<LearningScreen>
   Widget _buildTitle() {
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: const Text(
-        'From \'Fine\' to a Feeling',
-        style: TextStyle(
+      child: Text(
+        _dayContent?['title'] ?? 'Daily Micro-Skill',
+        style: const TextStyle(
           color: Color(0xFF1A2B4A),
           fontSize: 24,
           fontFamily: 'Poppins',
@@ -448,7 +517,7 @@ class _LearningScreenState extends State<LearningScreen>
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    'Someone asks "How are you?"',
+                    'Follow the prompt provided in today\'s teaching.',
                     style: TextStyle(
                       fontSize: 14,
                       fontFamily: 'Inter',
@@ -490,10 +559,10 @@ class _LearningScreenState extends State<LearningScreen>
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'I will pause for 2 seconds and use a specific emotion word.',
-                    style: TextStyle(
+                    _dayContent?['real_life_plan'] ?? 'No plan defined for today.',
+                    style: const TextStyle(
                       fontSize: 14,
                       fontFamily: 'Inter',
                       height: 1.43,
@@ -565,9 +634,9 @@ class _LearningScreenState extends State<LearningScreen>
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Why do you think it\'s so easy to default to "fine"?',
-            style: TextStyle(fontSize: 14, fontFamily: 'Inter', height: 1.71),
+          Text(
+            _dayContent?['reflection_question'] ?? 'How did today\'s practice feel?',
+            style: const TextStyle(fontSize: 14, fontFamily: 'Inter', height: 1.71),
           ),
           const SizedBox(height: 12),
           Container(
@@ -661,9 +730,9 @@ class _LearningScreenState extends State<LearningScreen>
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'When we say we feel "fine", we\'re often masking a complex web of emotions. True emotional awareness starts with finding the specific word for what you\'re experiencing.',
-            style: TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
+          Text(
+            _dayContent?['teaching_content'] ?? '',
+            style: const TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
           ),
           const SizedBox(height: 10),
           Container(
@@ -769,9 +838,9 @@ class _LearningScreenState extends State<LearningScreen>
               border: Border.all(color: const Color(0xFFE5E7EB)),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Text(
-              'Once today, when you notice you\'re thinking "I\'m fine" - pause.',
-              style: TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
+            child: Text(
+              _dayContent?['practice_content'] ?? '',
+              style: const TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
             ),
           ),
           const SizedBox(height: 12),

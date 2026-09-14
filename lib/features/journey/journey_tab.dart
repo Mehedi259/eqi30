@@ -68,7 +68,11 @@ class _JourneyTabState extends State<JourneyTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        }
+                      },
                       child: Container(
                         width: 24,
                         height: 24,

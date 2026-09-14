@@ -858,12 +858,7 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LearningScreen(),
-                    ),
-                  );
+                  context.push('/learning?abilityId=1&dayNumber=1&abilityName=Emotional Awareness');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF073B4B),
