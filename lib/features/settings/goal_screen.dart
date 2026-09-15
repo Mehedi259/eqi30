@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/profile_service.dart';
 
 class GoalScreen extends StatefulWidget {
   const GoalScreen({super.key});
@@ -10,8 +11,34 @@ class GoalScreen extends StatefulWidget {
 
 class _GoalScreenState extends State<GoalScreen> {
   int selectedMinutes = 60;
+  bool isLoading = true;
+  final ProfileService _profileService = ProfileService();
 
   final List<int> goalOptions = [15, 30, 45, 60, 90, 120];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
+
+  Future<void> _loadGoal() async {
+    try {
+      final profile = await _profileService.getProfile();
+      if (mounted) {
+        setState(() {
+          selectedMinutes = profile['daily_goal_minutes'] ?? 60;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -319,15 +346,27 @@ class _GoalScreenState extends State<GoalScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Save goal settings
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Daily goal updated'),
-                        backgroundColor: Color(0xFF095A70),
-                      ),
-                    );
-                    context.pop();
+                  onPressed: isLoading ? null : () async {
+                    setState(() => isLoading = true);
+                    try {
+                      await _profileService.updateProfile({'daily_goal_minutes': selectedMinutes});
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Daily goal updated'),
+                            backgroundColor: Color(0xFF095A70),
+                          ),
+                        );
+                        context.pop();
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        setState(() => isLoading = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed to update goal')),
+                        );
+                      }
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF095A70),
@@ -336,7 +375,13 @@ class _GoalScreenState extends State<GoalScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
+                  child: isLoading 
+                    ? const SizedBox(
+                        height: 24, 
+                        width: 24, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                    : const Text(
                     'Save Goal',
                     style: TextStyle(
                       color: Colors.white,

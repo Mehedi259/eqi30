@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/services/auth_service.dart';
 
@@ -51,15 +52,6 @@ class _ProfileTabState extends State<ProfileTab> {
           _email = profileData['email'] ?? profileData['user']?['email'] ?? '';
           
           _dailyGoalMinutes = profileData['daily_goal_minutes'] ?? 60;
-          final pTime = profileData['practice_time'];
-          if (pTime != null && pTime.toString().isNotEmpty) {
-            final timeStr = pTime.toString();
-            // Handle both HH:MM:SS format from backend or any string
-            _practiceTime = timeStr.length >= 5 && timeStr.contains(':') 
-                ? timeStr.substring(0, 5) 
-                : timeStr;
-          }
-          
           _isLoading = false;
         });
       }
@@ -71,6 +63,29 @@ class _ProfileTabState extends State<ProfileTab> {
         });
       }
     }
+    
+    // Load local reminder preferences
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) {
+      setState(() {
+        final isEnabled = prefs.getBool('isReminderEnabled') ?? true;
+        if (!isEnabled) {
+          _practiceTime = 'Off';
+        } else {
+          final hour = prefs.getInt('reminderHour') ?? 9;
+          final minute = prefs.getInt('reminderMinute') ?? 0;
+          final time = TimeOfDay(hour: hour, minute: minute);
+          _practiceTime = _formatTime(time);
+        }
+      });
+    }
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hour == 0 ? 12 : (time.hour > 12 ? time.hour - 12 : time.hour);
+    final period = time.hour >= 12 ? 'PM' : 'AM';
+    final minuteStr = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minuteStr $period';
   }
 
   void _handleLogout() async {

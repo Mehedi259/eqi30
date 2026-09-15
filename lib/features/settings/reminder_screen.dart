@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/profile_service.dart';
 
 class ReminderScreen extends StatefulWidget {
   const ReminderScreen({super.key});
@@ -14,6 +15,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
   TimeOfDay selectedTime = const TimeOfDay(hour: 9, minute: 0);
   String selectedRepeat = 'Daily';
   bool isReminderEnabled = true;
+  bool isLoading = true;
+  bool isSaving = false;
+  final ProfileService _profileService = ProfileService();
 
   final List<String> repeatOptions = [
     'Daily',
@@ -32,16 +36,19 @@ class _ReminderScreenState extends State<ReminderScreen> {
 
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      isReminderEnabled = prefs.getBool('isReminderEnabled') ?? true;
-      selectedRepeat = prefs.getString('selectedRepeat') ?? 'Daily';
-      
-      final hour = prefs.getInt('reminderHour');
-      final minute = prefs.getInt('reminderMinute');
-      if (hour != null && minute != null) {
-        selectedTime = TimeOfDay(hour: hour, minute: minute);
-      }
-    });
+    if (mounted) {
+      setState(() {
+        isReminderEnabled = prefs.getBool('isReminderEnabled') ?? true;
+        selectedRepeat = prefs.getString('selectedRepeat') ?? 'Daily';
+        
+        final hour = prefs.getInt('reminderHour');
+        final minute = prefs.getInt('reminderMinute');
+        if (hour != null && minute != null) {
+          selectedTime = TimeOfDay(hour: hour, minute: minute);
+        }
+        isLoading = false;
+      });
+    }
   }
 
   Future<void> _selectTime(BuildContext context) async {
@@ -357,7 +364,9 @@ class _ReminderScreenState extends State<ReminderScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () async {
+                  onPressed: isSaving ? null : () async {
+                    setState(() => isSaving = true);
+                    
                     final prefs = await SharedPreferences.getInstance();
                     await prefs.setBool('isReminderEnabled', isReminderEnabled);
                     await prefs.setString('selectedRepeat', selectedRepeat);
@@ -390,7 +399,13 @@ class _ReminderScreenState extends State<ReminderScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
+                  child: isSaving
+                    ? const SizedBox(
+                        height: 24, 
+                        width: 24, 
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      )
+                    : const Text(
                     'Save Changes',
                     style: TextStyle(
                       color: Colors.white,
