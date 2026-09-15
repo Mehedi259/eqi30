@@ -31,8 +31,6 @@ import '../../features/settings/privacy_terms_screen.dart';
 import '../../features/settings/privacy_policy_screen.dart';
 import '../../features/settings/terms_of_service_screen.dart';
 import '../../features/settings/help_faq_screen.dart';
-import '../../features/settings/personal_details_screen.dart';
-import '../../features/settings/password_manager_screen.dart';
 import '../../features/settings/subscription_screen.dart';
 import '../../features/settings/reminder_screen.dart';
 import '../../features/settings/goal_screen.dart';
