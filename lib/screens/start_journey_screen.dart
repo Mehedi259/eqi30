@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
+import '../core/services/learning_service.dart';
+import '../core/services/journey_service.dart';
 import 'learning_screen.dart';
 
 class StartJourneyScreen extends StatefulWidget {
@@ -41,9 +43,16 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   late Animation<double> _shimmerAnimation;
   late Animation<double> _scaleAnimation;
 
+  final LearningService _learningService = LearningService();
+  final JourneyService _journeyService = JourneyService();
+  bool _isLoading = true;
+  Map<String, dynamic>? _competencyData;
+  Map<String, dynamic>? _dashboardData;
+
   @override
   void initState() {
     super.initState();
+    _fetchData();
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1600),
       vsync: this,
@@ -146,8 +155,29 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
       begin: 0.8,
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+  }
 
-    _controller.forward();
+  Future<void> _fetchData() async {
+    try {
+      final results = await Future.wait([
+        _learningService.getAbilityCompetencyIntro(widget.abilityId),
+        _journeyService.getHomeDashboard(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _competencyData = results[0];
+          _dashboardData = results[1];
+          _isLoading = false;
+        });
+        _controller.forward();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -167,7 +197,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
           children: [
             _buildHeader(context),
             Expanded(
-              child: SingleChildScrollView(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
+                : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +219,7 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
                 ),
               ),
             ),
-            _buildBottomActions(context),
+            if (!_isLoading) _buildBottomActions(context),
           ],
         ),
       ),
@@ -356,6 +388,7 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   }
 
   Widget _buildCategoryRow() {
+    final title = _competencyData?['name'] ?? 'Self Management';
     return SlideTransition(
       position: _categorySlideAnimation,
       child: FadeTransition(
@@ -399,9 +432,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
                         ],
                       ).createShader(bounds);
                     },
-                    child: const Text(
-                      'Self Management',
-                      style: TextStyle(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontFamily: 'Inter',
@@ -439,7 +472,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
             child: _buildInfoCard(
               title: 'WHAT IT IS',
               titleColor: const Color(0xFF006767),
-              description: 'Recognizing & naming what you feel in the moment.',
+              description: _competencyData?['what_it_is']?.toString().isNotEmpty == true 
+                  ? _competencyData!['what_it_is'] 
+                  : 'Recognizing & naming what you feel in the moment.',
               width: double.infinity,
             ),
           ),
@@ -455,8 +490,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
                   child: _buildInfoCard(
                     title: 'WHY IT MATTERS',
                     titleColor: const Color(0xFFE8A54B),
-                    description:
-                        'Improves self-control, reduces reactivity, clarifies decisions.',
+                    description: _competencyData?['why_it_matters']?.toString().isNotEmpty == true 
+                        ? _competencyData!['why_it_matters'] 
+                        : 'Improves self-control, reduces reactivity, clarifies decisions.',
                     width: double.infinity,
                   ),
                 ),
@@ -471,8 +507,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
                   child: _buildInfoCard(
                     title: 'WHAT YOU\'LL DO',
                     titleColor: const Color(0xFF006767),
-                    description:
-                        'Short daily check-ins using simple prompts & a feelings list.',
+                    description: _competencyData?['what_you_will_do']?.toString().isNotEmpty == true 
+                        ? _competencyData!['what_you_will_do'] 
+                        : 'Short daily check-ins using simple prompts & a feelings list.',
                     width: double.infinity,
                   ),
                 ),
@@ -609,6 +646,16 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   }
 
   Widget _buildWhatYouLearnSection() {
+    List<dynamic> items = _competencyData?['what_you_will_learn'] ?? [];
+    if (items.isEmpty) {
+      items = [
+        'Name specific emotions instead of just \'fine\'',
+        'Notice emotions in your body',
+        'Understand feelings vs thoughts',
+        'Pause and respond vs react'
+      ];
+    }
+    
     return SlideTransition(
       position: _learnSlideAnimation,
       child: FadeTransition(
@@ -628,15 +675,10 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
               ),
             ),
             const SizedBox(height: 16),
-            _buildLearningItem(
-              'Name specific emotions instead of just \'fine\'',
-            ),
-            const SizedBox(height: 10),
-            _buildLearningItem('Notice emotions in your body'),
-            const SizedBox(height: 10),
-            _buildLearningItem('Understand feelings vs thoughts'),
-            const SizedBox(height: 10),
-            _buildLearningItem('Pause and respond vs react'),
+            ...items.map((item) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildLearningItem(item.toString()),
+            )).toList(),
           ],
         ),
       ),
@@ -674,6 +716,19 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   }
 
   Widget _buildJourneyPhasesSection() {
+    List<dynamic> abilities = _competencyData?['abilities'] ?? [];
+    
+    // Fallback if no abilities are returned
+    if (abilities.isEmpty) {
+      abilities = [
+        {'name': 'Emotional Awareness', 'description': 'Notice and name your emotions in real time.', 'emoji': '🧠'},
+        {'name': 'Boundary Awareness', 'description': 'Know your limits and say no without guilt.', 'emoji': '🚧'},
+        {'name': 'Self-Confidence', 'description': 'Trust your abilities under pressure.', 'emoji': '💪'},
+        {'name': 'Self-Actualization', 'description': 'Move toward your best, not just survive.', 'emoji': '🌱'},
+        {'name': 'Independence', 'description': 'Decide for yourself without over-relying on approval.', 'emoji': '🦅'},
+      ];
+    }
+    
     return FadeTransition(
       opacity: _phaseFadeAnimation,
       child: Column(
@@ -691,46 +746,51 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
             ),
           ),
           const SizedBox(height: 16),
-          _buildPhaseCard(
-            emoji: '🧠',
-            title: 'Emotional Awareness',
-            description: 'Notice and name your emotions in real time.',
-            status: 'Day 1/30',
-            isActive: true,
-          ),
-          const SizedBox(height: 12),
-          _buildPhaseCard(
-            emoji: '🚧',
-            title: 'Boundary Awareness',
-            description: 'Know your limits and say no without guilt.',
-            status: 'Not started',
-            isActive: false,
-          ),
-          const SizedBox(height: 12),
-          _buildPhaseCard(
-            emoji: '💪',
-            title: 'Self-Confidence',
-            description: 'Trust your abilities under pressure.',
-            status: 'Not started',
-            isActive: false,
-          ),
-          const SizedBox(height: 12),
-          _buildPhaseCard(
-            emoji: '🌱',
-            title: 'Self-Actualization',
-            description: 'Move toward your best, not just survive.',
-            status: 'Not started',
-            isActive: false,
-          ),
-          const SizedBox(height: 12),
-          _buildPhaseCard(
-            emoji: '🦅',
-            title: 'Independence',
-            description:
-                'Decide for yourself without over-relying on approval.',
-            status: 'Not started',
-            isActive: false,
-          ),
+          ...abilities.asMap().entries.map((entry) {
+            int index = entry.key;
+            var ability = entry.value;
+            bool isActive = false;
+            if (ability is Map && ability['id'] == widget.abilityId) {
+              isActive = true;
+            }
+
+            int activeIndex = abilities.indexWhere((a) => a is Map && a['id'] == widget.abilityId);
+            String status = '';
+            int currentDay = _dashboardData?['journey']?['current_day'] ?? widget.dayNumber;
+            int totalDays = _dashboardData?['journey']?['total_days'] ?? 30;
+
+            if (activeIndex != -1 && index < activeIndex) {
+              status = 'Completed';
+            } else if (isActive) {
+              status = 'Day $currentDay/$totalDays';
+            } else {
+              status = 'Not started';
+            }
+
+            // Try to extract emoji from name or description if not provided directly
+            String emoji = '🧠';
+            if (ability is Map && ability['emoji'] != null) {
+              emoji = ability['emoji'];
+            } else if (index == 0) emoji = '🧠';
+            else if (index == 1) emoji = '🚧';
+            else if (index == 2) emoji = '💪';
+            else if (index == 3) emoji = '🌱';
+            else if (index == 4) emoji = '🦅';
+            
+            String name = ability is Map ? ability['name'] ?? '' : ability.toString();
+            String desc = ability is Map ? ability['description'] ?? '' : '';
+            
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildPhaseCard(
+                emoji: emoji,
+                title: name,
+                description: desc,
+                status: status,
+                isActive: isActive,
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
@@ -811,28 +871,19 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
           ),
           const SizedBox(width: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFFDFF8FF)
-                  : const Color(0xFFF1F2F4),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isActive
-                    ? const Color(0xFF50A8C0).withValues(alpha: 0.3)
-                    : Colors.transparent,
-              ),
+              color: isActive ? const Color(0xFFE6F5F6) : (status == 'Completed' ? const Color(0xFFE8F5E9) : const Color(0xFFF1F3F5)),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               status,
               style: TextStyle(
-                color: isActive
-                    ? const Color(0xFF50A8C0)
-                    : const Color(0xFF8A96A8),
+                color: isActive ? const Color(0xFF43BDC7) : (status == 'Completed' ? Colors.green : const Color(0xFF8A96A8)),
                 fontSize: 11,
                 fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-                height: 1.60,
+                fontWeight: FontWeight.w600,
+                height: 1.45,
               ),
             ),
           ),

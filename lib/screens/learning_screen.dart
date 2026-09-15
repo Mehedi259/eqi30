@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
-import 'complete_journey_screen.dart';
-
 import '../core/services/learning_service.dart';
+import '../core/services/journey_service.dart';
+import 'complete_journey_screen.dart';
 
 class LearningScreen extends StatefulWidget {
   final int sessionId;
@@ -35,9 +35,11 @@ class _LearningScreenState extends State<LearningScreen>
   late Animation<Offset> _slideAnimation;
 
   final LearningService _learningService = LearningService();
+  final JourneyService _journeyService = JourneyService();
   bool _isLoading = true;
   String? _errorMessage;
   Map<String, dynamic>? _dayContent;
+  Map<String, dynamic>? _dashboardData;
   bool _practiceCompleted = false;
 
   @override
@@ -69,16 +71,24 @@ class _LearningScreenState extends State<LearningScreen>
 
   Future<void> _fetchDayContent() async {
     try {
-      final data = await _learningService.getAbilityDayContent(widget.abilityId, widget.dayNumber);
-      setState(() {
-        _dayContent = data;
-        _isLoading = false;
-      });
+      final results = await Future.wait([
+        _learningService.getAbilityDayContent(widget.abilityId, widget.dayNumber),
+        _journeyService.getHomeDashboard(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _dayContent = results[0];
+          _dashboardData = results[1];
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = "Failed to load content. Please try again.";
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = "Failed to load content. Please try again.";
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -355,6 +365,11 @@ class _LearningScreenState extends State<LearningScreen>
   }
 
   Widget _buildProgressSection() {
+    int currentDay = _dashboardData?['journey']?['current_day'] ?? widget.dayNumber;
+    int totalDays = _dashboardData?['journey']?['total_days'] ?? 30;
+    double progressRatio = currentDay / (totalDays > 0 ? totalDays : 30);
+    int streak = _dashboardData?['streak_days'] ?? 0;
+
     return SlideTransition(
       position: _slideAnimation,
       child: FadeTransition(
@@ -370,7 +385,7 @@ class _LearningScreenState extends State<LearningScreen>
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: FractionallySizedBox(
-                  widthFactor: 0.033,
+                  widthFactor: progressRatio,
                   child: Container(
                     height: 3,
                     decoration: BoxDecoration(
@@ -402,7 +417,7 @@ class _LearningScreenState extends State<LearningScreen>
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Day ${widget.dayNumber} of 70',
+                      'Day $currentDay of $totalDays',
                       style: const TextStyle(
                         color: Color(0xFF0B191D),
                         fontSize: 15,
@@ -423,9 +438,9 @@ class _LearningScreenState extends State<LearningScreen>
                     border: Border.all(color: const Color(0x66E8A54B)),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Text(
-                    '🔥 3-day streak',
-                    style: TextStyle(
+                  child: Text(
+                    '🔥 $streak-day streak',
+                    style: const TextStyle(
                       color: Color(0xFFE8A54B),
                       fontSize: 12,
                       fontFamily: 'Inter',
@@ -446,7 +461,7 @@ class _LearningScreenState extends State<LearningScreen>
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Text(
-        _dayContent?['title'] ?? 'Daily Micro-Skill',
+        _dayContent?['title'] ?? 'Day ${widget.dayNumber}',
         style: const TextStyle(
           color: Color(0xFF1A2B4A),
           fontSize: 24,
@@ -763,31 +778,33 @@ class _LearningScreenState extends State<LearningScreen>
             _dayContent?['teaching_content'] ?? '',
             style: const TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
           ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE5E7EB)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('💡', style: TextStyle(fontSize: 20, height: 1.40)),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Key Concept: Granularity. The ability to\ndistinguish between nuanced feelings (e.g., "annoyed" vs "angry") reduces the\nemotional intensity by up to 50%.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      height: 1.71,
+          if (_dayContent?['key_concept'] != null && _dayContent!['key_concept'].toString().isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('💡', style: TextStyle(fontSize: 20, height: 1.40)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _dayContent!['key_concept'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Inter',
+                        height: 1.71,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ],
                   ),
                 ),
@@ -800,10 +817,36 @@ class _LearningScreenState extends State<LearningScreen>
   }
 
   Widget _buildInAppPractice() {
-    final feelings = [
-      ['Calm', 'Annoyed', 'Hopeful', 'Anxious'],
-      ['Tired', 'Overwhelmed', 'Curious'],
-    ];
+    List<dynamic> dynamicFeelings = _dayContent?['practice_options'] ?? [];
+    List<List<String>> feelings = [];
+    
+    // Group into rows if it's a flat list of strings
+    if (dynamicFeelings.isNotEmpty) {
+      if (dynamicFeelings[0] is List) {
+        // If it's already a list of lists from backend JSON
+        feelings = dynamicFeelings.map((row) => (row as List).map((e) => e.toString()).toList()).toList();
+      } else {
+        // If it's a flat list, let's group them by 4 or 3
+        List<String> flatList = dynamicFeelings.map((e) => e.toString()).toList();
+        List<String> currentRow = [];
+        for (var feeling in flatList) {
+          currentRow.add(feeling);
+          if (currentRow.length == 4) {
+            feelings.add(List.from(currentRow));
+            currentRow.clear();
+          }
+        }
+        if (currentRow.isNotEmpty) {
+          feelings.add(List.from(currentRow));
+        }
+      }
+    } else {
+      // Fallback
+      feelings = [
+        ['Calm', 'Annoyed', 'Hopeful', 'Anxious'],
+        ['Tired', 'Overwhelmed', 'Curious'],
+      ];
+    }
 
     return Container(
       decoration: BoxDecoration(

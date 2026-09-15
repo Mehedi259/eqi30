@@ -38,7 +38,17 @@ class LearningService {
         },
       );
     } catch (e) {
-      print('Error submitting reflection: $e');
+      rethrow;
+    }
+  }
+
+  /// Fetch competency intro for a specific ability
+  Future<Map<String, dynamic>> getAbilityCompetencyIntro(int abilityId) async {
+    try {
+      final response = await _apiClient.get('/abilities/$abilityId/competency/');
+      return response;
+    } catch (e) {
+      print('Error fetching competency intro: $e');
       rethrow;
     }
   }

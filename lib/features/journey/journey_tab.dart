@@ -597,7 +597,7 @@ class _JourneyTabState extends State<JourneyTab> {
   }) {
     return Container(
       width: 200,
-      height: 153,
+      height: 170,
       decoration: ShapeDecoration(
         color: Colors.white,
         shape: RoundedRectangleBorder(

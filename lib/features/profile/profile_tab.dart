@@ -18,6 +18,8 @@ class _ProfileTabState extends State<ProfileTab> {
   bool _isLoggedIn = false;
   String _name = 'Guest';
   String _email = '';
+  int _dailyGoalMinutes = 60;
+  String _practiceTime = '09:00';
   
   @override
   void initState() {
@@ -47,6 +49,17 @@ class _ProfileTabState extends State<ProfileTab> {
           if (_name.isEmpty) _name = 'User';
           
           _email = profileData['email'] ?? profileData['user']?['email'] ?? '';
+          
+          _dailyGoalMinutes = profileData['daily_goal_minutes'] ?? 60;
+          final pTime = profileData['practice_time'];
+          if (pTime != null && pTime.toString().isNotEmpty) {
+            final timeStr = pTime.toString();
+            // Handle both HH:MM:SS format from backend or any string
+            _practiceTime = timeStr.length >= 5 && timeStr.contains(':') 
+                ? timeStr.substring(0, 5) 
+                : timeStr;
+          }
+          
           _isLoading = false;
         });
       }
@@ -244,15 +257,15 @@ class _ProfileTabState extends State<ProfileTab> {
                       _buildSettingItem(
                         icon: '🎯',
                         title: 'Goal',
-                        trailing: '60 min / day',
-                        onTap: () => context.push('/goal'),
+                        trailing: '$_dailyGoalMinutes min / day',
+                        onTap: () => context.push('/goal').then((_) => _loadProfile()),
                       ),
                       _buildDivider(),
                       _buildSettingItem(
                         icon: '⏰',
                         title: 'Reminder',
-                        trailing: '09:00',
-                        onTap: () => context.push('/reminder'),
+                        trailing: _practiceTime,
+                        onTap: () => context.push('/reminder').then((_) => _loadProfile()),
                       ),
                       _buildDivider(),
                       _buildSettingItem(

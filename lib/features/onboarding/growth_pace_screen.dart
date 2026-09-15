@@ -287,11 +287,11 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
           gradient: isGradient && isSelected
               ? const LinearGradient(colors: [Colors.white, Color(0xFFDCF1FB)])
               : null,
-          color: !isGradient ? Colors.white : null,
+          color: isSelected ? color.withOpacity(0.05) : Colors.white,
           border: Border.all(
-            width: isSelected ? 1 : 1,
+            width: isSelected ? 2 : 1,
             color: isSelected
-                ? color.withOpacity(0.3)
+                ? color
                 : Colors.black.withOpacity(0.20),
           ),
           borderRadius: BorderRadius.circular(12),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import '../core/services/profile_service.dart';
+import '../core/services/journey_service.dart';
 import 'dart:math';
 import 'package:go_router/go_router.dart';
 
@@ -15,9 +17,20 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
   late ConfettiController _confettiControllerLeft;
   late ConfettiController _confettiControllerRight;
 
+  bool _isLoading = true;
+  String _name = 'User';
+  int _totalDays = 0;
+  int _completedPractices = 0;
+  int _badges = 0;
+  String _journeyName = 'Emotional Awareness';
+  
+  final ProfileService _profileService = ProfileService();
+  final JourneyService _journeyService = JourneyService();
+
   @override
   void initState() {
     super.initState();
+    _fetchData();
     _confettiControllerCenter = ConfettiController(
       duration: const Duration(seconds: 4),
     );
@@ -33,6 +46,41 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
       _confettiControllerLeft.play();
       _confettiControllerRight.play();
     });
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final results = await Future.wait([
+        _profileService.getProfile(),
+        _journeyService.getHomeDashboard(),
+      ]);
+      if (mounted) {
+        setState(() {
+          final profileData = results[0];
+          final dashboardData = results[1];
+          
+          String fullName = profileData['full_name'] ?? profileData['name'] ?? 'User';
+          if (fullName.isEmpty) fullName = 'User';
+          _name = fullName.split(' ')[0]; // Use first name
+          
+          _totalDays = dashboardData['journey']?['total_days'] ?? 30;
+          _completedPractices = dashboardData['completed_activities'] ?? dashboardData['journey']?['current_day'] ?? 0;
+          _badges = dashboardData['badges'] ?? 0;
+          
+          if (dashboardData['current_ability']?['competency']?['name'] != null) {
+            _journeyName = dashboardData['current_ability']['competency']['name'];
+          }
+          
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -54,7 +102,9 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
               children: [
                 _buildAppBar(context),
                 Expanded(
-                  child: SingleChildScrollView(
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SingleChildScrollView(
                     child: Column(
                       children: [
                         _buildHeaderSection(),
@@ -348,10 +398,10 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
         color: const Color(0xFFD8F3F3),
         borderRadius: BorderRadius.circular(9999),
       ),
-      child: const Text(
-        '60-Day Journey Complete ✓',
+      child: Text(
+        '$_totalDays-Day Journey Complete ✓',
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           color: Color(0xFF006767),
           fontSize: 12,
           fontFamily: 'Inter',
@@ -364,10 +414,10 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
   }
 
   Widget _buildTitle() {
-    return const Text(
-      'You did it, Sarah! 🎉',
+    return Text(
+      'You did it, $_name! 🎉',
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         color: Color(0xFF051F1F),
         fontSize: 28,
         fontFamily: 'Plus Jakarta Sans',
@@ -378,12 +428,12 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
   }
 
   Widget _buildDescription() {
-    return const SizedBox(
+    return SizedBox(
       width: 350,
       child: Text(
-        'You\'ve completed your full 60-day\nEmotional Awareness journey. This is a\ngenuine achievement.',
+        'You\'ve completed your full $_totalDays-day\n$_journeyName journey. This is a\ngenuine achievement.',
         textAlign: TextAlign.center,
-        style: TextStyle(
+        style: const TextStyle(
           color: Color(0xFF3E4948),
           fontSize: 16,
           fontFamily: 'Inter',
@@ -397,13 +447,13 @@ class _JourneyCompletedScreenState extends State<JourneyCompletedScreen> {
   Widget _buildStatsCards() {
     return Row(
       children: [
-        Expanded(child: _buildStatCard('60', 'Days', const Color(0xFF006767))),
+        Expanded(child: _buildStatCard('$_totalDays', 'Days', const Color(0xFF006767))),
         const SizedBox(width: 8),
         Expanded(
-          child: _buildStatCard('60', 'Practices', const Color(0xFF855400)),
+          child: _buildStatCard('$_completedPractices', 'Practices', const Color(0xFF855400)),
         ),
         const SizedBox(width: 8),
-        Expanded(child: _buildStatCard('3', 'Badges', const Color(0xFF8B4B27))),
+        Expanded(child: _buildStatCard('$_badges', 'Badges', const Color(0xFF8B4B27))),
       ],
     );
   }

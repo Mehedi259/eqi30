@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../core/services/profile_service.dart';
+import '../core/services/journey_service.dart';
 import 'journey_completed_screen.dart';
 
 class CompleteJourneyScreen extends StatefulWidget {
@@ -10,6 +12,44 @@ class CompleteJourneyScreen extends StatefulWidget {
 
 class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   String? selectedFeeling;
+  
+  bool _isLoading = true;
+  String _name = 'User';
+  int _streak = 0;
+  final ProfileService _profileService = ProfileService();
+  final JourneyService _journeyService = JourneyService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final results = await Future.wait([
+        _profileService.getProfile(),
+        _journeyService.getHomeDashboard(),
+      ]);
+      if (mounted) {
+        setState(() {
+          final profileData = results[0];
+          final dashboardData = results[1];
+          String fullName = profileData['full_name'] ?? profileData['name'] ?? 'User';
+          if (fullName.isEmpty) fullName = 'User';
+          _name = fullName.split(' ')[0]; // Use first name
+          _streak = dashboardData['streak_days'] ?? 0;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +60,9 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
           children: [
             _buildAppBar(),
             Expanded(
-              child: SingleChildScrollView(
+              child: _isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Column(
                   children: [
@@ -99,9 +141,9 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   }
 
   Widget _buildTitle() {
-    return const Column(
+    return Column(
       children: [
-        Text(
+        const Text(
           'Practice complete,',
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -112,9 +154,9 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
           ),
         ),
         Text(
-          'Sarah!',
+          '$_name!',
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: Color(0xFF0B191D),
             fontSize: 28,
             fontFamily: 'Poppins',
@@ -133,14 +175,14 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
         borderRadius: BorderRadius.circular(100),
         border: Border.all(color: const Color(0xFFFDE68A), width: 1),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('🔥', style: TextStyle(fontSize: 20)),
-          SizedBox(width: 8),
+          const Text('🔥', style: TextStyle(fontSize: 20)),
+          const SizedBox(width: 8),
           Text(
-            '4-day streak - you\'re on a roll!',
-            style: TextStyle(
+            '$_streak-day streak - you\'re on a roll!',
+            style: const TextStyle(
               color: Color(0xFFD97706),
               fontSize: 14,
               fontFamily: 'Inter',

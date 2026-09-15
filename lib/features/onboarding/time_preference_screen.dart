@@ -15,6 +15,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
   String selectedTime = 'morning';
   bool dailyReminder = true;
   bool missDayNudge = true;
+  bool addToCalendar = false;
   late AnimationController _controller;
   late Animation<Offset> _headerSlideAnimation;
   late Animation<Offset> _morningSlideAnimation;
@@ -292,22 +293,31 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                                         ],
                                       ),
                                     ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF0F1E3C),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: const Text(
-                                        'Connect',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontFamily: 'Inter',
-                                          fontWeight: FontWeight.w500,
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          addToCalendar = !addToCalendar;
+                                        });
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: addToCalendar 
+                                              ? const Color(0xFF4CAF7D)
+                                              : const Color(0xFF0F1E3C),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          addToCalendar ? 'Connected' : 'Connect',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -350,6 +360,9 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               if (sessionId != null) {
                                 await OnboardingService().savePracticeTime(sessionId, {
                                   'practice_time': selectedTime.toUpperCase(),
+                                  'daily_reminder_enabled': dailyReminder,
+                                  'miss_day_nudge_enabled': missDayNudge,
+                                  'calendar_sync_enabled': addToCalendar,
                                 });
                               }
                             } catch (e) {
