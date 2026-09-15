@@ -48,6 +48,8 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   bool _isLoading = true;
   Map<String, dynamic>? _competencyData;
   Map<String, dynamic>? _dashboardData;
+  bool _hasError = false;
+  String _errorMessage = '';
 
   @override
   void initState() {
@@ -159,21 +161,24 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
 
   Future<void> _fetchData() async {
     try {
-      final results = await Future.wait([
-        _learningService.getAbilityCompetencyIntro(widget.abilityId),
-        _journeyService.getHomeDashboard(),
-      ]);
+      final competencyData = await _learningService.getAbilityCompetencyIntro(widget.abilityId);
+      final dashboardData = await _journeyService.getHomeDashboard();
+      
       if (mounted) {
         setState(() {
-          _competencyData = results[0];
-          _dashboardData = results[1];
+          _competencyData = competencyData;
+          _dashboardData = dashboardData;
           _isLoading = false;
+          _hasError = false;
         });
         _controller.forward();
       }
     } catch (e) {
+      print('Error in StartJourneyScreen _fetchData: $e');
       if (mounted) {
         setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
           _isLoading = false;
         });
       }
@@ -199,7 +204,32 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
             Expanded(
               child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primaryDark))
-                : SingleChildScrollView(
+                : _hasError
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Failed to load content.\n\n$_errorMessage",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Color(0xFF637275), fontSize: 14),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isLoading = true;
+                                  _hasError = false;
+                                });
+                                _fetchData();
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF073B4B)),
+                              child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 26),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +249,7 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
                 ),
               ),
             ),
-            if (!_isLoading) _buildBottomActions(context),
+            if (!_isLoading && !_hasError) _buildBottomActions(context),
           ],
         ),
       ),

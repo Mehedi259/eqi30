@@ -25,6 +25,7 @@ class ApiClient {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Connection': 'close',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
@@ -39,7 +40,8 @@ class ApiClient {
         Uri.parse('${ApiConstants.baseUrl}/auth/token/refresh/'),
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Connection': 'close'
         },
         body: json.encode({'refresh': refreshToken}),
       );

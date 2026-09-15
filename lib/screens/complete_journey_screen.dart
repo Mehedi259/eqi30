@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../core/services/profile_service.dart';
 import '../core/services/journey_service.dart';
+import '../core/services/learning_service.dart';
 import 'journey_completed_screen.dart';
 
 class CompleteJourneyScreen extends StatefulWidget {
-  const CompleteJourneyScreen({super.key});
+  final int sessionId;
+  const CompleteJourneyScreen({super.key, required this.sessionId});
 
   @override
   State<CompleteJourneyScreen> createState() => _CompleteJourneyScreenState();
@@ -18,6 +21,7 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   int _streak = 0;
   final ProfileService _profileService = ProfileService();
   final JourneyService _journeyService = JourneyService();
+  final LearningService _learningService = LearningService();
 
   @override
   void initState() {
@@ -293,7 +297,13 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home?tab=1');
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF073B4B),
                 shape: RoundedRectangleBorder(
@@ -323,13 +333,39 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const JourneyCompletedScreen(),
-                  ),
-                );
+              onPressed: () async {
+                if (widget.sessionId > 0) {
+                  // Submit feeling
+                  if (selectedFeeling != null) {
+                    try {
+                      await _learningService.submitReflection(
+                        widget.sessionId,
+                        reflectionText: "",
+                        practiceAnswer: selectedFeeling ?? "",
+                      );
+                    } catch (e) {}
+                  }
+                  
+                  // Complete session
+                  try {
+                    await _learningService.completeSession(widget.sessionId);
+                  } catch (e) {}
+                }
+                
+                // Fetch latest dashboard to see if entire journey is COMPLETED
+                try {
+                  final dashboardData = await _journeyService.getHomeDashboard();
+                  final status = dashboardData['journey']?['status'];
+                  if (mounted) {
+                    if (status == 'COMPLETED') {
+                      context.go('/journey-completed');
+                    } else {
+                      context.go('/home?tab=1');
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) context.go('/home?tab=1');
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF073B4B),

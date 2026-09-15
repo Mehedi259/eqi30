@@ -305,7 +305,10 @@ class AppRouter {
       ),
       GoRoute(
         path: '/complete-journey',
-        builder: (context, state) => const CompleteJourneyScreen(),
+        builder: (context, state) {
+          final sessionId = int.tryParse(state.uri.queryParameters['sessionId'] ?? '0') ?? 0;
+          return CompleteJourneyScreen(sessionId: sessionId);
+        },
       ),
       GoRoute(
         path: '/journey-completed',

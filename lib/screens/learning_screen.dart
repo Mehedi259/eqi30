@@ -83,9 +83,10 @@ class _LearningScreenState extends State<LearningScreen>
         });
       }
     } catch (e) {
+      print('Error in _fetchDayContent: $e');
       if (mounted) {
         setState(() {
-          _errorMessage = "Failed to load content. Please try again.";
+          _errorMessage = "Failed to load content. Please try again. ($e)";
           _isLoading = false;
         });
       }
@@ -1069,10 +1070,7 @@ class _LearningScreenState extends State<LearningScreen>
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => WeeklyCheckInDialog(onComplete: _completeSession),
-              );
+              context.push('/complete-journey?sessionId=${widget.sessionId}');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF073B4B),
