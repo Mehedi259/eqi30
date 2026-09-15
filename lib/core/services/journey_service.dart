@@ -38,5 +38,9 @@ class JourneyService {
   Future<Map<String, dynamic>> getPreviousJourneyAbilities() async {
     return await _apiClient.get('/journey/previous-abilities/');
   }
+
+  Future<Map<String, dynamic>> getAbilityHistory(int abilityId) async {
+    return await _apiClient.get('/journey/abilities/$abilityId/history/');
+  }
 }
 

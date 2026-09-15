@@ -94,7 +94,15 @@ class _PreviousJourneyScreenState extends State<PreviousJourneyScreen> {
                     const SizedBox(height: 16),
                     ..._inProgress.map((item) => Padding(
                           padding: const EdgeInsets.only(bottom: 16.0),
-                          child: _buildInProgressCard(item),
+                          child: InkWell(
+                            onTap: () {
+                              context.push(
+                                '/previous-journey-details?abilityId=${item['id']}&abilityName=${Uri.encodeComponent(item['name'] ?? '')}',
+                                extra: item,
+                              );
+                            },
+                            child: _buildInProgressCard(item),
+                          ),
                         )),
                     const SizedBox(height: 32),
                   ],
@@ -112,7 +120,15 @@ class _PreviousJourneyScreenState extends State<PreviousJourneyScreen> {
                     const SizedBox(height: 16),
                     ..._completed.map((item) => Padding(
                           padding: const EdgeInsets.only(bottom: 16.0),
-                          child: _buildCompletedCard(item),
+                          child: InkWell(
+                            onTap: () {
+                              context.push(
+                                '/previous-journey-details?abilityId=${item['id']}&abilityName=${Uri.encodeComponent(item['name'] ?? '')}',
+                                extra: item,
+                              );
+                            },
+                            child: _buildCompletedCard(item),
+                          ),
                         )),
                     const SizedBox(height: 40),
                   ],

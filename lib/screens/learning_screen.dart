@@ -825,10 +825,24 @@ class _LearningScreenState extends State<LearningScreen>
     if (dynamicFeelings.isNotEmpty) {
       if (dynamicFeelings[0] is List) {
         // If it's already a list of lists from backend JSON
-        feelings = dynamicFeelings.map((row) => (row as List).map((e) => e.toString()).toList()).toList();
+        feelings = dynamicFeelings.map((row) => (row as List).map((e) {
+          if (e is Map) {
+            final emoji = e['emoji'] ?? '';
+            final label = e['label'] ?? '';
+            return "$emoji $label".trim();
+          }
+          return e.toString();
+        }).toList()).toList();
       } else {
         // If it's a flat list, let's group them by 4 or 3
-        List<String> flatList = dynamicFeelings.map((e) => e.toString()).toList();
+        List<String> flatList = dynamicFeelings.map((e) {
+          if (e is Map) {
+            final emoji = e['emoji'] ?? '';
+            final label = e['label'] ?? '';
+            return "$emoji $label".trim();
+          }
+          return e.toString();
+        }).toList();
         List<String> currentRow = [];
         for (var feeling in flatList) {
           currentRow.add(feeling);
@@ -1070,7 +1084,17 @@ class _LearningScreenState extends State<LearningScreen>
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              context.push('/complete-journey?sessionId=${widget.sessionId}');
+              showDialog(
+                context: context,
+                builder: (context) => WeeklyCheckInDialog(
+                  onComplete: () {
+                    context.push(
+                      '/complete-journey?sessionId=${widget.sessionId}',
+                      extra: _dayContent,
+                    );
+                  },
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF073B4B),
@@ -1101,7 +1125,7 @@ class _LearningScreenState extends State<LearningScreen>
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () {
-            // Skip action
+            context.go('/home?tab=1');
           },
           child: const Text(
             'Skip for Today',

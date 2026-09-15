@@ -7,7 +7,13 @@ import 'journey_completed_screen.dart';
 
 class CompleteJourneyScreen extends StatefulWidget {
   final int sessionId;
-  const CompleteJourneyScreen({super.key, required this.sessionId});
+  final Map<String, dynamic>? dayContent;
+
+  const CompleteJourneyScreen({
+    super.key, 
+    required this.sessionId,
+    this.dayContent,
+  });
 
   @override
   State<CompleteJourneyScreen> createState() => _CompleteJourneyScreenState();
@@ -199,10 +205,24 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   }
 
   Widget _buildQuestion() {
-    return const Text(
-      'How did that 5-minute exercise feel?',
+    // Determine the reflection question.
+    // If the backend doesn't provide one, fallback to a dynamic estimated_minutes text.
+    String question = 'How did that exercise feel?';
+    if (widget.dayContent != null) {
+      final reflection = widget.dayContent!['reflection_question'];
+      final minutes = widget.dayContent!['estimated_minutes'] ?? 5;
+      
+      if (reflection != null && reflection.toString().isNotEmpty) {
+        question = reflection.toString();
+      } else {
+        question = 'How did that $minutes-minute exercise feel?';
+      }
+    }
+
+    return Text(
+      question,
       textAlign: TextAlign.center,
-      style: TextStyle(
+      style: const TextStyle(
         color: Color(0xFF637275),
         fontSize: 16,
         fontFamily: 'Inter',
@@ -212,25 +232,43 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   }
 
   Widget _buildFeelingOptions() {
-    return Column(
-      children: [
+    List<dynamic> options = [];
+    if (widget.dayContent != null && widget.dayContent!['practice_options'] != null) {
+      options = widget.dayContent!['practice_options'] as List<dynamic>;
+    }
+
+    // If options are missing from API, don't show the options grid.
+    if (options.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Since options length might vary, we can generate rows of 2.
+    List<Widget> rows = [];
+    for (int i = 0; i < options.length; i += 2) {
+      Widget card1 = _buildFeelingCard(
+        options[i]['emoji'] ?? '', 
+        options[i]['label'] ?? ''
+      );
+      
+      Widget card2 = (i + 1 < options.length) 
+          ? _buildFeelingCard(options[i + 1]['emoji'] ?? '', options[i + 1]['label'] ?? '')
+          : const SizedBox.shrink();
+
+      rows.add(
         Row(
           children: [
-            Expanded(child: _buildFeelingCard('😌', 'More calm')),
-            const SizedBox(width: 12),
-            Expanded(child: _buildFeelingCard('🧠', 'More clear')),
+            Expanded(child: card1),
+            if (i + 1 < options.length) const SizedBox(width: 12),
+            if (i + 1 < options.length) Expanded(child: card2),
           ],
         ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildFeelingCard('🎯', 'More focused')),
-            const SizedBox(width: 12),
-            Expanded(child: _buildFeelingCard('⏳', 'No change yet')),
-          ],
-        ),
-      ],
-    );
+      );
+      if (i + 2 < options.length) {
+        rows.add(const SizedBox(height: 12));
+      }
+    }
+
+    return Column(children: rows);
   }
 
   Widget _buildFeelingCard(String emoji, String label) {

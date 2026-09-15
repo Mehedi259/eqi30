@@ -47,6 +47,7 @@ import '../../screens/complete_journey_screen.dart';
 import '../../screens/journey_completed_screen.dart';
 
 import '../../features/journey/previous_journey_screen.dart';
+import '../../features/journey/previous_journey_details_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -134,6 +135,17 @@ class AppRouter {
       GoRoute(
         path: '/previous-journey',
         builder: (context, state) => const PreviousJourneyScreen(),
+      ),
+      GoRoute(
+        path: '/previous-journey-details',
+        builder: (context, state) {
+          final abilityId = int.tryParse(state.uri.queryParameters['abilityId'] ?? '0') ?? 0;
+          final abilityName = state.uri.queryParameters['abilityName'] ?? '';
+          return PreviousJourneyDetailsScreen(
+            abilityId: abilityId,
+            abilityName: abilityName,
+          );
+        },
       ),
       GoRoute(
         path: '/journey',
@@ -307,7 +319,11 @@ class AppRouter {
         path: '/complete-journey',
         builder: (context, state) {
           final sessionId = int.tryParse(state.uri.queryParameters['sessionId'] ?? '0') ?? 0;
-          return CompleteJourneyScreen(sessionId: sessionId);
+          final extra = state.extra as Map<String, dynamic>?;
+          return CompleteJourneyScreen(
+            sessionId: sessionId,
+            dayContent: extra,
+          );
         },
       ),
       GoRoute(
