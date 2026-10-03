@@ -98,6 +98,8 @@ dev_dependencies:
   
   # Launcher Icons Generator
   flutter_launcher_icons: ^0.14.1
+  rename: ^3.1.0
+  change_app_package_name: ^1.5.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.eqi30"
+    namespace = "com.app.eqi30"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.eqi30"
+        applicationId = "com.app.eqi30"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,4 +1,4 @@
-package com.example.eqi30
+package com.app.eqi30
 
 import io.flutter.embedding.android.FlutterActivity
 
