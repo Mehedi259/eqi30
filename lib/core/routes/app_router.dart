@@ -4,6 +4,7 @@ import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/onboarding/lets_breathe_screen.dart';
 import '../../features/onboarding/privacy_pledge_screen.dart';
 import '../../features/onboarding/ai_chat_onboarding_screen.dart';
+import '../../features/onboarding/assessment_wizard_screen.dart';
 import '../../features/onboarding/result_screen.dart' as onboarding;
 import '../../features/onboarding/custom_journey_onboarding_screen.dart';
 import '../../features/onboarding/journey_details_screen.dart';
@@ -70,6 +71,10 @@ class AppRouter {
       GoRoute(
         path: '/privacy-pledge',
         builder: (context, state) => const PrivacyPledgeScreen(),
+      ),
+      GoRoute(
+        path: '/assessment-wizard',
+        builder: (context, state) => const AssessmentWizardScreen(),
       ),
       GoRoute(
         path: '/ai-chat-onboarding',

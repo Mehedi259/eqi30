@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/onboarding_service.dart';
 import '../../core/services/ai_service.dart';
+import 'models/assessment_data.dart';
 
 class AiChatOnboardingScreen extends StatefulWidget {
   const AiChatOnboardingScreen({super.key});
@@ -15,10 +17,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     with TickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  double _sliderValue = 6.0;
+  double _sliderValue = 7.0;
   List<Map<String, dynamic>> _messages = [];
   bool _showQuickReplies = true;
   bool _isAnalyzing = false;
+
+  int _currentQuestionIndex = 0;
+  final Map<int, int> _answers = {};
 
   late AnimationController _headerController;
   late AnimationController _avatarController;
@@ -83,51 +88,85 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     });
   }
 
-  void _initializeChat() {
-    _messages = [];
-    _fetchInitialAiMessage();
+  String _formatCurrentTime() {
+    final now = TimeOfDay.now();
+    return '${now.hour}:${now.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _fetchInitialAiMessage() async {
-    // Show a loading indicator in chat
-    setState(() {
-      _messages.add({
-        'type': 'bot',
-        'message': 'Loading...',
-        'time': '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
-        'isLoading': true,
-      });
+  void _initializeChat() {
+    _messages = [];
+    _currentQuestionIndex = 0;
+    _answers.clear();
+
+    _messages.add({
+      'type': 'bot',
+      'message':
+          "Hello! I am your AI Emotional Intelligence Guide 🌟\n\nI will guide you through the official EQi-30 assessment — 103 statements across 30 vital emotional abilities and 6 competencies.\n\nFor each question, rate how accurately it fits you from 1 (Never / Strongly Disagree) to 10 (Always / Strongly Agree), or feel free to chat with me at any point!",
+      'time': _formatCurrentTime(),
     });
 
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final sessionId = prefs.getString('onboarding_session_id');
+    _sendQuestionToChat(0);
+  }
 
-      // Send a hidden trigger message to start the assessment
-      final initialPrompt = "Hello! I am ready to begin the EQ onboarding assessment. Please ask me questions to evaluate my emotional intelligence. Ask the first question now. If you want me to rate something, mention 'on a scale of 1-10'.";
+  void _sendQuestionToChat(int index) {
+    if (index >= AssessmentData.questions.length) {
+      _messages.add({
+        'type': 'bot',
+        'message':
+            "🎉 Fantastic job! You have answered all 103 assessment questions!\n\nTap 'CONTINUE & VIEW THE RESULT' below to explore your 30-ability emotional intelligence breakdown and personalized growth roadmap.",
+        'time': _formatCurrentTime(),
+      });
+      setState(() {});
+      _scrollToBottom();
+      return;
+    }
 
-      final response = await AiService().respondToChat(
-        initialPrompt,
-        sessionId: sessionId,
-        history: [], // Empty history for the first message
-      );
+    final q = AssessmentData.questions[index];
+    final isNewSection = index == 0 ||
+        AssessmentData.questions[index - 1].competencyKey != q.competencyKey;
+
+    String sectionIntro = "";
+    if (isNewSection && index > 0) {
+      final prevName = AssessmentData.questions[index - 1].competencyName;
+      sectionIntro =
+          "🌟 Great job completing $prevName!\n\nNow, let's explore **${q.competencyName}**:\n\n";
+    }
+
+    _messages.add({
+      'type': 'bot',
+      'isQuestion': true,
+      'questionId': q.id,
+      'questionIndex': index,
+      'competencyName': q.competencyName,
+      'abilityName': q.abilityName,
+      'questionText': q.text,
+      'message':
+          "$sectionIntro**Question ${index + 1} of 103** • ${q.abilityName}\n\n\"${q.text}\"",
+      'hasSlider': true,
+      'time': _formatCurrentTime(),
+    });
+
+    setState(() {});
+    _scrollToBottom();
+  }
+
+  void _onRateQuestion(int questionId, int score) {
+    _answers[questionId] = score;
+
+    _addMessage('user', "Rating: $score / 10");
+
+    if (_currentQuestionIndex < AssessmentData.questions.length &&
+        AssessmentData.questions[_currentQuestionIndex].id == questionId) {
+      _currentQuestionIndex++;
 
       setState(() {
-        _messages.removeWhere((m) => m['isLoading'] == true);
+        _sliderValue = 7.0;
       });
 
-      if (response.containsKey('reply')) {
-        String reply = response['reply'];
-        bool hasSlider = reply.toLowerCase().contains('scale') && reply.contains('10');
-        _addMessage('bot', reply, hasSlider: hasSlider);
-      } else {
-        _addMessage('bot', 'Hi! I am ready to start. Please tell me a bit about yourself.');
-      }
-    } catch (e) {
-      setState(() {
-        _messages.removeWhere((m) => m['isLoading'] == true);
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if (!mounted) return;
+        _sendQuestionToChat(_currentQuestionIndex);
       });
-      _addMessage('bot', 'Hi! I am ready to start. Please tell me a bit about yourself.');
     }
   }
 
@@ -137,16 +176,43 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
     _addMessage('user', text);
     _messageController.clear();
-    
+
+    // Check if the user typed a plain rating like "8" or "8/10"
+    final parsedRating = int.tryParse(text.replaceAll('/10', '').trim());
+    if (parsedRating != null &&
+        parsedRating >= 1 &&
+        parsedRating <= 10 &&
+        _currentQuestionIndex < AssessmentData.questions.length) {
+      final q = AssessmentData.questions[_currentQuestionIndex];
+      _onRateQuestion(q.id, parsedRating);
+      return;
+    }
+
+    // Otherwise, conversational coaching response from AI
     await _fetchAiResponse(text);
   }
 
   Future<void> _sendQuickReply(String message) async {
+    if (message == 'Show my results') {
+      await _submitAndNavigateToResults();
+      return;
+    }
+
+    if (message == 'What\'s next?') {
+      if (_currentQuestionIndex < AssessmentData.questions.length) {
+        final q = AssessmentData.questions[_currentQuestionIndex];
+        _addMessage('user', "What's next?");
+        _addMessage('bot',
+            "We are on Question ${_currentQuestionIndex + 1} of 103 evaluating **${q.abilityName}** (${q.competencyName}).\n\nRate on a scale of 1 to 10 whenever you are ready!");
+      }
+      return;
+    }
+
     _addMessage('user', message);
     setState(() {
       _showQuickReplies = false;
     });
-    
+
     await _fetchAiResponse(message);
   }
 
@@ -155,7 +221,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       _messages.add({
         'type': type,
         'message': message,
-        'time': '${TimeOfDay.now().hour}:${TimeOfDay.now().minute.toString().padLeft(2, '0')}',
+        'time': _formatCurrentTime(),
         if (hasSlider) 'hasSlider': true,
       });
     });
@@ -179,7 +245,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       final prefs = await SharedPreferences.getInstance();
       final sessionId = prefs.getString('onboarding_session_id');
 
-      // Build history for API
       final history = _messages
           .where((m) => m['type'] != null && m['message'] != null)
           .map((m) => {
@@ -188,12 +253,10 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
               })
           .toList();
 
-      // Remove the latest user message from history as it's sent as 'message'
       if (history.isNotEmpty && history.last['role'] == 'user') {
         history.removeLast();
       }
 
-      // Add a loading indicator or just wait
       final response = await AiService().respondToChat(
         userMessage,
         sessionId: sessionId,
@@ -202,14 +265,62 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
       if (response.containsKey('reply')) {
         String reply = response['reply'];
-        bool hasSlider = reply.toLowerCase().contains('scale') && reply.contains('10');
-        _addMessage('bot', reply, hasSlider: hasSlider);
+        _addMessage('bot', reply);
       } else {
-        _addMessage('bot', 'I encountered an error. Could you try again?');
+        _addMessage('bot', 'Thank you for sharing. Whenever you are ready, please select your rating for the current question!');
       }
     } catch (e) {
       debugPrint('Chat API Error: $e');
-      _addMessage('bot', 'Sorry, I am having trouble connecting to the server.');
+      _addMessage('bot', 'I hear you. Feel free to rate the current question (1-10) whenever you are ready to continue.');
+    }
+  }
+
+  Future<void> _submitAndNavigateToResults() async {
+    setState(() {
+      _isAnalyzing = true;
+    });
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? sessionId = prefs.getString('onboarding_session_id');
+      if (sessionId == null) {
+        final sessionRes = await OnboardingService().createSession();
+        sessionId = sessionRes['session_uuid'];
+        if (sessionId != null) {
+          await prefs.setString('onboarding_session_id', sessionId);
+        }
+      }
+
+      // Calculate scores using official scoring algorithm
+      final results = AssessmentData.calculateScores(_answers);
+
+      // Save locally
+      await prefs.setString('eqi30_assessment_answers', jsonEncode(
+        _answers.map((k, v) => MapEntry(k.toString(), v)),
+      ));
+      await prefs.setString('eqi30_assessment_results', jsonEncode(results));
+
+      // Submit to backend
+      if (sessionId != null) {
+        await OnboardingService().submitAssessment(sessionId, {
+          'results': results,
+        });
+      }
+
+      if (mounted) {
+        context.go('/result-onboarding');
+      }
+    } catch (e) {
+      debugPrint("Error finalizing assessment: $e");
+      if (mounted) {
+        context.go('/result-onboarding');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAnalyzing = false;
+        });
+      }
     }
   }
 
@@ -280,15 +391,36 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'AI ASSESSMENT',
-                                style: TextStyle(
-                                  color: Color(0xFF50A8C0),
-                                  fontSize: 11,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 1.10,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'AI ASSESSMENT',
+                                    style: TextStyle(
+                                      color: Color(0xFF50A8C0),
+                                      fontSize: 11,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 1.10,
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFE0F2F7),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${_answers.length} / 103 Answered',
+                                      style: const TextStyle(
+                                        color: Color(0xFF073B4B),
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 4),
                               const Text(
@@ -340,9 +472,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                           Container(
                                             width: 60,
                                             height: 60,
-                                            decoration: BoxDecoration(
+                                            decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
-                                              image: const DecorationImage(
+                                              image: DecorationImage(
                                                 image: AssetImage(
                                                   'assets/images/guide maskot.png',
                                                 ),
@@ -376,8 +508,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: _buildBotMessageWithSlider(
-                                message['message'],
-                                _sliderValue.toInt(),
+                                message,
                                 message['time'],
                               ),
                             );
@@ -457,7 +588,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                     child: TextField(
                       controller: _messageController,
                       decoration: const InputDecoration(
-                        hintText: 'Type your message...',
+                        hintText: 'Type your message or rating (1-10)...',
                         hintStyle: TextStyle(
                           color: Color(0xFF94A3B8),
                           fontSize: 14,
@@ -518,96 +649,63 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                     child: SafeArea(
                       top: false,
                       child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isAnalyzing ? null : () async {
-                          setState(() {
-                            _isAnalyzing = true;
-                          });
-                          try {
-                            final prefs = await SharedPreferences.getInstance();
-                            final sessionId = prefs.getString('onboarding_session_id');
-                            if (sessionId != null) {
-                              // Send the chat history for AI assessment calculation
-                              final history = _messages
-                                  .where((m) => m['type'] != null && m['message'] != null)
-                                  .map((m) => {
-                                        'role': m['type'] == 'bot' ? 'assistant' : 'user',
-                                        'content': m['message'] as String,
-                                      })
-                                  .toList();
-                                  
-                              final assessmentResult = await AiService().analyzeChatAssessment(history);
-                              
-                              if (assessmentResult.containsKey('results')) {
-                                await OnboardingService().submitAssessment(sessionId, {
-                                  'results': assessmentResult['results'],
-                                });
-                              }
-                            }
-                          } catch (e) {
-                            debugPrint('Failed to submit assessment: $e');
-                          } finally {
-                            if (mounted) {
-                              setState(() {
-                                _isAnalyzing = false;
-                              });
-                            }
-                          }
-                          
-                          if (context.mounted) {
-                            context.go('/result-onboarding');
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF073B4B),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isAnalyzing
+                              ? null
+                              : () => _submitAndNavigateToResults(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF073B4B),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
                           ),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            if (_isAnalyzing)
-                              const Padding(
-                                padding: EdgeInsets.only(right: 12.0),
-                                child: SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isAnalyzing)
+                                const Padding(
+                                  padding: EdgeInsets.only(right: 12.0),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
                                   ),
                                 ),
+                              Text(
+                                _isAnalyzing
+                                    ? 'ANALYZING PROFILE...'
+                                    : 'CONTINUE & VIEW THE RESULT',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
                               ),
-                            Text(
-                              _isAnalyzing ? 'ANALYZING...' : 'CONTINUE & VIEW THE RESULT',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            if (!_isAnalyzing) ...[
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.arrow_forward,
-                                size: 18,
-                                color: Colors.white,
-                              ),
+                              if (!_isAnalyzing) ...[
+                                const SizedBox(width: 8),
+                                const Icon(
+                                  Icons.arrow_forward,
+                                  size: 18,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                    ), // Closed SafeArea
-                  ), // Closed Container
-                ), // Closed SlideTransition
-              ); // Closed FadeTransition
+                  ),
+                ),
+              );
             },
           ),
         ],
@@ -619,16 +717,15 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Bot avatar with animation rings
         Stack(
           alignment: Alignment.center,
           children: [
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                image: const DecorationImage(
+                image: DecorationImage(
                   image: AssetImage('assets/images/guide maskot.png'),
                   fit: BoxFit.cover,
                 ),
@@ -642,7 +739,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -652,23 +749,23 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                     ],
                   ),
                   borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
                   ),
                 ),
                 child: Text(
                   message,
                   style: const TextStyle(
-                    color: Color(0xFF383838),
-                    fontSize: 12,
+                    color: Color(0xFF1E3A42),
+                    fontSize: 13,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1.50,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 time,
                 style: const TextStyle(
@@ -685,11 +782,19 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     );
   }
 
-  Widget _buildBotMessageWithSlider(String message, int value, String time) {
+  Widget _buildBotMessageWithSlider(
+      Map<String, dynamic> messageData, String time) {
+    final String message = messageData['message'] ?? '';
+    final int? qId = messageData['questionId'];
+    final bool isAnswered = qId != null && _answers.containsKey(qId);
+    final int? answeredScore = qId != null ? _answers[qId] : null;
+    final bool isLatestQuestion = qId != null &&
+        _currentQuestionIndex < AssessmentData.questions.length &&
+        AssessmentData.questions[_currentQuestionIndex].id == qId;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Bot avatar
         Container(
           width: 40,
           height: 40,
@@ -707,20 +812,22 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0x471284A7),
-                      Color(0x33C9F2FF),
-                      Color(0x471385A8),
-                    ],
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
                   ),
-                  borderRadius: BorderRadius.only(
-                    topRight: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
-                  ),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,91 +835,222 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                     Text(
                       message,
                       style: const TextStyle(
-                        color: Color(0xFF383838),
-                        fontSize: 12,
+                        color: Color(0xFF1E3A42),
+                        fontSize: 13,
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.w400,
                         height: 1.50,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.30),
-                        borderRadius: BorderRadius.circular(8),
+
+                    if (isAnswered) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F7F8),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFF43BDC7)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.check_circle_rounded,
+                                size: 16, color: Color(0xFF249FA9)),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Recorded: $answeredScore / 10",
+                              style: const TextStyle(
+                                color: Color(0xFF0F3B4A),
+                                fontSize: 12,
+                                fontFamily: 'Inter',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _sliderValue.toInt().toString(),
-                            style: const TextStyle(
-                              color: Color(0xFF0F1E3C),
-                              fontSize: 22,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w700,
+                    ] else if (isLatestQuestion || qId == null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: const Color(0xFFE2E8F0), width: 1),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _sliderValue.toInt().toString(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF0F1E3C),
+                                    fontSize: 24,
+                                    fontFamily: 'Poppins',
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const Text(
+                                  ' / 10',
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 14,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          SliderTheme(
-                            data: SliderThemeData(
-                              trackHeight: 4,
-                              thumbShape: const RoundSliderThumbShape(
-                                enabledThumbRadius: 8,
+                            const SizedBox(height: 8),
+
+                            // Interactive Slider
+                            SliderTheme(
+                              data: SliderThemeData(
+                                trackHeight: 6,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 10,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 20,
+                                ),
+                                activeTrackColor: const Color(0xFF249FA9),
+                                inactiveTrackColor: const Color(0xFFCBD5E1),
+                                thumbColor: const Color(0xFF0F3B4A),
+                                overlayColor: const Color(0xFF249FA9)
+                                    .withValues(alpha: 0.2),
                               ),
-                              overlayShape: const RoundSliderOverlayShape(
-                                overlayRadius: 16,
+                              child: Slider(
+                                value: _sliderValue,
+                                min: 1,
+                                max: 10,
+                                divisions: 9,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _sliderValue = value;
+                                  });
+                                },
                               ),
-                              activeTrackColor: const Color(0xFF095A70),
-                              inactiveTrackColor: const Color(0xFFCCCCCC),
-                              thumbColor: const Color(0xFF0F1E3C),
-                              overlayColor: const Color(
-                                0xFF095A70,
-                              ).withValues(alpha: 0.2),
                             ),
-                            child: Slider(
-                              value: _sliderValue,
-                              min: 1,
-                              max: 10,
-                              divisions: 9,
-                              onChanged: (value) {
-                                setState(() {
-                                  _sliderValue = value;
-                                });
-                              },
+
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '1 - Never',
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 11,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '10 - Always',
+                                  style: TextStyle(
+                                    color: Color(0xFF64748B),
+                                    fontSize: 11,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '1-Not at all',
-                                style: TextStyle(
-                                  color: Color(0xFF637275),
-                                  fontSize: 10,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w400,
+                            const SizedBox(height: 12),
+
+                            // Quick tap pills 1..10
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(10, (idx) {
+                                  final num = idx + 1;
+                                  final isSelected =
+                                      _sliderValue.toInt() == num;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _sliderValue = num.toDouble();
+                                      });
+                                      if (qId != null) {
+                                        _onRateQuestion(qId, num);
+                                      }
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 3),
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFF0F3B4A)
+                                            : Colors.white,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? const Color(0xFF0F3B4A)
+                                              : const Color(0xFFCBD5E1),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '$num',
+                                          style: TextStyle(
+                                            color: isSelected
+                                                ? Colors.white
+                                                : const Color(0xFF1E3A42),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+
+                            // Submit Rating Button
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (qId != null) {
+                                    _onRateQuestion(qId, _sliderValue.toInt());
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF249FA9),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  "Confirm Rating (${_sliderValue.toInt()} / 10)",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                '10-very well',
-                                style: TextStyle(
-                                  color: Color(0xFF637275),
-                                  fontSize: 10,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 time,
                 style: const TextStyle(
@@ -843,9 +1081,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                 decoration: const BoxDecoration(
                   color: Color(0xFF095A70),
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                    bottomRight: Radius.circular(12),
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
                   ),
                 ),
                 child: Text(
@@ -859,7 +1097,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 time,
                 style: const TextStyle(

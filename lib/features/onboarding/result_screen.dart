@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,6 +65,21 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
   Future<void> _fetchResults() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      
+      // 1. Immediately load local computed results if available from assessment wizard
+      final localJson = prefs.getString('eqi30_assessment_results');
+      if (localJson != null) {
+        final localList = List<Map<String, dynamic>>.from(jsonDecode(localJson));
+        localList.sort((a, b) => ((a['ai_priority'] ?? 99) as int).compareTo((b['ai_priority'] ?? 99) as int));
+        if (mounted) {
+          setState(() {
+            _results = localList;
+            _isLoading = false;
+          });
+          _setupAnimations();
+        }
+      }
+
       final sessionId = prefs.getString('onboarding_session_id');
       if (sessionId != null) {
         final response = await OnboardingService().getAssessmentResult(sessionId);
@@ -230,20 +246,32 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                     final score = (item['score'] as num).toDouble();
                     
                     String status = 'Developing';
-                    if (score < 50) status = 'Needs Attention';
-                    else if (score >= 50 && score < 65) status = 'Developing';
-                    else if (score >= 65 && score < 75) status = 'Good';
-                    else status = 'Strong';
+                    if (score < 50) {
+                      status = 'Needs Attention';
+                    } else if (score >= 50 && score < 65) {
+                      status = 'Developing';
+                    } else if (score >= 65 && score < 75) {
+                      status = 'Good';
+                    } else {
+                      status = 'Strong';
+                    }
                     
                     final progressAnimation = _progressAnimations.length > index ? _progressAnimations[index] : const AlwaysStoppedAnimation(0.0);
                     
                     Color mainColor = const Color(0xFF249FA9);
-                    if (score < 50) mainColor = const Color(0xFF43BDC7);
-                    else if (score >= 50 && score < 65) mainColor = const Color(0xFF249FA9);
-                    else if (score >= 65 && score < 75) mainColor = const Color(0xFF43C76F);
-                    else if (score >= 75 && score < 80) mainColor = const Color(0xFFF37C21);
-                    else if (score >= 80 && score < 90) mainColor = const Color(0xFF96B6F0);
-                    else mainColor = const Color(0xFF6A95E2);
+                    if (score < 50) {
+                      mainColor = const Color(0xFF43BDC7);
+                    } else if (score >= 50 && score < 65) {
+                      mainColor = const Color(0xFF249FA9);
+                    } else if (score >= 65 && score < 75) {
+                      mainColor = const Color(0xFF43C76F);
+                    } else if (score >= 75 && score < 80) {
+                      mainColor = const Color(0xFFF37C21);
+                    } else if (score >= 80 && score < 90) {
+                      mainColor = const Color(0xFF96B6F0);
+                    } else {
+                      mainColor = const Color(0xFF6A95E2);
+                    }
 
                     return Column(
                       children: [
