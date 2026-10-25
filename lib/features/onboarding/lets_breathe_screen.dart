@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
 class LetsBreatheScreen extends StatefulWidget {
   const LetsBreatheScreen({super.key});
@@ -10,44 +11,39 @@ class LetsBreatheScreen extends StatefulWidget {
   State<LetsBreatheScreen> createState() => _LetsBreatheScreenState();
 }
 
-class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTickerProviderStateMixin {
+class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
   int _remainingSeconds = 104; // 01:44
   Timer? _countdownTimer;
   Timer? _breathingTimer;
   
   bool _isBreathingIn = true;
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
+  late VideoPlayerController _videoController;
+  bool _isVideoInitialized = false;
 
   @override
   void initState() {
     super.initState();
     
-    // Animation for breathing effect
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4), // 4 seconds in, 4 seconds out
-    );
-    
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
+    // Initialize video controller
+    _videoController = VideoPlayerController.asset('assets/videos/breathing_video.mp4')
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isVideoInitialized = true;
+          });
+          _videoController.setLooping(true);
+          _videoController.play();
+        }
+      });
 
-    _animationController.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
+    // Breathing rhythm timer (4s in, 4s out)
+    _breathingTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (mounted) {
         setState(() {
-          _isBreathingIn = false;
+          _isBreathingIn = !_isBreathingIn;
         });
-        _animationController.reverse();
-      } else if (status == AnimationStatus.dismissed) {
-        setState(() {
-          _isBreathingIn = true;
-        });
-        _animationController.forward();
       }
     });
-
-    _animationController.forward();
 
     // Countdown Timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -58,7 +54,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
       } else {
         _countdownTimer?.cancel();
         _breathingTimer?.cancel();
-        _animationController.stop();
+        _videoController.pause();
         if (mounted) {
           context.go('/privacy-pledge');
         }
@@ -70,7 +66,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
   void dispose() {
     _countdownTimer?.cancel();
     _breathingTimer?.cancel();
-    _animationController.dispose();
+    _videoController.dispose();
     super.dispose();
   }
 
@@ -115,6 +111,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
                       onPressed: () {
                         _countdownTimer?.cancel();
                         _breathingTimer?.cancel();
+                        _videoController.pause();
                         context.go('/privacy-pledge');
                       },
                       child: Text(
@@ -150,27 +147,34 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
                 ),
                 const SizedBox(height: 32),
                 
-                // Image with breathing animation
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        )
-                      ],
-                      image: const DecorationImage(
-                        image: AssetImage('assets/images/lets breathe.png'),
-                        fit: BoxFit.cover,
+                // Breathing Video Player
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: const Color(0xFF1E3A42),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
+                    ],
                   ),
+                  clipBehavior: Clip.antiAlias,
+                  child: _isVideoInitialized && _videoController.value.isInitialized
+                      ? AspectRatio(
+                          aspectRatio: _videoController.value.aspectRatio,
+                          child: VideoPlayer(_videoController),
+                        )
+                      : const AspectRatio(
+                          aspectRatio: 16 / 9,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              color: Color(0xFF43BDC7),
+                            ),
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 48),
                 
@@ -287,6 +291,8 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> with SingleTicker
                   child: ElevatedButton(
                     onPressed: () {
                       _countdownTimer?.cancel();
+                      _breathingTimer?.cancel();
+                      _videoController.pause();
                       context.go('/privacy-pledge');
                     },
                     style: ElevatedButton.styleFrom(

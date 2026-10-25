@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../screens/start_journey_screen.dart';
 import '../../core/services/journey_service.dart';
 
 class JourneyTab extends StatefulWidget {

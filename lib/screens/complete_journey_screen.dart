@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../core/services/profile_service.dart';
 import '../core/services/journey_service.dart';
 import '../core/services/learning_service.dart';
-import 'journey_completed_screen.dart';
 
 class CompleteJourneyScreen extends StatefulWidget {
   final int sessionId;

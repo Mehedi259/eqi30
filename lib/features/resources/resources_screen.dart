@@ -35,11 +35,6 @@ class _ResourcesScreenState extends State<ResourcesScreen> {
     });
   }
 
-  List<dynamic> get _filteredResources {
-    if (_selectedCategory == 'All') return _allResources;
-    return _allResources.where((r) => r['category']?.toString().toUpperCase() == _selectedCategory.toUpperCase()).toList();
-  }
-
   dynamic get _featuredResource {
     try {
       return _allResources.firstWhere((r) => r['is_featured'] == true);

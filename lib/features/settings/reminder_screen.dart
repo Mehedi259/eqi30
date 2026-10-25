@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/notification_service.dart';
-import '../../core/services/profile_service.dart';
 
 class ReminderScreen extends StatefulWidget {
   const ReminderScreen({super.key});
@@ -17,7 +16,6 @@ class _ReminderScreenState extends State<ReminderScreen> {
   bool isReminderEnabled = true;
   bool isLoading = true;
   bool isSaving = false;
-  final ProfileService _profileService = ProfileService();
 
   final List<String> repeatOptions = [
     'Daily',

@@ -117,6 +117,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/animations/
+    - assets/videos/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -155,7 +156,7 @@ flutter_launcher_icons:
   min_sdk_android: 21
   
   # Adaptive icon for Android (API 26+)
-  adaptive_icon_background: "#FFE7DB"
+  adaptive_icon_background: "#FFFFFF"
   adaptive_icon_foreground: "assets/images/launcher icon.png"
   
   # iOS specific
@@ -165,5 +166,5 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/images/launcher icon.png"
-    background_color: "#FFE7DB"
-    theme_color: "#DAF8FF"
+    background_color: "#FFFFFF"
+    theme_color: "#0F3B4A"

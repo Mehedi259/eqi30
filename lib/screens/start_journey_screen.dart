@@ -4,7 +4,6 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
 import '../core/services/learning_service.dart';
 import '../core/services/journey_service.dart';
-import 'learning_screen.dart';
 
 class StartJourneyScreen extends StatefulWidget {
   final int sessionId;

@@ -4,7 +4,6 @@ import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
 import '../core/services/learning_service.dart';
 import '../core/services/journey_service.dart';
-import 'complete_journey_screen.dart';
 
 class LearningScreen extends StatefulWidget {
   final int sessionId;
@@ -89,42 +88,6 @@ class _LearningScreenState extends State<LearningScreen>
           _errorMessage = "Failed to load content. Please try again. ($e)";
           _isLoading = false;
         });
-      }
-    }
-  }
-
-  Future<void> _completeSession() async {
-    if (widget.sessionId == 0) {
-      context.go('/home?tab=1');
-      return;
-    }
-    
-    // Submit reflection if present
-    if (reflectionController.text.isNotEmpty || selectedFeeling != null) {
-      try {
-        await _learningService.submitReflection(
-          widget.sessionId,
-          reflectionText: reflectionController.text,
-          practiceAnswer: selectedFeeling ?? "",
-        );
-      } catch (e) {
-        // Continue even if reflection fails
-      }
-    }
-
-    try {
-      await _learningService.completeSession(widget.sessionId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Session completed successfully!')),
-        );
-        context.go('/home?tab=1');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to complete session.')),
-        );
       }
     }
   }
