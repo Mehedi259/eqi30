@@ -19,7 +19,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
   final ScrollController _scrollController = ScrollController();
   double _sliderValue = 7.0;
   List<Map<String, dynamic>> _messages = [];
-  bool _showQuickReplies = true;
   bool _isAnalyzing = false;
 
   int _currentQuestionIndex = 0;
@@ -172,8 +171,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       'competencyName': q.competencyName,
       'abilityName': q.abilityName,
       'questionText': q.text,
-      'message':
-          "$sectionIntro**Question ${index + 1} of ${_activeQuestions.length}** • ${q.abilityName}\n\n\"${q.text}\"",
+      'message': sectionIntro.isNotEmpty
+          ? "$sectionIntro\"${q.text}\""
+          : "\"${q.text}\"",
       'hasSlider': true,
       'time': _formatCurrentTime(),
     });
@@ -223,31 +223,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     // Otherwise, conversational coaching response from AI
     await _fetchAiResponse(text);
   }
-
-  Future<void> _sendQuickReply(String message) async {
-    if (message == 'Show my results') {
-      await _submitAndNavigateToResults();
-      return;
-    }
-
-    if (message == 'What\'s next?') {
-      if (_currentQuestionIndex < _activeQuestions.length) {
-        final q = _activeQuestions[_currentQuestionIndex];
-        _addMessage('user', "What's next?");
-        _addMessage('bot',
-            "We are on Question ${_currentQuestionIndex + 1} of ${_activeQuestions.length} evaluating **${q.abilityName}** (${q.competencyName}).\n\nRate on a scale of 1 to 10 whenever you are ready!");
-      }
-      return;
-    }
-
-    _addMessage('user', message);
-    setState(() {
-      _showQuickReplies = false;
-    });
-
-    await _fetchAiResponse(message);
-  }
-
 
   void _addMessage(String type, String message, {bool hasSlider = false}) {
     setState(() {
@@ -535,8 +510,8 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                   // Chat Messages
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
-                      vertical: 16,
+                      horizontal: 16,
+                      vertical: 14,
                     ),
                     child: Column(
                       children: _messages.map((message) {
@@ -578,29 +553,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       }).toList(),
                     ),
                   ),
-
-                  // Quick Reply Chips
-                  if (_showQuickReplies)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 26,
-                        vertical: 4,
-                      ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _buildQuickReplyChip('Tell me more'),
-                            const SizedBox(width: 8),
-                            _buildQuickReplyChip('What\'s next?'),
-                            const SizedBox(width: 8),
-                            _buildQuickReplyChip('Show my results'),
-                            const SizedBox(width: 8),
-                            _buildQuickReplyChip('Ask another question'),
-                          ],
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -814,7 +766,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       onTap: () => _selectAssessmentMode(true),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -835,13 +787,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                         child: Row(
                           children: [
                             Container(
-                              width: 36,
-                              height: 36,
+                              width: 34,
+                              height: 34,
                               decoration: BoxDecoration(
                                 color: const Color(0xFFE0F7F9),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.bolt, color: Color(0xFF249FA9), size: 22),
+                              child: const Icon(Icons.bolt, color: Color(0xFF249FA9), size: 20),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -850,23 +802,27 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                 children: [
                                   Row(
                                     children: [
-                                      const Text(
-                                        "Short Assessment",
-                                        style: TextStyle(
-                                          color: Color(0xFF0F1E3C),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                      const Expanded(
+                                        child: Text(
+                                          "Short Assessment",
+                                          style: TextStyle(
+                                            color: Color(0xFF0F1E3C),
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF249FA9).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: const Text(
                                           "48 items",
+                                          maxLines: 1,
+                                          softWrap: false,
                                           style: TextStyle(
                                             color: Color(0xFF0F3B4A),
                                             fontSize: 10,
@@ -876,9 +832,11 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 3),
                                   const Text(
                                     "6 competencies × 8 items • ~5 mins",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color(0xFF64748B),
                                       fontSize: 11,
@@ -887,11 +845,12 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 4),
                             Icon(
                               _assessmentModeSelected && _isShortAssessment
                                   ? Icons.check_circle
                                   : Icons.arrow_forward_ios,
-                              size: 16,
+                              size: 15,
                               color: const Color(0xFF249FA9),
                             ),
                           ],
@@ -904,7 +863,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       onTap: () => _selectAssessmentMode(false),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -925,13 +884,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                         child: Row(
                           children: [
                             Container(
-                              width: 36,
-                              height: 36,
+                              width: 34,
+                              height: 34,
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEDE9FE),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.psychology, color: Color(0xFF7C3AED), size: 22),
+                              child: const Icon(Icons.psychology, color: Color(0xFF7C3AED), size: 20),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -940,23 +899,27 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                 children: [
                                   Row(
                                     children: [
-                                      const Text(
-                                        "Long Assessment",
-                                        style: TextStyle(
-                                          color: Color(0xFF0F1E3C),
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w700,
+                                      const Expanded(
+                                        child: Text(
+                                          "Long Assessment",
+                                          style: TextStyle(
+                                            color: Color(0xFF0F1E3C),
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: const Text(
                                           "103 items",
+                                          maxLines: 1,
+                                          softWrap: false,
                                           style: TextStyle(
                                             color: Color(0xFF5B21B6),
                                             fontSize: 10,
@@ -966,9 +929,11 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 3),
                                   const Text(
-                                    "Deep psychometric breakdown • 30 abilities • ~12-15 mins",
+                                    "30 abilities • 103 items • ~12-15 mins",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                       color: Color(0xFF64748B),
                                       fontSize: 11,
@@ -977,11 +942,12 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                 ],
                               ),
                             ),
+                            const SizedBox(width: 4),
                             Icon(
                               _assessmentModeSelected && !_isShortAssessment
                                   ? Icons.check_circle
                                   : Icons.arrow_forward_ios,
-                              size: 16,
+                              size: 15,
                               color: const Color(0xFF7C3AED),
                             ),
                           ],
@@ -1406,29 +1372,6 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildQuickReplyChip(String label) {
-    return GestureDetector(
-      onTap: () => _sendQuickReply(label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE0F2F7),
-          border: Border.all(color: const Color(0xFF95D5E6), width: 1),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: Color(0xFF073B4B),
-            fontSize: 13,
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
     );
   }
 }
