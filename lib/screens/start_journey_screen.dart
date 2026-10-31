@@ -417,7 +417,9 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
   }
 
   Widget _buildCategoryRow() {
-    final title = _competencyData?['name'] ?? 'Self Management';
+    final title = widget.abilityName.trim().isNotEmpty
+        ? widget.abilityName.trim()
+        : (_competencyData?['ability_name'] ?? _competencyData?['name'] ?? 'Emotional Awareness');
     return SlideTransition(
       position: _categorySlideAnimation,
       child: FadeTransition(
@@ -949,8 +951,11 @@ class _StartJourneyScreenState extends State<StartJourneyScreen>
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
+                  final targetAbilityName = widget.abilityName.trim().isNotEmpty
+                      ? widget.abilityName.trim()
+                      : (_competencyData?['ability_name'] ?? _competencyData?['name'] ?? 'Emotional Awareness');
                   context.push(
-                    '/learning?sessionId=${widget.sessionId}&abilityId=${widget.abilityId}&dayNumber=${widget.dayNumber}&abilityName=${widget.abilityName}',
+                    '/learning?sessionId=${widget.sessionId}&abilityId=${widget.abilityId}&dayNumber=${widget.dayNumber}&abilityName=${Uri.encodeComponent(targetAbilityName)}',
                   );
                 },
                 style: ElevatedButton.styleFrom(

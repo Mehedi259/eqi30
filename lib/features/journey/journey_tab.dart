@@ -178,6 +178,7 @@ class _JourneyTabState extends State<JourneyTab> {
                             dayNumber: session['content_day'] ?? 1,
                             category: (competency['name'] ?? 'MINDSET').toString().toUpperCase(),
                             title: '${ability['name'] ?? 'Session'} – Day ${session['content_day'] ?? 1}',
+                            abilityName: ability['name']?.toString() ?? 'Emotional Awareness',
                             subtitle: session['subtitle'],
                             duration: '~${session['estimated_minutes'] ?? 5} min session',
                             buttonText: 'Lets start',
@@ -456,6 +457,7 @@ class _JourneyTabState extends State<JourneyTab> {
     required int dayNumber,
     required String category,
     required String title,
+    String? abilityName,
     String? subtitle,
     required String duration,
     required String buttonText,
@@ -549,8 +551,11 @@ class _JourneyTabState extends State<JourneyTab> {
           const SizedBox(height: 16),
           GestureDetector(
             onTap: () {
-              final abilityName = title.split(' – ').first;
-              context.push('/session-intro?sessionId=$sessionId&abilityId=$abilityId&dayNumber=$dayNumber&abilityName=$abilityName');
+              final resolvedAbility = (abilityName != null && abilityName.isNotEmpty)
+                  ? abilityName
+                  : title.split(' – ').first.split(' - ').first.trim();
+              final encodedName = Uri.encodeComponent(resolvedAbility);
+              context.push('/session-intro?sessionId=$sessionId&abilityId=$abilityId&dayNumber=$dayNumber&abilityName=$encodedName');
             },
             child: Container(
               width: double.infinity,
