@@ -24,6 +24,9 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
   int _currentQuestionIndex = 0;
   final Map<int, int> _answers = {};
+  bool _assessmentModeSelected = false;
+  bool _isShortAssessment = true;
+  List<AssessmentQuestion> _activeQuestions = AssessmentData.shortQuestions;
 
   late AnimationController _headerController;
   late AnimationController _avatarController;
@@ -97,23 +100,52 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     _messages = [];
     _currentQuestionIndex = 0;
     _answers.clear();
+    _assessmentModeSelected = false;
+    _isShortAssessment = true;
+    _activeQuestions = AssessmentData.shortQuestions;
 
     _messages.add({
       'type': 'bot',
+      'isModeSelector': true,
       'message':
-          "Hello! I am your AI Emotional Intelligence Guide 🌟\n\nI will guide you through the official EQi-30 assessment — 103 statements across 30 vital emotional abilities and 6 competencies.\n\nFor each question, rate how accurately it fits you from 1 (Never / Strongly Disagree) to 10 (Always / Strongly Agree), or feel free to chat with me at any point!",
+          "Hello! I am your AI Emotional Intelligence Guide 🌟\n\nWelcome to your EQi-30 Assessment! Please select your assessment format to begin:",
       'time': _formatCurrentTime(),
     });
+  }
 
-    _sendQuestionToChat(0);
+  void _selectAssessmentMode(bool isShort) {
+    if (_assessmentModeSelected) return;
+    setState(() {
+      _assessmentModeSelected = true;
+      _isShortAssessment = isShort;
+      _activeQuestions = isShort ? AssessmentData.shortQuestions : AssessmentData.questions;
+      _answers.clear();
+      _currentQuestionIndex = 0;
+    });
+
+    _addMessage(
+      'user',
+      isShort ? "⚡ Short Assessment (48 Questions)" : "🌟 Long Assessment (103 Questions)",
+    );
+
+    _addMessage(
+      'bot',
+      isShort
+          ? "Starting your **Short Assessment (48 Questions)**! ⚡\n\n6 competencies × 8 items each. For each statement, use the slider to rate how true it is of you:\n\n• **1 = Not at all true of me**\n• **10 = Very true of me, most of the time**\n\nYou can also chat with me anytime. Let's begin!"
+          : "Starting your **Long Assessment (103 Questions)**! 🌟\n\nWe will evaluate 30 vital emotional abilities across 6 competencies.\n\nRate each statement from 1 to 10, or chat with me anytime. Let's begin!",
+    );
+
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) _sendQuestionToChat(0);
+    });
   }
 
   void _sendQuestionToChat(int index) {
-    if (index >= AssessmentData.questions.length) {
+    if (index >= _activeQuestions.length) {
       _messages.add({
         'type': 'bot',
         'message':
-            "🎉 Fantastic job! You have answered all 103 assessment questions!\n\nTap 'CONTINUE & VIEW THE RESULT' below to explore your 30-ability emotional intelligence breakdown and personalized growth roadmap.",
+            "🎉 Fantastic job! You have answered all ${_activeQuestions.length} assessment questions!\n\nTap 'CONTINUE & VIEW THE RESULT' below to explore your emotional intelligence breakdown and personalized growth roadmap.",
         'time': _formatCurrentTime(),
       });
       setState(() {});
@@ -121,13 +153,13 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       return;
     }
 
-    final q = AssessmentData.questions[index];
+    final q = _activeQuestions[index];
     final isNewSection = index == 0 ||
-        AssessmentData.questions[index - 1].competencyKey != q.competencyKey;
+        _activeQuestions[index - 1].competencyKey != q.competencyKey;
 
     String sectionIntro = "";
     if (isNewSection && index > 0) {
-      final prevName = AssessmentData.questions[index - 1].competencyName;
+      final prevName = _activeQuestions[index - 1].competencyName;
       sectionIntro =
           "🌟 Great job completing $prevName!\n\nNow, let's explore **${q.competencyName}**:\n\n";
     }
@@ -141,7 +173,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       'abilityName': q.abilityName,
       'questionText': q.text,
       'message':
-          "$sectionIntro**Question ${index + 1} of 103** • ${q.abilityName}\n\n\"${q.text}\"",
+          "$sectionIntro**Question ${index + 1} of ${_activeQuestions.length}** • ${q.abilityName}\n\n\"${q.text}\"",
       'hasSlider': true,
       'time': _formatCurrentTime(),
     });
@@ -155,8 +187,8 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
     _addMessage('user', "Rating: $score / 10");
 
-    if (_currentQuestionIndex < AssessmentData.questions.length &&
-        AssessmentData.questions[_currentQuestionIndex].id == questionId) {
+    if (_currentQuestionIndex < _activeQuestions.length &&
+        _activeQuestions[_currentQuestionIndex].id == questionId) {
       _currentQuestionIndex++;
 
       setState(() {
@@ -182,8 +214,8 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     if (parsedRating != null &&
         parsedRating >= 1 &&
         parsedRating <= 10 &&
-        _currentQuestionIndex < AssessmentData.questions.length) {
-      final q = AssessmentData.questions[_currentQuestionIndex];
+        _currentQuestionIndex < _activeQuestions.length) {
+      final q = _activeQuestions[_currentQuestionIndex];
       _onRateQuestion(q.id, parsedRating);
       return;
     }
@@ -199,11 +231,11 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     }
 
     if (message == 'What\'s next?') {
-      if (_currentQuestionIndex < AssessmentData.questions.length) {
-        final q = AssessmentData.questions[_currentQuestionIndex];
+      if (_currentQuestionIndex < _activeQuestions.length) {
+        final q = _activeQuestions[_currentQuestionIndex];
         _addMessage('user', "What's next?");
         _addMessage('bot',
-            "We are on Question ${_currentQuestionIndex + 1} of 103 evaluating **${q.abilityName}** (${q.competencyName}).\n\nRate on a scale of 1 to 10 whenever you are ready!");
+            "We are on Question ${_currentQuestionIndex + 1} of ${_activeQuestions.length} evaluating **${q.abilityName}** (${q.competencyName}).\n\nRate on a scale of 1 to 10 whenever you are ready!");
       }
       return;
     }
@@ -215,6 +247,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
     await _fetchAiResponse(message);
   }
+
 
   void _addMessage(String type, String message, {bool hasSlider = false}) {
     setState(() {
@@ -292,18 +325,22 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
       }
 
       // Calculate scores using official scoring algorithm
-      final results = AssessmentData.calculateScores(_answers);
+      final results = _isShortAssessment
+          ? AssessmentData.calculateShortScores(_answers)
+          : AssessmentData.calculateScores(_answers);
 
       // Save locally
       await prefs.setString('eqi30_assessment_answers', jsonEncode(
         _answers.map((k, v) => MapEntry(k.toString(), v)),
       ));
       await prefs.setString('eqi30_assessment_results', jsonEncode(results));
+      await prefs.setString('eqi30_assessment_mode', _isShortAssessment ? 'short' : 'long');
 
       // Submit to backend
       if (sessionId != null) {
         await OnboardingService().submitAssessment(sessionId, {
           'results': results,
+          'mode': _isShortAssessment ? 'short' : 'long',
         });
       }
 
@@ -411,7 +448,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
-                                      '${_answers.length} / 103 Answered',
+                                      '${_answers.length} / ${_activeQuestions.length} Answered',
                                       style: const TextStyle(
                                         color: Color(0xFF073B4B),
                                         fontSize: 11,
@@ -504,6 +541,15 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                     child: Column(
                       children: _messages.map((message) {
                         if (message['type'] == 'bot') {
+                          if (message['isModeSelector'] == true) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _buildModeSelectorMessage(
+                                message['message'],
+                                message['time'],
+                              ),
+                            );
+                          }
                           if (message['hasSlider'] == true) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16),
@@ -713,6 +759,255 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     );
   }
 
+  Widget _buildModeSelectorMessage(String message, String time) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            image: DecorationImage(
+              image: AssetImage('assets/images/guide maskot.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0x471284A7),
+                      Color(0x33C9F2FF),
+                      Color(0x471385A8),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                    bottomRight: Radius.circular(16),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      message,
+                      style: const TextStyle(
+                        color: Color(0xFF1E3A42),
+                        fontSize: 13,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w400,
+                        height: 1.50,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Option 1: Short Assessment (48 items)
+                    InkWell(
+                      onTap: () => _selectAssessmentMode(true),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _assessmentModeSelected && _isShortAssessment
+                                ? const Color(0xFF249FA9)
+                                : const Color(0xFFCBD5E1),
+                            width: _assessmentModeSelected && _isShortAssessment ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0F7F9),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.bolt, color: Color(0xFF249FA9), size: 22),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        "Short Assessment",
+                                        style: TextStyle(
+                                          color: Color(0xFF0F1E3C),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF249FA9).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Text(
+                                          "48 items",
+                                          style: TextStyle(
+                                            color: Color(0xFF0F3B4A),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    "6 competencies × 8 items • ~5 mins",
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              _assessmentModeSelected && _isShortAssessment
+                                  ? Icons.check_circle
+                                  : Icons.arrow_forward_ios,
+                              size: 16,
+                              color: const Color(0xFF249FA9),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Option 2: Long / Comprehensive Assessment (103 items)
+                    InkWell(
+                      onTap: () => _selectAssessmentMode(false),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _assessmentModeSelected && !_isShortAssessment
+                                ? const Color(0xFF249FA9)
+                                : const Color(0xFFCBD5E1),
+                            width: _assessmentModeSelected && !_isShortAssessment ? 2 : 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE9FE),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.psychology, color: Color(0xFF7C3AED), size: 22),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        "Long Assessment",
+                                        style: TextStyle(
+                                          color: Color(0xFF0F1E3C),
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF7C3AED).withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: const Text(
+                                          "103 items",
+                                          style: TextStyle(
+                                            color: Color(0xFF5B21B6),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 2),
+                                  const Text(
+                                    "Deep psychometric breakdown • 30 abilities • ~12-15 mins",
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              _assessmentModeSelected && !_isShortAssessment
+                                  ? Icons.check_circle
+                                  : Icons.arrow_forward_ios,
+                              size: 16,
+                              color: const Color(0xFF7C3AED),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                time,
+                style: const TextStyle(
+                  color: Color(0xFF073B4B),
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBotMessage(String message, String time) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -789,8 +1084,8 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     final bool isAnswered = qId != null && _answers.containsKey(qId);
     final int? answeredScore = qId != null ? _answers[qId] : null;
     final bool isLatestQuestion = qId != null &&
-        _currentQuestionIndex < AssessmentData.questions.length &&
-        AssessmentData.questions[_currentQuestionIndex].id == qId;
+        _currentQuestionIndex < _activeQuestions.length &&
+        _activeQuestions[_currentQuestionIndex].id == qId;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -940,7 +1235,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '1 - Never',
+                                  '1 - Not at all true of me',
                                   style: TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 11,
@@ -949,7 +1244,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                   ),
                                 ),
                                 Text(
-                                  '10 - Always',
+                                  '10 - Very true of me',
                                   style: TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 11,

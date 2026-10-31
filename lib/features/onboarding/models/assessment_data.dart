@@ -1323,4 +1323,435 @@ class AssessmentData {
 
     return competencyScores;
   }
+
+  // ---------------------------------------------------------------------------
+  // UPDATED EQi-30 SHORT ITEM BANK (6 Competencies × 8 Items = 48 Items)
+  // Scale: 1 = Not at all true of me, 10 = Very true of me, most of the time
+  // Reverse scored items marked with isReverse: true (score = 11 - response)
+  // ---------------------------------------------------------------------------
+  static const List<AssessmentQuestion> shortQuestions = [
+    // 1) Self Management (Items 1 - 8)
+    // Focus: self-awareness, self-regard, independence, responsibility, and growth.
+    AssessmentQuestion(
+      id: 1,
+      text: "I can usually name what I am feeling.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Self-Awareness",
+    ),
+    AssessmentQuestion(
+      id: 2,
+      text: "I understand what tends to trigger my reactions.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Self-Awareness",
+    ),
+    AssessmentQuestion(
+      id: 3,
+      text: "I feel basically secure in who I am.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Self-Regard",
+    ),
+    AssessmentQuestion(
+      id: 4,
+      text: "I take responsibility for my growth.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Responsibility & Growth",
+    ),
+    AssessmentQuestion(
+      id: 5,
+      text: "When I make mistakes, I can learn without collapsing into shame.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Resilience & Growth",
+    ),
+    AssessmentQuestion(
+      id: 6,
+      text: "I can make important choices without needing constant reassurance.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Independence",
+    ),
+    AssessmentQuestion(
+      id: 7,
+      text: "I do not understand why I react the way I do.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Self-Awareness",
+      isReverse: true,
+    ),
+    AssessmentQuestion(
+      id: 8,
+      text: "I depend too much on others to tell me what I should do.",
+      competencyKey: "SELF_MANAGEMENT",
+      competencyName: "Self-Management",
+      abilityName: "Independence",
+      isReverse: true,
+    ),
+
+    // 2) Interpersonal Management (Items 9 - 16)
+    // Focus: verbal communication, nonverbal communication, empathy, assertiveness, and conflict handling.
+    AssessmentQuestion(
+      id: 9,
+      text: "I listen in a way that helps people feel heard.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Empathy & Listening",
+    ),
+    AssessmentQuestion(
+      id: 10,
+      text: "I usually notice how my words affect other people.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Verbal Communication",
+    ),
+    AssessmentQuestion(
+      id: 11,
+      text: "I can read nonverbal cues such as tone, facial expression, and body language.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Nonverbal Communication",
+    ),
+    AssessmentQuestion(
+      id: 12,
+      text: "My own facial expressions, tone, and body language usually match what I mean to communicate.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Nonverbal Communication",
+    ),
+    AssessmentQuestion(
+      id: 13,
+      text: "I can express what I think and feel clearly without becoming aggressive or passive.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Assertiveness",
+    ),
+    AssessmentQuestion(
+      id: 14,
+      text: "I try to understand other people before reacting.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Empathy",
+    ),
+    AssessmentQuestion(
+      id: 15,
+      text: "I can address conflict directly without avoiding it or escalating it.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Conflict Handling",
+    ),
+    AssessmentQuestion(
+      id: 16,
+      text: "When conflict starts, I either shut down or come in too hard.",
+      competencyKey: "INTERPERSONAL_MANAGEMENT",
+      competencyName: "Interpersonal Management",
+      abilityName: "Conflict Handling",
+      isReverse: true,
+    ),
+
+    // 3) Stress Management (Items 17 - 24)
+    // Focus: stress tolerance, flexibility, recovery, and realistic optimism.
+    AssessmentQuestion(
+      id: 17,
+      text: "When I get upset, I can usually recover without staying stuck for too long.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Recovery",
+    ),
+    AssessmentQuestion(
+      id: 18,
+      text: "I can function reasonably well even when life feels stressful.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Stress Tolerance",
+    ),
+    AssessmentQuestion(
+      id: 19,
+      text: "I can adjust when plans change unexpectedly.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Flexibility",
+    ),
+    AssessmentQuestion(
+      id: 20,
+      text: "I do not let frustration control my behavior too easily.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Frustration Control",
+    ),
+    AssessmentQuestion(
+      id: 21,
+      text: "I can usually find a workable next step when things go wrong.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Adaptive Coping",
+    ),
+    AssessmentQuestion(
+      id: 22,
+      text: "Even under stress, I can hold on to some hope.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Realistic Optimism",
+    ),
+    AssessmentQuestion(
+      id: 23,
+      text: "Stress quickly overwhelms my ability to think clearly.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Stress Tolerance",
+      isReverse: true,
+    ),
+    AssessmentQuestion(
+      id: 24,
+      text: "Small changes can throw me off for a long time.",
+      competencyKey: "STRESS_MANAGEMENT",
+      competencyName: "Stress Management",
+      abilityName: "Flexibility",
+      isReverse: true,
+    ),
+
+    // 4) Spirit / Energy Management (Items 25 - 32)
+    // Focus: energy awareness, restoration, limits, values, and meaning.
+    AssessmentQuestion(
+      id: 25,
+      text: "I know which people, places, and activities drain my energy.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Energy Awareness",
+    ),
+    AssessmentQuestion(
+      id: 26,
+      text: "I know what genuinely restores me.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Restoration",
+    ),
+    AssessmentQuestion(
+      id: 27,
+      text: "I notice my limits before I hit full burnout.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Limits & Boundaries",
+    ),
+    AssessmentQuestion(
+      id: 28,
+      text: "My daily life includes things that give me meaning or purpose.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Meaning & Purpose",
+    ),
+    AssessmentQuestion(
+      id: 29,
+      text: "My values or beliefs help steady me when life gets hard.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Values Alignment",
+    ),
+    AssessmentQuestion(
+      id: 30,
+      text: "I know where my beliefs come from and how they affect my energy and spirit.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Belief Awareness",
+    ),
+    AssessmentQuestion(
+      id: 31,
+      text: "I do not make choices that protect my energy or my schedule.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Energy Protection",
+      isReverse: true,
+    ),
+    AssessmentQuestion(
+      id: 32,
+      text: "Most of my life feels draining without enough renewal.",
+      competencyKey: "SPIRIT_MANAGEMENT",
+      competencyName: "Spirit / Energy Management",
+      abilityName: "Renewal",
+      isReverse: true,
+    ),
+
+    // 5) Executive Functioning (Items 33 - 40)
+    // Focus: planning, prioritizing, organization (including space), initiation, shifting, and tracking.
+    AssessmentQuestion(
+      id: 33,
+      text: "I can break big tasks into manageable steps.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Planning",
+    ),
+    AssessmentQuestion(
+      id: 34,
+      text: "I usually know what to do first and what can wait.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Prioritizing",
+    ),
+    AssessmentQuestion(
+      id: 35,
+      text: "I can stay organized enough to follow through on important tasks.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Organization",
+    ),
+    AssessmentQuestion(
+      id: 36,
+      text: "I can keep my space clear enough to help me think, plan, and work effectively.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Space Organization",
+    ),
+    AssessmentQuestion(
+      id: 37,
+      text: "I can get started on things even when I do not feel like it.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Task Initiation",
+    ),
+    AssessmentQuestion(
+      id: 38,
+      text: "I can shift gears when a plan is not working.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Cognitive Shifting",
+    ),
+    AssessmentQuestion(
+      id: 39,
+      text: "I can keep track of what I need to do without losing the thread.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Task Tracking",
+    ),
+    AssessmentQuestion(
+      id: 40,
+      text: "I often know what I should do but cannot get myself to start.",
+      competencyKey: "EXECUTIVE_FUNCTION",
+      competencyName: "Executive Functioning",
+      abilityName: "Task Initiation",
+      isReverse: true,
+    ),
+
+    // 6) Decision Making (Items 41 - 48)
+    // Focus: information processing, working memory, use of past experience, impulse control, reality testing, objectivity, problem solving, and pattern recognition.
+    AssessmentQuestion(
+      id: 41,
+      text: "I can take in new information without getting mentally overloaded too quickly.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Information Processing",
+    ),
+    AssessmentQuestion(
+      id: 42,
+      text: "I can hold important details in mind while comparing options.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Working Memory",
+    ),
+    AssessmentQuestion(
+      id: 43,
+      text: "I can use past experiences to help me understand what is happening now.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Experience Application",
+    ),
+    AssessmentQuestion(
+      id: 44,
+      text: "I can slow myself down before reacting impulsively.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Impulse Control",
+    ),
+    AssessmentQuestion(
+      id: 45,
+      text: "I can separate facts from assumptions when making decisions.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Reality Testing",
+    ),
+    AssessmentQuestion(
+      id: 46,
+      text: "I can stay objective even when I feel strongly about something.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Objectivity",
+    ),
+    AssessmentQuestion(
+      id: 47,
+      text: "I can work through problems instead of avoiding them or reacting blindly.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Problem Solving",
+    ),
+    AssessmentQuestion(
+      id: 48,
+      text: "I can pull patterns and lessons from new and old experiences.",
+      competencyKey: "DECISION_MAKING",
+      competencyName: "Decision Making",
+      abilityName: "Pattern Recognition",
+    ),
+  ];
+
+  /// Calculates competency scores for the 48-item Short Assessment.
+  /// For each competency:
+  /// - Reverse score items marked (R): score = 11 - response
+  /// - Average the 8 item scores to get a 1.0–10.0 score (and 0-100 percentage)
+  /// - Map to official bands:
+  ///   8.0–10.0 = strength
+  ///   6.5–7.9 = generally solid
+  ///   5.0–6.4 = mixed / inconsistent
+  ///   < 5.0 = growth area
+  static List<Map<String, dynamic>> calculateShortScores(Map<int, int> answers) {
+    final Map<String, List<double>> compScores = {
+      'SELF_MANAGEMENT': [],
+      'INTERPERSONAL_MANAGEMENT': [],
+      'STRESS_MANAGEMENT': [],
+      'SPIRIT_MANAGEMENT': [],
+      'EXECUTIVE_FUNCTION': [],
+      'DECISION_MAKING': [],
+    };
+
+    for (final q in shortQuestions) {
+      final raw = answers[q.id] ?? 5;
+      final effective = q.isReverse ? (11 - raw).toDouble() : raw.toDouble();
+      compScores[q.competencyKey]?.add(effective);
+    }
+
+    final List<Map<String, dynamic>> results = [];
+    for (final comp in competencies) {
+      final key = comp['key']!;
+      final items = compScores[key] ?? [];
+      final avgOutOf10 = items.isEmpty
+          ? 5.0
+          : (items.fold<double>(0.0, (acc, val) => acc + val) / items.length);
+      final scorePct = double.parse((avgOutOf10 * 10).toStringAsFixed(1));
+
+      String band;
+      if (avgOutOf10 >= 8.0) {
+        band = 'strength';
+      } else if (avgOutOf10 >= 6.5) {
+        band = 'generally solid';
+      } else if (avgOutOf10 >= 5.0) {
+        band = 'mixed / inconsistent';
+      } else {
+        band = 'growth area';
+      }
+
+      results.add({
+        'competency': key,
+        'competency_name': comp['name'],
+        'score': scorePct,
+        'average_score': double.parse(avgOutOf10.toStringAsFixed(2)),
+        'band': band,
+      });
+    }
+
+    // Sort ascending by score -> lowest score gets priority 1 (primary growth focus)
+    results.sort((a, b) => (a['score'] as double).compareTo(b['score'] as double));
+    for (int i = 0; i < results.length; i++) {
+      results[i]['ai_priority'] = i + 1;
+    }
+    return results;
+  }
 }

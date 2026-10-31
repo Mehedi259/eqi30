@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../shared/widgets/custom_button.dart';
@@ -43,6 +44,11 @@ class _LoginScreenState extends State<LoginScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
+    _socialSlideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.02),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
     _emailSlideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.02),
       end: Offset.zero,
@@ -54,11 +60,6 @@ class _LoginScreenState extends State<LoginScreen>
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _buttonSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.02),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
-    _socialSlideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.02),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
@@ -110,6 +111,146 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  Future<void> _handleSocialLogin(String provider) async {
+    final defaultEmail = _emailController.text.trim().isNotEmpty
+        ? _emailController.text.trim()
+        : (provider == 'google' ? 'user@gmail.com' : 'user@icloud.com');
+
+    final selectedEmail = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (ctx) {
+        final emailCtrl = TextEditingController(text: defaultEmail);
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(
+                    provider == 'google' ? Icons.g_mobiledata : Icons.apple,
+                    size: 32,
+                    color: provider == 'google' ? const Color(0xFF4285F4) : Colors.black,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    provider == 'google' ? 'Sign in with Google' : 'Sign in with Apple',
+                    style: GoogleFonts.inter(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F1E3C),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Confirm the ${provider == 'google' ? 'Google' : 'Apple'} account for EQi30 authentication:',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: '${provider == 'google' ? 'Google' : 'Apple'} Account Email',
+                  prefixIcon: Icon(
+                    provider == 'google' ? Icons.mail_outline : Icons.apple,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final entered = emailCtrl.text.trim();
+                    if (entered.isNotEmpty) {
+                      Navigator.of(ctx).pop(entered);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: provider == 'google'
+                        ? const Color(0xFF0F3B4A)
+                        : Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue with ${provider == 'google' ? 'Google' : 'Apple'}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedEmail == null || selectedEmail.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await _authService.socialLogin(
+        provider: provider,
+        email: selectedEmail,
+        fullName: provider == 'google' ? 'Google User' : 'Apple User',
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        context.go('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
                 // Header - Slides from left
                 SlideTransition(
                   position: _headerSlideAnimation,
@@ -138,14 +279,120 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Sign in with your email and password\nor social media to continue',
+                          'Sign in with social media or your email to continue',
                           style: AppTextStyles.bodyMedium,
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+
+                // Social buttons - Positioned at top per user request
+                SlideTransition(
+                  position: _socialSlideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: Column(
+                      children: [
+                        // Google Login Button
+                        InkWell(
+                          onTap: _isLoading ? null : () => _handleSocialLogin('google'),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.g_mobiledata, size: 28, color: Color(0xFF4285F4)),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Continue with Google',
+                                  style: GoogleFonts.inter(
+                                    color: const Color(0xFF0F1E3C),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Apple Login Button
+                        InkWell(
+                          onTap: _isLoading ? null : () => _handleSocialLogin('apple'),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.apple, size: 22, color: Colors.white),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Continue with Apple',
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Divider
+                        Row(
+                          children: [
+                            const Expanded(child: Divider(color: Color(0xFFE2E8F0), thickness: 1)),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                'Or with email',
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF64748B),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: Divider(color: Color(0xFFE2E8F0), thickness: 1)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
 
                 // Email field - Slides from right
                 SlideTransition(
@@ -160,7 +407,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                 // Password field - Slides from left
                 SlideTransition(
@@ -215,76 +462,53 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(height: 24),
 
-                // Button - Slides from right
+                // Primary Button - "Continue" (updated from previous 'Let\'s try a 2-minute exercise')
                 SlideTransition(
                   position: _buttonSlideAnimation,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
                     child: CustomButton(
-                      text: 'Let\'s try a 2-minute exercise',
+                      text: 'Continue',
                       onPressed: _handleLogin,
                       isLoading: _isLoading,
                       icon: Icons.arrow_forward,
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Social buttons - Slides from bottom
+                // Sign up prompt
                 SlideTransition(
-                  position: _socialSlideAnimation,
+                  position: _buttonSlideAnimation,
                   child: FadeTransition(
                     opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        Center(
-                          child: Text('Or', style: AppTextStyles.bodyMedium),
-                        ),
-                        const SizedBox(height: 24),
-
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _SocialButton(
-                              icon: Icons.g_mobiledata,
-                              onTap: () {},
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Don\'t have an account? ',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: AppColors.textPrimary,
                             ),
-                            const SizedBox(width: 16),
-                            _SocialButton(icon: Icons.apple, onTap: () {}),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-
-                        Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Don\'t have an account? ',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () => context.push('/register'),
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: const Size(0, 0),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  'Sign up',
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    color: AppColors.primaryDark,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
-                      ],
+                          TextButton(
+                            onPressed: () => context.push('/register'),
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Sign up',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.primaryDark,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -297,26 +521,3 @@ class _LoginScreenState extends State<LoginScreen>
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _SocialButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(50),
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Icon(icon, size: 32, color: AppColors.textPrimary),
-      ),
-    );
-  }
-}

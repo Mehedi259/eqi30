@@ -287,19 +287,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
 
-          // Side mascot - properly positioned relative to the screen to match design
+          // Side mascot - visible from the beginning to guide the messages
           Positioned(
             right: 0, // Positioned exactly at the right edge
             bottom: size.height * 0.22, // Place it just above the bottom container
             child: IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: _showFinalElements ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 800),
-                child: Image.asset(
-                  'assets/images/side maskot.png',
-                  width: 200, // Slightly smaller or larger depending on original image size
-                  fit: BoxFit.contain,
-                ),
+              child: Image.asset(
+                'assets/images/side maskot.png',
+                width: 200, // Slightly smaller or larger depending on original image size
+                fit: BoxFit.contain,
               ),
             ),
           ),

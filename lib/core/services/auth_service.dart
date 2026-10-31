@@ -41,6 +41,42 @@ class AuthService {
     return response;
   }
 
+  Future<Map<String, dynamic>> socialLogin({
+    required String provider,
+    required String email,
+    String? fullName,
+    String? token,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionUuid = prefs.getString('onboarding_session_id');
+
+    final body = <String, dynamic>{
+      'provider': provider,
+      'email': email,
+      'full_name': fullName ?? (provider == 'google' ? 'Google User' : 'Apple User'),
+    };
+    if (token != null) body['token'] = token;
+    if (sessionUuid != null) body['session_uuid'] = sessionUuid;
+
+    final response = await _apiClient.post(
+      '/auth/social-login/',
+      body: body,
+    );
+
+    if (response['tokens'] != null && response['tokens']['access'] != null) {
+      await _saveToken(
+        response['tokens']['access'],
+        refreshToken: response['tokens']['refresh'],
+      );
+    } else if (response['access'] != null) {
+      await _saveToken(response['access']);
+    } else if (response['token'] != null) {
+      await _saveToken(response['token']);
+    }
+
+    return response;
+  }
+
   Future<Map<String, dynamic>> register({
     required String name,
     required String email,

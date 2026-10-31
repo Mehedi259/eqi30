@@ -87,7 +87,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 // Top Navigation (Back & Skip)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,31 +125,32 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
                 
                 // Title & Subtitle
                 Text(
                   "Let's Breathe",
                   style: GoogleFonts.inter(
                     color: const Color(0xFF1E3A42),
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Text(
                   "Rest your mind. One breath at a time.",
                   style: GoogleFonts.inter(
                     color: const Color(0xFF4A6F75),
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
                 
                 // Breathing Video Player
                 Container(
                   width: double.infinity,
+                  constraints: const BoxConstraints(maxHeight: 180),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     color: const Color(0xFF1E3A42),
@@ -176,15 +177,15 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                           ),
                         ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 14),
                 
                 // Timer Circle
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF0F3B4A), width: 4),
+                    border: Border.all(color: const Color(0xFF0F3B4A), width: 3),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -193,16 +194,16 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                         _formattedTime,
                         style: GoogleFonts.inter(
                           color: const Color(0xFF0F3B4A),
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         "REMAINING",
                         style: GoogleFonts.inter(
                           color: const Color(0xFF8A9A9D),
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.5,
                         ),
@@ -210,26 +211,26 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 
                 // Follow the rhythm
                 Text(
                   "Follow the rhythm",
                   style: GoogleFonts.inter(
                     color: const Color(0xFF0F3B4A),
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 10),
                 
                 // Breathe In/Out text
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(40),
-                    border: Border.all(color: const Color(0xFF0F3B4A), width: 2.5),
+                    borderRadius: BorderRadius.circular(30),
+                    border: Border.all(color: const Color(0xFF0F3B4A), width: 2),
                   ),
                   alignment: Alignment.center,
                   child: RichText(
@@ -237,7 +238,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                       text: "Breathe ",
                       style: GoogleFonts.inter(
                         color: const Color(0xFF1E3A42),
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.w700,
                       ),
                       children: [
@@ -245,7 +246,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                           text: _isBreathingIn ? "In" : "Out",
                           style: GoogleFonts.inter(
                             color: const Color(0xFF4A909A), // Light teal color
-                            fontSize: 24,
+                            fontSize: 20,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -253,7 +254,7 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 8),
                 
                 // Relax your body text
                 Row(
@@ -263,27 +264,27 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                       "Relax your body.",
                       style: GoogleFonts.inter(
                         color: const Color(0xFF4A6F75),
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                     const SizedBox(width: 4),
                     const Text(
                       "❤️",
-                      style: TextStyle(fontSize: 14),
+                      style: TextStyle(fontSize: 13),
                     ),
                     const SizedBox(width: 4),
                     Text(
                       "Let your mind slow down.",
                       style: GoogleFonts.inter(
                         color: const Color(0xFF4A6F75),
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 
                 // Continue Button
                 SizedBox(
@@ -297,9 +298,9 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF0F3B4A),
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
@@ -310,17 +311,17 @@ class _LetsBreatheScreenState extends State<LetsBreatheScreen> {
                           "Continue",
                           style: GoogleFonts.inter(
                             color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.arrow_forward, color: Colors.white),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
               ],
             ),
           ),
