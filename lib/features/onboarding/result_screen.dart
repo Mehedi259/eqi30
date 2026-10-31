@@ -338,7 +338,23 @@ class _OnboardingResultScreenState extends State<OnboardingResultScreen>
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => context.go('/journey-details'),
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('journey_type', 'AI_RECOMMENDED');
+                        final sessionId = prefs.getString('onboarding_session_id');
+                        if (sessionId != null) {
+                          try {
+                            await OnboardingService().savePriorities(sessionId, {
+                              'journey_type': 'AI_RECOMMENDED',
+                            });
+                          } catch (e) {
+                            debugPrint('Error setting AI recommended journey: $e');
+                          }
+                        }
+                        if (context.mounted) {
+                          context.go('/journey-details?isCustom=false');
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF073B4B),
                         padding: const EdgeInsets.symmetric(vertical: 16),

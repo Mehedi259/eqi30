@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/onboarding_service.dart';
 
 class CustomJourneyOnboardingScreen extends StatefulWidget {
   const CustomJourneyOnboardingScreen({super.key});
@@ -202,6 +204,16 @@ class _CustomJourneyOnboardingScreenState
 
   void _setPriority(String competency, int priority) {
     setState(() {
+      final oldPriority = _priorities[competency];
+      String? conflictingCompetency;
+      _priorities.forEach((k, v) {
+        if (k != competency && v == priority) {
+          conflictingCompetency = k;
+        }
+      });
+      if (conflictingCompetency != null && oldPriority != null) {
+        _priorities[conflictingCompetency!] = oldPriority;
+      }
       _priorities[competency] = priority;
     });
   }
@@ -446,9 +458,51 @@ class _CustomJourneyOnboardingScreenState
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to journey details (Here's your guided journey)
-                      context.push('/journey-details');
+                    onPressed: () async {
+                      const Map<String, String> competencyNameToCode = {
+                        'Self Management': 'SELF_MANAGEMENT',
+                        'Stress Management': 'STRESS_MANAGEMENT',
+                        'Interpersonal Management': 'INTERPERSONAL_MANAGEMENT',
+                        'Spirit Management': 'SPIRIT_MANAGEMENT',
+                        'Executive Functioning': 'EXECUTIVE_FUNCTION',
+                        'Decision Making': 'DECISION_MAKING',
+                      };
+
+                      final sortedEntries = _priorities.entries.toList()
+                        ..sort((a, b) => (a.value ?? 99).compareTo(b.value ?? 99));
+
+                      final orderedCodes = sortedEntries
+                          .map((e) => competencyNameToCode[e.key] ?? e.key)
+                          .toList();
+
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('journey_type', 'CUSTOM');
+                      await prefs.setStringList('custom_competency_codes', orderedCodes);
+
+                      final sessionId = prefs.getString('onboarding_session_id');
+                      if (sessionId != null) {
+                        try {
+                          final prioritiesPayload = sortedEntries.asMap().entries.map((entry) {
+                            final idx = entry.key + 1;
+                            final e = entry.value;
+                            return {
+                              'competency': competencyNameToCode[e.key] ?? e.key,
+                              'priority': idx,
+                            };
+                          }).toList();
+
+                          await OnboardingService().savePriorities(sessionId, {
+                            'journey_type': 'CUSTOM',
+                            'priorities': prioritiesPayload,
+                          });
+                        } catch (e) {
+                          debugPrint('Error saving custom priorities: $e');
+                        }
+                      }
+
+                      if (context.mounted) {
+                        context.push('/journey-details?isCustom=true');
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF073B4B),
@@ -491,11 +545,25 @@ class _CustomJourneyOnboardingScreenState
                 opacity: _fadeAnimation,
                 child: Center(
                   child: TextButton(
-                    onPressed: () {
-                      if (context.canPop()) {
-                        context.pop();
-                      } else {
-                        context.go('/result-onboarding');
+                    onPressed: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('journey_type', 'AI_RECOMMENDED');
+                      final sessionId = prefs.getString('onboarding_session_id');
+                      if (sessionId != null) {
+                        try {
+                          await OnboardingService().savePriorities(sessionId, {
+                            'journey_type': 'AI_RECOMMENDED',
+                          });
+                        } catch (e) {
+                          debugPrint('Error resetting to AI recommended: $e');
+                        }
+                      }
+                      if (context.mounted) {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go('/result-onboarding');
+                        }
                       }
                     },
                     child: const Text(

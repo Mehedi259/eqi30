@@ -90,7 +90,11 @@ class AppRouter {
       ),
       GoRoute(
         path: '/journey-details',
-        builder: (context, state) => const JourneyDetailsScreen(),
+        builder: (context, state) {
+          final isCustomParam = state.uri.queryParameters['isCustom'];
+          final bool? isCustom = isCustomParam != null ? isCustomParam == 'true' : null;
+          return JourneyDetailsScreen(isCustom: isCustom);
+        },
       ),
       GoRoute(
         path: '/growth-pace',

@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/onboarding_service.dart';
 
 class JourneyDetailsScreen extends StatefulWidget {
-  const JourneyDetailsScreen({super.key});
+  final bool? isCustom;
+  const JourneyDetailsScreen({super.key, this.isCustom});
 
   @override
   State<JourneyDetailsScreen> createState() => _JourneyDetailsScreenState();
@@ -20,6 +21,7 @@ class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
   late Animation<double> _fadeAnimation;
 
   bool _isLoading = true;
+  bool _isCustomJourney = false;
   List<Map<String, dynamic>> _results = [];
 
   final Map<String, Map<String, String>> competencyImages = {
@@ -97,12 +99,33 @@ class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
   Future<void> _fetchResults() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      final storedJourneyType = prefs.getString('journey_type');
+      _isCustomJourney = widget.isCustom ?? (storedJourneyType == 'CUSTOM');
+
       final sessionId = prefs.getString('onboarding_session_id');
       if (sessionId != null) {
         final response = await OnboardingService().getAssessmentResult(sessionId);
         if (response.containsKey('results')) {
           final results = List<Map<String, dynamic>>.from(response['results']);
-          results.sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+          
+          if (_isCustomJourney) {
+            final customCodes = prefs.getStringList('custom_competency_codes');
+            if (customCodes != null && customCodes.isNotEmpty) {
+              results.sort((a, b) {
+                final idxA = customCodes.indexOf(a['competency'] as String);
+                final idxB = customCodes.indexOf(b['competency'] as String);
+                return (idxA == -1 ? 99 : idxA).compareTo(idxB == -1 ? 99 : idxB);
+              });
+            } else {
+              results.sort((a, b) {
+                final pA = a['user_priority'] as num? ?? (a['ai_priority'] as num? ?? 99);
+                final pB = b['user_priority'] as num? ?? (b['ai_priority'] as num? ?? 99);
+                return pA.compareTo(pB);
+              });
+            }
+          } else {
+            results.sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+          }
           
           if (mounted) {
             setState(() {
@@ -119,16 +142,35 @@ class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
     
     // Fallback if failing or missing
     if (mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      final storedJourneyType = prefs.getString('journey_type');
+      _isCustomJourney = widget.isCustom ?? (storedJourneyType == 'CUSTOM');
+
+      List<Map<String, dynamic>> fallbackResults = [
+        {'competency': 'SELF_MANAGEMENT', 'score': 60.0, 'user_priority': 1},
+        {'competency': 'STRESS_MANAGEMENT', 'score': 50.0, 'user_priority': 2},
+        {'competency': 'INTERPERSONAL_MANAGEMENT', 'score': 55.0, 'user_priority': 3},
+        {'competency': 'SPIRIT_MANAGEMENT', 'score': 45.0, 'user_priority': 4},
+        {'competency': 'EXECUTIVE_FUNCTION', 'score': 70.0, 'user_priority': 5},
+        {'competency': 'DECISION_MAKING', 'score': 65.0, 'user_priority': 6},
+      ];
+
+      if (_isCustomJourney) {
+        final customCodes = prefs.getStringList('custom_competency_codes');
+        if (customCodes != null && customCodes.isNotEmpty) {
+          fallbackResults.sort((a, b) {
+            final idxA = customCodes.indexOf(a['competency'] as String);
+            final idxB = customCodes.indexOf(b['competency'] as String);
+            return (idxA == -1 ? 99 : idxA).compareTo(idxB == -1 ? 99 : idxB);
+          });
+        }
+      } else {
+        fallbackResults.sort((a, b) => (a['score'] as num).compareTo(b['score'] as num));
+      }
+
       setState(() {
         _isLoading = false;
-        _results = [
-          {'competency': 'SPIRIT_MANAGEMENT', 'score': 45.0},
-          {'competency': 'STRESS_MANAGEMENT', 'score': 50.0},
-          {'competency': 'INTERPERSONAL_MANAGEMENT', 'score': 55.0},
-          {'competency': 'SELF_MANAGEMENT', 'score': 60.0},
-          {'competency': 'DECISION_MAKING', 'score': 65.0},
-          {'competency': 'EXECUTIVE_FUNCTION', 'score': 70.0},
-        ];
+        _results = fallbackResults;
       });
     }
   }
@@ -191,9 +233,11 @@ class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Here\'s your guided journey',
-                        style: TextStyle(
+                      Text(
+                        _isCustomJourney
+                            ? 'Here\'s your chosen journey'
+                            : 'Here\'s your guided journey',
+                        style: const TextStyle(
                           color: Color(0xFF1A2B4A),
                           fontSize: 24,
                           fontFamily: 'Poppins',
@@ -205,7 +249,9 @@ class _JourneyDetailsScreenState extends State<JourneyDetailsScreen>
                       Text(
                         _isLoading || _results.isEmpty
                             ? 'Loading your personalized journey...'
-                            : 'We recommend working on ${competencyImages[_results.first['competency']]?['name'] ?? 'these abilities'} first',
+                            : (_isCustomJourney
+                                ? 'We always recommend working on emotional awareness first.'
+                                : 'We recommend working on ${competencyImages[_results.first['competency']]?['name'] ?? 'these abilities'} first'),
                         style: const TextStyle(
                           color: Color(0xFF8A96A8),
                           fontSize: 14,
