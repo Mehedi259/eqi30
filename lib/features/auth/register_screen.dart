@@ -5,6 +5,7 @@ import '../../core/constants/app_text_styles.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../core/services/auth_service.dart';
+import 'social_login_helper.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -132,6 +133,21 @@ class _RegisterScreenState extends State<RegisterScreen>
           );
         }
       }
+    }
+  }
+
+  Future<void> _handleSocialRegister(String provider) async {
+    final success = await performSocialLoginFlow(
+      context: context,
+      authService: _authService,
+      provider: provider,
+      prefilledEmail: _emailController.text,
+      onLoadingChanged: (loading) {
+        if (mounted) setState(() => _isLoading = loading);
+      },
+    );
+    if (success && mounted) {
+      context.go('/home');
     }
   }
 
@@ -330,9 +346,15 @@ class _RegisterScreenState extends State<RegisterScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _SocialButton(icon: Icons.g_mobiledata, onTap: () {}),
+                        _SocialButton(
+                          icon: Icons.g_mobiledata,
+                          onTap: () => _handleSocialRegister('google'),
+                        ),
                         const SizedBox(width: 16),
-                        _SocialButton(icon: Icons.apple, onTap: () {}),
+                        _SocialButton(
+                          icon: Icons.apple,
+                          onTap: () => _handleSocialRegister('apple'),
+                        ),
                       ],
                     ),
                   ),

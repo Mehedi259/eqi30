@@ -25,12 +25,6 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
 
   double get _progress => (_currentIndex + 1) / _questions.length;
 
-  int get _currentSectionIndex {
-    final key = _currentQuestion.competencyKey;
-    final idx = AssessmentData.competencies.indexWhere((c) => c['key'] == key);
-    return idx >= 0 ? idx : 0;
-  }
-
   void _selectScore(int score) {
     if (_isSubmitting) return;
 
@@ -59,14 +53,21 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
 
   void _goToNext() {
     if (_currentIndex < _questions.length - 1) {
-      final currentComp = _currentQuestion.competencyKey;
-      final nextComp = _questions[_currentIndex + 1].competencyKey;
+      final nextIndex = _currentIndex + 1;
+      final total = _questions.length;
+      final q1 = (total / 4).round();
+      final q2 = (total / 2).round();
+      final q3 = (total * 3 / 4).round();
 
-      if (currentComp != nextComp) {
-        _showSectionTransitionDialog(currentComp, nextComp);
+      if (nextIndex == q1) {
+        _showMilestoneDialog('1/4 Completed 🎉', 'Great start! You have completed 1/4 of the questions.');
+      } else if (nextIndex == q2) {
+        _showMilestoneDialog('Halfway There! 🌟', 'Awesome progress — you have completed 1/2 of the questions.');
+      } else if (nextIndex == q3) {
+        _showMilestoneDialog('3/4 Completed 🔥', 'Almost at the finish line — 3/4 of the questions done!');
       } else {
         setState(() {
-          _currentIndex++;
+          _currentIndex = nextIndex;
         });
       }
     } else {
@@ -74,17 +75,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
     }
   }
 
-  void _showSectionTransitionDialog(String completedKey, String nextKey) {
-    final completedName = AssessmentData.competencies.firstWhere(
-      (c) => c['key'] == completedKey,
-      orElse: () => {'name': 'Section'},
-    )['name']!;
-
-    final nextCompetency = AssessmentData.competencies.firstWhere(
-      (c) => c['key'] == nextKey,
-      orElse: () => {'name': 'Next Section', 'icon': '🎯', 'tagline': ''},
-    );
-
+  void _showMilestoneDialog(String heading, String body) {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -110,16 +101,13 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFF43BDC7), width: 2),
               ),
-              child: Center(
-                child: Text(
-                  nextCompetency['icon'] ?? '✨',
-                  style: const TextStyle(fontSize: 32),
-                ),
+              child: const Center(
+                child: Text('✨', style: TextStyle(fontSize: 32)),
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              "Great Job! $completedName Completed 🎉",
+              heading,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 20,
@@ -129,7 +117,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "Next Up: ${nextCompetency['name']}\n${nextCompetency['tagline']}",
+              body,
               textAlign: TextAlign.center,
               style: GoogleFonts.inter(
                 fontSize: 14,
@@ -155,7 +143,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
                   elevation: 0,
                 ),
                 child: Text(
-                  "Continue to Next Section",
+                  "Keep Going",
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -223,7 +211,6 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentCompInfo = AssessmentData.competencies[_currentSectionIndex];
     final selectedScore = _answers[_currentQuestion.id];
 
     return Scaffold(
@@ -245,7 +232,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
         title: Column(
           children: [
             Text(
-              "${currentCompInfo['icon']} ${currentCompInfo['name']}",
+              "EQi-30 Assessment",
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -254,7 +241,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              "Section ${_currentSectionIndex + 1} of 6",
+              "${(_progress * 100).round()}% Completed",
               style: GoogleFonts.inter(
                 fontSize: 11,
                 color: const Color(0xFF64748B),
@@ -330,27 +317,7 @@ class _AssessmentWizardScreenState extends State<AssessmentWizardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 8),
-
-                          // Ability Pill
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE8F7F8),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFBCE7EA)),
-                            ),
-                            child: Text(
-                              _currentQuestion.abilityName.toUpperCase(),
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1B6B75),
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
                           // Question Statement
                           Text(

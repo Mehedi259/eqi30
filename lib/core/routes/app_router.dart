@@ -23,6 +23,8 @@ import '../../features/journey/start_journey_screen.dart';
 import '../../features/abilities/abilities_screen.dart';
 import '../../features/abilities/abilities_selection_screen.dart';
 import '../../features/abilities/abilities_under_competency_screen.dart';
+import '../../features/abilities/ability_order_screen.dart';
+import '../../features/onboarding/notification_permission_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/profile/edit_profile_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -103,6 +105,18 @@ class AppRouter {
       GoRoute(
         path: '/time-preference',
         builder: (context, state) => const TimePreferenceScreen(),
+      ),
+      GoRoute(
+        path: '/ability-order',
+        builder: (context, state) {
+          final isOnboarding =
+              state.uri.queryParameters['onboarding'] == 'true';
+          return AbilityOrderScreen(isOnboarding: isOnboarding);
+        },
+      ),
+      GoRoute(
+        path: '/notification-permission',
+        builder: (context, state) => const NotificationPermissionScreen(),
       ),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(

@@ -27,11 +27,11 @@ class SettingsService {
     return await _apiClient.put('/user/reminders/', body: data);
   }
 
-  Future<Map<String, dynamic>> changePassword(String oldPassword, String newPassword) async {
+  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword) async {
     return await _apiClient.put(
       '/auth/change-password/',
       body: {
-        'old_password': oldPassword,
+        'current_password': currentPassword,
         'new_password': newPassword,
       },
     );

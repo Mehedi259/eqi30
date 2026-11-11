@@ -32,7 +32,7 @@ class _JourneyTabState extends State<JourneyTab> {
       if (mounted) {
         setState(() {
           _todaySessions = today['sessions'] ?? [];
-          _sessionsLeft = today['sessions_left'] ?? 2;
+          _sessionsLeft = today['sessions_remaining'] ?? today['sessions_left'] ?? 0;
           _activeAbilities = details['active_abilities'] ?? [];
           _currentFocus = details['current_focus'];
           _isLoading = false;
@@ -245,6 +245,74 @@ class _JourneyTabState extends State<JourneyTab> {
                                 ],
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    GestureDetector(
+                      onTap: () async {
+                        final updated = await context.push('/ability-order?onboarding=false');
+                        if (updated == true && mounted) {
+                          _loadJourneyData();
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x0C000000),
+                              blurRadius: 30,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE0F7F9),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(Icons.reorder, size: 26, color: Color(0xFF073B4B)),
+                            ),
+                            const SizedBox(width: 16),
+                            const Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Explore & Reorder 30 Abilities',
+                                    style: TextStyle(
+                                      color: Color(0xFF0B191D),
+                                      fontSize: 16,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Adjust priority order anytime across competencies',
+                                    style: TextStyle(
+                                      color: Color(0xFF637275),
+                                      fontSize: 12,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, size: 15, color: Color(0xFF637275)),
                           ],
                         ),
                       ),

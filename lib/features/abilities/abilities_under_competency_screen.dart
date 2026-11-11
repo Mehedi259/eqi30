@@ -571,6 +571,39 @@ class _AbilitiesUnderCompetencyScreenState
     }
   }
 
+  static const Map<String, int> _abilityIdByName = {
+    'Emotional Awareness': 1,
+    'Boundary Awareness': 2,
+    'Self-Confidence': 3,
+    'Self-Actualization': 4,
+    'Independence': 5,
+    'Empathy': 6,
+    'Verbal Expression': 7,
+    'Non-verbal Communication': 8,
+    'Assertiveness': 9,
+    'Conflict Management': 10,
+    'Stress Tolerance': 11,
+    'Cognitive Flexibility': 12,
+    'Emotional Regulation': 13,
+    'Optimism': 14,
+    'Social Resources': 15,
+    'Belief Influence': 16,
+    'Clarity': 17,
+    'Energy Awareness': 18,
+    'Community Building': 19,
+    'Meaning Making': 20,
+    'Planning': 21,
+    'Prioritizing': 22,
+    'Motivation': 23,
+    'Attention Span': 24,
+    'Organization': 25,
+    'Processing Speed': 26,
+    'Impulse Control': 27,
+    'Reality Testing': 28,
+    'Abstraction': 29,
+    'Problem Solving': 30,
+  };
+
   Widget _buildAbilityCard({
     required String emoji,
     required String title,
@@ -583,14 +616,16 @@ class _AbilitiesUnderCompetencyScreenState
   }) {
     return GestureDetector(
       onTap: () {
-        // Find ability ID dynamically or pass a default (e.g. 1)
-        int defaultAbilityId = 1;
-        if (title.contains('Emotional Awareness')) defaultAbilityId = 1;
-        if (title.contains('Boundary Awareness')) defaultAbilityId = 2;
-        if (title.contains('Self-Confidence')) defaultAbilityId = 3;
-        if (title.contains('Self-Actualization')) defaultAbilityId = 4;
-        
-        context.push('/learning?abilityId=$defaultAbilityId&dayNumber=1&abilityName=$title');
+        final abilityId = _abilityIdByName[title] ?? 1;
+        final route = Uri(
+          path: '/learning',
+          queryParameters: {
+            'abilityId': '$abilityId',
+            'dayNumber': '1',
+            'abilityName': title,
+          },
+        ).toString();
+        context.push(route);
       },
       child: Container(
         width: double.infinity,

@@ -26,4 +26,21 @@ class OnboardingService {
   Future<Map<String, dynamic>> getAssessmentResult(String sessionId) async {
     return await _apiClient.get('/onboarding/$sessionId/assessment/');
   }
+
+  Future<Map<String, dynamic>> getOnboardingAbilities(
+    String sessionId, {
+    String view = 'recommended',
+  }) async {
+    return await _apiClient.get('/onboarding/$sessionId/abilities/?view=$view');
+  }
+
+  Future<Map<String, dynamic>> saveOnboardingAbilities(
+    String sessionId,
+    List<int> abilityIds,
+  ) async {
+    return await _apiClient.put(
+      '/onboarding/$sessionId/abilities/',
+      body: {'ability_ids': abilityIds},
+    );
+  }
 }

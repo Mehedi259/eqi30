@@ -771,7 +771,7 @@ class AssessmentData {
     ),
 
     // ----------------------------------------------------
-    // COMPETENCY 6: DECISION MAKING (Questions 87 - 103)
+    // COMPETENCY 6: DECISION MAKING (Questions 87 - 102)
     // ----------------------------------------------------
     // Ability 26: Processing Speed
     AssessmentQuestion(
@@ -886,13 +886,6 @@ class AssessmentData {
     AssessmentQuestion(
       id: 102,
       text: "I can think of several approaches to handle situations that require solutions.",
-      competencyKey: "DECISION_MAKING",
-      competencyName: "Decision Making",
-      abilityName: "Problem Solving",
-    ),
-    AssessmentQuestion(
-      id: 103,
-      text: "I remain emotionally grounded when analyzing difficult issues to reach a fair outcome.",
       competencyKey: "DECISION_MAKING",
       competencyName: "Decision Making",
       abilityName: "Problem Solving",
@@ -1292,8 +1285,9 @@ class AssessmentData {
       'DECISION_MAKING': [],
     };
 
+    final Set<String> seenAbilities = {};
     for (final q in questions) {
-      if (!competencyAbilityScores[q.competencyKey]!.contains(abilityScoresOutOf10[q.abilityName])) {
+      if (seenAbilities.add(q.abilityName)) {
         competencyAbilityScores[q.competencyKey]!.add(abilityScoresOutOf10[q.abilityName]!);
       }
     }

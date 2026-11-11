@@ -17,6 +17,7 @@ class VerifyEmailScreen extends StatefulWidget {
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   final _pinController = TextEditingController();
   bool _isLoading = false;
+  bool _isResending = false;
 
   @override
   void dispose() {
@@ -55,6 +56,35 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
           );
         }
       }
+    }
+  }
+
+  Future<void> _handleResend() async {
+    if (_isResending) return;
+    setState(() => _isResending = true);
+    try {
+      if (widget.isFromRegister) {
+        await _authService.resendEmailOtp();
+      } else {
+        await _authService.resendPasswordResetOtp();
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verification code sent. Please check your email.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isResending = false);
     }
   }
 
@@ -117,9 +147,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                       style: AppTextStyles.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: _isResending ? null : _handleResend,
                       child: Text(
-                        'Resend code',
+                        _isResending ? 'Sending...' : 'Resend code',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.error,
                           fontWeight: FontWeight.w600,

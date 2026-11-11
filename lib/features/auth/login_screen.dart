@@ -6,6 +6,7 @@ import '../../core/constants/app_text_styles.dart';
 import '../../shared/widgets/custom_button.dart';
 import '../../shared/widgets/custom_text_field.dart';
 import '../../core/services/auth_service.dart';
+import 'social_login_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -112,142 +113,17 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _handleSocialLogin(String provider) async {
-    final defaultEmail = _emailController.text.trim().isNotEmpty
-        ? _emailController.text.trim()
-        : (provider == 'google' ? 'user@gmail.com' : 'user@icloud.com');
-
-    final selectedEmail = await showModalBottomSheet<String>(
+    final success = await performSocialLoginFlow(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      backgroundColor: Colors.white,
-      builder: (ctx) {
-        final emailCtrl = TextEditingController(text: defaultEmail);
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 24,
-            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(
-                    provider == 'google' ? Icons.g_mobiledata : Icons.apple,
-                    size: 32,
-                    color: provider == 'google' ? const Color(0xFF4285F4) : Colors.black,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    provider == 'google' ? 'Sign in with Google' : 'Sign in with Apple',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF0F1E3C),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Confirm the ${provider == 'google' ? 'Google' : 'Apple'} account for EQi30 authentication:',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: const Color(0xFF64748B),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailCtrl,
-                keyboardType: TextInputType.emailAddress,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: '${provider == 'google' ? 'Google' : 'Apple'} Account Email',
-                  prefixIcon: Icon(
-                    provider == 'google' ? Icons.mail_outline : Icons.apple,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final entered = emailCtrl.text.trim();
-                    if (entered.isNotEmpty) {
-                      Navigator.of(ctx).pop(entered);
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: provider == 'google'
-                        ? const Color(0xFF0F3B4A)
-                        : Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Continue with ${provider == 'google' ? 'Google' : 'Apple'}',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+      authService: _authService,
+      provider: provider,
+      prefilledEmail: _emailController.text,
+      onLoadingChanged: (loading) {
+        if (mounted) setState(() => _isLoading = loading);
       },
     );
-
-    if (selectedEmail == null || selectedEmail.isEmpty) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      await _authService.socialLogin(
-        provider: provider,
-        email: selectedEmail,
-        fullName: provider == 'google' ? 'Google User' : 'Apple User',
-      );
-
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.go('/home');
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (success && mounted) {
+      context.go('/home');
     }
   }
 

@@ -55,7 +55,6 @@ class _ProgressTrackerScreenState extends State<ProgressTrackerScreen> {
     }
 
     int activeGoals = _data['active_goal']?['minutes_completed_today'] ?? 0;
-    if (activeGoals == 0) activeGoals = 2; // Default if not found to match mockup, or use a better metric
 
     List<dynamic> competencies = _data['competencies'] ?? [];
     List<dynamic> earnedBadges = _data['badges']?['earned'] ?? [];

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/services/ai_service.dart';
+import '../../core/services/profile_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -13,13 +14,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final AiService _aiService = AiService();
+  final ProfileService _profileService = ProfileService();
   bool _isLoading = false;
 
   final List<ChatMessage> _messages = [
     ChatMessage(
-      text: 'Hi Sarah! 👋 I\'m here to support your practice. What\'s on your mind today?',
+      text: 'Hi there! 👋 I\'m here to support your practice. What\'s on your mind today?',
       isUser: false,
-      timestamp: '10:02 AM',
+      timestamp: 'Now',
     ),
   ];
 
@@ -27,7 +29,34 @@ class _ChatScreenState extends State<ChatScreen> {
     'Help me with today\'s exercise',
     'I feel stressed right now',
     'Explain emotional regulation',
+    'Explore & pick abilities',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGreeting();
+  }
+
+  Future<void> _loadGreeting() async {
+    try {
+      final profile = await _profileService.getProfile();
+      final rawName = (profile['full_name'] ?? '').toString().trim();
+      final firstName = rawName.isNotEmpty ? rawName.split(' ').first : '';
+      if (firstName.isNotEmpty && mounted && _messages.isNotEmpty) {
+        setState(() {
+          _messages[0] = ChatMessage(
+            text:
+                'Hi $firstName! 👋 I\'m Ember, grounded in your current EQ journey and reflections. What\'s on your mind today?',
+            isUser: false,
+            timestamp: _messages[0].timestamp,
+          );
+        });
+      }
+    } catch (_) {
+      // Fallback greeting already shown cleanly.
+    }
+  }
 
   @override
   void dispose() {
@@ -402,7 +431,13 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildQuickReplyButton(String text) {
     return GestureDetector(
-      onTap: () => _sendMessage(text),
+      onTap: () {
+        if (text == 'Explore & pick abilities') {
+          context.push('/ability-order?onboarding=false');
+          return;
+        }
+        _sendMessage(text);
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(

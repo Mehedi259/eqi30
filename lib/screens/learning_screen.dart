@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../core/constants/app_colors.dart';
 import '../core/constants/app_text_styles.dart';
+import '../core/constants/feelings_wheel_data.dart';
 import '../core/services/learning_service.dart';
 import '../core/services/journey_service.dart';
 
@@ -40,6 +41,7 @@ class _LearningScreenState extends State<LearningScreen>
   Map<String, dynamic>? _dayContent;
   Map<String, dynamic>? _dashboardData;
   bool _practiceCompleted = false;
+  bool _isContinuing = false;
 
   @override
   void initState() {
@@ -82,7 +84,7 @@ class _LearningScreenState extends State<LearningScreen>
         });
       }
     } catch (e) {
-      print('Error in _fetchDayContent: $e');
+      debugPrint('Error in _fetchDayContent: $e');
       if (mounted) {
         setState(() {
           _errorMessage = "Failed to load content. Please try again. ($e)";
@@ -780,14 +782,47 @@ class _LearningScreenState extends State<LearningScreen>
     );
   }
 
+  static const Set<String> _legacyOutcomeLabels = {
+    'More calm',
+    'More clear',
+    'More focused',
+    'No change yet',
+  };
+
+  static const List<List<String>> _defaultEmotionRows = [
+    ['😌 Calm', '😠 Annoyed', '🌱 Hopeful', '😰 Anxious'],
+    ['😴 Depleted', '🌀 Overwhelmed', '🧐 Curious'],
+  ];
+
+  void _showFeelingsWheelSheet() {
+    showFeelingsWheelPickerSheet(
+      context: context,
+      selectedWord: selectedFeeling,
+      onSelected: (word) {
+        setState(() {
+          selectedFeeling = word;
+          final current = practiceController.text.trim();
+          if (current.isEmpty) {
+            practiceController.text = word;
+          } else if (!current.toLowerCase().contains(word.toLowerCase())) {
+            practiceController.text = '$current, $word';
+          }
+        });
+      },
+    );
+  }
+
   Widget _buildInAppPractice() {
     List<dynamic> dynamicFeelings = _dayContent?['practice_options'] ?? [];
     List<List<String>> feelings = [];
-    
-    // Group into rows if it's a flat list of strings
+
     if (dynamicFeelings.isNotEmpty) {
-      if (dynamicFeelings[0] is List) {
-        // If it's already a list of lists from backend JSON
+      final hasLegacyOutcomeTags = dynamicFeelings.any(
+        (e) => e is Map && _legacyOutcomeLabels.contains((e['label'] ?? '').toString()),
+      );
+      if (hasLegacyOutcomeTags) {
+        feelings = _defaultEmotionRows;
+      } else if (dynamicFeelings[0] is List) {
         feelings = dynamicFeelings.map((row) => (row as List).map((e) {
           if (e is Map) {
             final emoji = e['emoji'] ?? '';
@@ -797,7 +832,6 @@ class _LearningScreenState extends State<LearningScreen>
           return e.toString();
         }).toList()).toList();
       } else {
-        // If it's a flat list, let's group them by 4 or 3
         List<String> flatList = dynamicFeelings.map((e) {
           if (e is Map) {
             final emoji = e['emoji'] ?? '';
@@ -819,11 +853,7 @@ class _LearningScreenState extends State<LearningScreen>
         }
       }
     } else {
-      // Fallback
-      feelings = [
-        ['Calm', 'Annoyed', 'Hopeful', 'Anxious'],
-        ['Tired', 'Overwhelmed', 'Curious'],
-      ];
+      feelings = _defaultEmotionRows;
     }
 
     return Container(
@@ -897,6 +927,23 @@ class _LearningScreenState extends State<LearningScreen>
           const Text(
             'Select what you\'re actually feeling:',
             style: TextStyle(fontSize: 16, fontFamily: 'Inter', height: 1.50),
+          ),
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: _showFeelingsWheelSheet,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                'Need help naming your feeling? Open Feelings Wheel →',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF095A70),
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 12),
           ...feelings.map(
@@ -1040,25 +1087,85 @@ class _LearningScreenState extends State<LearningScreen>
     );
   }
 
+  Future<void> _handleContinue() async {
+    if (_isContinuing) return;
+    setState(() => _isContinuing = true);
+
+    try {
+      if (widget.sessionId > 0) {
+        final practiceText = practiceController.text.trim();
+        final reflectionText = reflectionController.text.trim();
+        final feelingText = (selectedFeeling ?? '').trim();
+        if (practiceText.isNotEmpty ||
+            reflectionText.isNotEmpty ||
+            feelingText.isNotEmpty) {
+          try {
+            await _learningService.submitReflection(
+              widget.sessionId,
+              practiceAnswer: practiceText,
+              reflectionText: reflectionText,
+              response: feelingText,
+            );
+          } catch (e) {
+            debugPrint('Reflection pre-save error: $e');
+          }
+        }
+      }
+
+      Map<String, dynamic>? weeklyStatus;
+      try {
+        weeklyStatus = await _learningService.getWeeklyCheckInStatus();
+      } catch (e) {
+        debugPrint('Weekly check-in eligibility check failed: $e');
+      }
+
+      if (!mounted) return;
+      final extraPayload = <String, dynamic>{
+        ...?_dayContent,
+        if (selectedFeeling != null) 'selected_feeling': selectedFeeling,
+      };
+
+      final isEligible = weeklyStatus?['eligible'] == true;
+      if (isEligible) {
+        final weekNumber = (weeklyStatus?['week_number'] as num?)?.toInt() ?? 1;
+        final rawSkills = (weeklyStatus?['skills_practiced'] as List<dynamic>?) ?? [];
+        final skillsPracticed = rawSkills.map((s) => s.toString()).toList();
+        showDialog(
+          context: context,
+          builder: (ctx) => WeeklyCheckInDialog(
+            weekNumber: weekNumber,
+            skillsPracticed: skillsPracticed,
+            onSubmitAnswers: (answers) => _learningService.submitWeeklyCheckIn(
+              weekNumber: weekNumber,
+              answers: answers,
+            ),
+            onComplete: () {
+              if (!mounted) return;
+              context.push(
+                '/complete-journey?sessionId=${widget.sessionId}',
+                extra: extraPayload,
+              );
+            },
+          ),
+        );
+      } else {
+        context.push(
+          '/complete-journey?sessionId=${widget.sessionId}',
+          extra: extraPayload,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isContinuing = false);
+    }
+  }
+
   Widget _buildActionButtons() {
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => WeeklyCheckInDialog(
-                  onComplete: () {
-                    context.push(
-                      '/complete-journey?sessionId=${widget.sessionId}',
-                      extra: _dayContent,
-                    );
-                  },
-                ),
-              );
-            },
+            onPressed: _isContinuing ? null : _handleContinue,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF073B4B),
               padding: const EdgeInsets.symmetric(vertical: 15),
@@ -1066,23 +1173,32 @@ class _LearningScreenState extends State<LearningScreen>
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text(
-                  'continue',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w500,
-                    height: 1.50,
+            child: _isContinuing
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        'continue',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.w500,
+                          height: 1.50,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Icon(Icons.arrow_forward, color: Colors.white, size: 16),
+                    ],
                   ),
-                ),
-                SizedBox(width: 12),
-                Icon(Icons.arrow_forward, color: Colors.white, size: 16),
-              ],
-            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -1109,9 +1225,18 @@ class _LearningScreenState extends State<LearningScreen>
 }
 
 class WeeklyCheckInDialog extends StatefulWidget {
+  final int weekNumber;
+  final List<String> skillsPracticed;
+  final Future<void> Function(Map<String, dynamic> answers)? onSubmitAnswers;
   final VoidCallback onComplete;
-  
-  const WeeklyCheckInDialog({super.key, required this.onComplete});
+
+  const WeeklyCheckInDialog({
+    super.key,
+    this.weekNumber = 1,
+    this.skillsPracticed = const [],
+    this.onSubmitAnswers,
+    required this.onComplete,
+  });
 
   @override
   State<WeeklyCheckInDialog> createState() => _WeeklyCheckInDialogState();
@@ -1121,9 +1246,11 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
   String q1Selected = 'yes';
   String q2Selected = 'good';
   String q3Selected = 'definitely';
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
+    final skillCount = widget.skillsPracticed.length;
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -1154,10 +1281,10 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Hi !! heres your weekly check in',
-                      style: TextStyle(
+                      'Hi! Here\'s your Week ${widget.weekNumber} check-in',
+                      style: const TextStyle(
                         color: Color(0xFF637275),
                         fontSize: 14,
                         fontFamily: 'Inter',
@@ -1173,9 +1300,11 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
               const SizedBox(height: 24),
 
               // Title
-              const Text(
-                'You practiced 6 skills this week! 🎉',
-                style: TextStyle(
+              Text(
+                skillCount > 0
+                    ? 'You practiced $skillCount skill${skillCount == 1 ? '' : 's'} this week! 🎉'
+                    : 'Your Week ${widget.weekNumber} reflection 🎉',
+                style: const TextStyle(
                   color: Color(0xFF0B191D),
                   fontSize: 20,
                   fontFamily: 'Poppins',
@@ -1184,13 +1313,13 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
               ),
               const SizedBox(height: 16),
 
-              // Check list
-              _buildCheckListItem('Noticed 3 emotions today'),
-              const SizedBox(height: 8),
-              _buildCheckListItem('Said no to one request'),
-              const SizedBox(height: 8),
-              _buildCheckListItem('Took a mindful pause'),
-              const SizedBox(height: 24),
+              ...widget.skillsPracticed.take(5).map(
+                    (skill) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildCheckListItem('Practiced $skill'),
+                    ),
+                  ),
+              const SizedBox(height: 16),
 
               // Question 1
               const Text(
@@ -1292,10 +1421,25 @@ class _WeeklyCheckInDialogState extends State<WeeklyCheckInDialog> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    widget.onComplete();
-                  },
+                  onPressed: _isSaving
+                      ? null
+                      : () async {
+                          setState(() => _isSaving = true);
+                          if (widget.onSubmitAnswers != null) {
+                            try {
+                              await widget.onSubmitAnswers!({
+                                'practiced_in_real_life': q1Selected,
+                                'how_it_felt': q2Selected,
+                                'try_again': q3Selected,
+                              });
+                            } catch (e) {
+                              debugPrint('Failed to save weekly check-in: $e');
+                            }
+                          }
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          widget.onComplete();
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF073B4B),
                     padding: const EdgeInsets.symmetric(vertical: 16),

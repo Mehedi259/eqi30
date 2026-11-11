@@ -73,6 +73,9 @@ class AuthService {
     } else if (response['token'] != null) {
       await _saveToken(response['token']);
     }
+    if (response['onboarding_claimed'] == true) {
+      await prefs.remove('onboarding_session_id');
+    }
 
     return response;
   }
@@ -82,17 +85,50 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final sessionUuid = prefs.getString('onboarding_session_id');
+    final body = <String, dynamic>{
+      'full_name': name,
+      'email': email,
+      'password': password,
+    };
+    if (sessionUuid != null && sessionUuid.isNotEmpty) {
+      body['session_uuid'] = sessionUuid;
+    }
+
     final response = await _apiClient.post(
       '/auth/register/',
-      body: {
-        'full_name': name,
-        'email': email,
-        'password': password,
-      },
+      body: body,
     );
-    final prefs = await SharedPreferences.getInstance();
     await prefs.setString('verify_email', email);
+    if (response['onboarding_claimed'] == true) {
+      await prefs.remove('onboarding_session_id');
+    }
     return response;
+  }
+
+  Future<void> resendEmailOtp() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('verify_email') ?? '';
+    if (email.isEmpty) {
+      throw Exception('Email address not found. Please register again.');
+    }
+    await _apiClient.post(
+      '/auth/resend-email-otp/',
+      body: {'email': email},
+    );
+  }
+
+  Future<void> resendPasswordResetOtp() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('verify_email') ?? '';
+    if (email.isEmpty) {
+      throw Exception('Email address not found. Please enter your email again.');
+    }
+    await _apiClient.post(
+      '/auth/resend-otp/',
+      body: {'email': email},
+    );
   }
 
   Future<Map<String, dynamic>> verifyEmail(String otp) async {
@@ -148,7 +184,14 @@ class AuthService {
 
   Future<void> logout() async {
     try {
-      await _apiClient.post('/auth/logout/');
+      final prefs = await SharedPreferences.getInstance();
+      final refreshToken = prefs.getString('refresh_token');
+      await _apiClient.post(
+        '/auth/logout/',
+        body: refreshToken != null && refreshToken.isNotEmpty
+            ? {'refresh': refreshToken}
+            : null,
+      );
     } catch (_) {
       // Ignore errors if token is already expired when logging out
     } finally {

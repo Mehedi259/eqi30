@@ -42,5 +42,16 @@ class JourneyService {
   Future<Map<String, dynamic>> getAbilityHistory(int abilityId) async {
     return await _apiClient.get('/journey/abilities/$abilityId/history/');
   }
+
+  Future<Map<String, dynamic>> getAbilityOrder({String view = 'custom'}) async {
+    return await _apiClient.get('/journey/abilities/order/?view=$view');
+  }
+
+  Future<Map<String, dynamic>> updateAbilityOrder(List<int> abilityIds) async {
+    return await _apiClient.put(
+      '/journey/abilities/order/',
+      body: {'ability_ids': abilityIds},
+    );
+  }
 }
 

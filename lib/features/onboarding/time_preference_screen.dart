@@ -369,7 +369,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               debugPrint('Failed to save practice time: $e');
                             }
                             if (context.mounted) {
-                              context.go('/login');
+                              context.push('/ability-order?onboarding=true');
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -413,7 +413,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () {
-                            context.push('/choose-journey');
+                            context.push('/ability-order?onboarding=true');
                           },
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(

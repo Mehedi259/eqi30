@@ -124,19 +124,47 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
 
     _addMessage(
       'user',
-      isShort ? "⚡ Short Assessment (48 Questions)" : "🌟 Long Assessment (103 Questions)",
+      isShort ? "⚡ Short Assessment (48 Questions)" : "🌟 Long Assessment (102 Questions)",
     );
 
     _addMessage(
       'bot',
       isShort
-          ? "Starting your **Short Assessment (48 Questions)**! ⚡\n\n6 competencies × 8 items each. For each statement, use the slider to rate how true it is of you:\n\n• **1 = Not at all true of me**\n• **10 = Very true of me, most of the time**\n\nYou can also chat with me anytime. Let's begin!"
-          : "Starting your **Long Assessment (103 Questions)**! 🌟\n\nWe will evaluate 30 vital emotional abilities across 6 competencies.\n\nRate each statement from 1 to 10, or chat with me anytime. Let's begin!",
+          ? "Starting your Short Assessment (${AssessmentData.shortQuestions.length} Questions)! ⚡\n\nFor each statement, use the slider to rate how true it is of you:\n\n• 1 = Not at all true of me\n• 10 = Very true of me, most of the time\n\nYou can also chat with me anytime. Let's begin!"
+          : "Starting your Full Assessment (${AssessmentData.questions.length} Questions)! 🌟\n\nRate each statement from 1 to 10, or chat with me anytime. Let's begin!",
     );
 
     Future.delayed(const Duration(milliseconds: 350), () {
       if (mounted) _sendQuestionToChat(0);
     });
+  }
+
+  String _buildMilestoneText(int index, int total) {
+    if (total == 48) {
+      if (index == 12) {
+        return "🎉 Great momentum! You have completed 1/4 of the questions (12/48) — keep going!\n\n";
+      }
+      if (index == 24) {
+        return "🌟 Amazing! You have completed 1/2 (half) of the questions (24/48)!\n\n";
+      }
+      if (index == 36) {
+        return "🔥 Awesome! You have completed 3/4 of the questions (36/48) — almost there!\n\n";
+      }
+      return "";
+    }
+    final q1 = (total / 4).round();
+    final q2 = (total / 2).round();
+    final q3 = (total * 3 / 4).round();
+    if (index == q1) {
+      return "🎉 Great momentum! You have completed 1/4 of the questions ($index/$total) — keep going!\n\n";
+    }
+    if (index == q2) {
+      return "🌟 Amazing! You have completed 1/2 (half) of the questions ($index/$total)!\n\n";
+    }
+    if (index == q3) {
+      return "🔥 Awesome! You have completed 3/4 of the questions ($index/$total) — almost there!\n\n";
+    }
+    return "";
   }
 
   void _sendQuestionToChat(int index) {
@@ -153,26 +181,16 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
     }
 
     final q = _activeQuestions[index];
-    final isNewSection = index == 0 ||
-        _activeQuestions[index - 1].competencyKey != q.competencyKey;
-
-    String sectionIntro = "";
-    if (isNewSection && index > 0) {
-      final prevName = _activeQuestions[index - 1].competencyName;
-      sectionIntro =
-          "🌟 Great job completing $prevName!\n\nNow, let's explore **${q.competencyName}**:\n\n";
-    }
+    final milestoneIntro = _buildMilestoneText(index, _activeQuestions.length);
 
     _messages.add({
       'type': 'bot',
       'isQuestion': true,
       'questionId': q.id,
       'questionIndex': index,
-      'competencyName': q.competencyName,
-      'abilityName': q.abilityName,
       'questionText': q.text,
-      'message': sectionIntro.isNotEmpty
-          ? "$sectionIntro\"${q.text}\""
+      'message': milestoneIntro.isNotEmpty
+          ? "$milestoneIntro\"${q.text}\""
           : "\"${q.text}\"",
       'hasSlider': true,
       'time': _formatCurrentTime(),
@@ -858,7 +876,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Option 2: Long / Comprehensive Assessment (103 items)
+                    // Option 2: Long / Comprehensive Assessment (102 items)
                     InkWell(
                       onTap: () => _selectAssessmentMode(false),
                       borderRadius: BorderRadius.circular(12),
@@ -917,7 +935,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: const Text(
-                                          "103 items",
+                                          "102 items",
                                           maxLines: 1,
                                           softWrap: false,
                                           style: TextStyle(
@@ -931,7 +949,7 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                                   ),
                                   const SizedBox(height: 3),
                                   const Text(
-                                    "30 abilities • 103 items • ~12-15 mins",
+                                    "30 abilities • 102 items • ~12-15 mins",
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
@@ -950,6 +968,37 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                               size: 15,
                               color: const Color(0xFF7C3AED),
                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Path B / Skip: Explore 30-Ability Model Directly
+                    InkWell(
+                      onTap: () => context.push('/ability-order?onboarding=true'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FAFB),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFBAE6ED)),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.explore_outlined, size: 18, color: Color(0xFF073B4B)),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                "Skip scan & explore all 30 abilities myself",
+                                style: TextStyle(
+                                  color: Color(0xFF073B4B),
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios, size: 13, color: Color(0xFF073B4B)),
                           ],
                         ),
                       ),
@@ -1200,78 +1249,55 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
                             const Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  '1 - Not at all true of me',
-                                  style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 11,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w500,
+                                Expanded(
+                                  child: Text(
+                                    '1 - Not at all true of me',
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
-                                Text(
-                                  '10 - Very true of me',
-                                  style: TextStyle(
-                                    color: Color(0xFF64748B),
-                                    fontSize: 11,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w500,
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    '10 - Very true of me',
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 11,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 12),
 
-                            // Quick tap pills 1..10
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: List.generate(10, (idx) {
-                                  final num = idx + 1;
-                                  final isSelected =
-                                      _sliderValue.toInt() == num;
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _sliderValue = num.toDouble();
-                                      });
-                                      if (qId != null) {
-                                        _onRateQuestion(qId, num);
-                                      }
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 3),
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? const Color(0xFF0F3B4A)
-                                            : Colors.white,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected
-                                              ? const Color(0xFF0F3B4A)
-                                              : const Color(0xFFCBD5E1),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '$num',
-                                          style: TextStyle(
-                                            color: isSelected
-                                                ? Colors.white
-                                                : const Color(0xFF1E3A42),
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                              ),
+                            // Quick tap pills 1..10 arranged in two full rows so 7..10 never clip
+                            Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: List.generate(5, (idx) {
+                                    final num = idx + 1;
+                                    final isSelected = _sliderValue.toInt() == num;
+                                    return _buildQuickScoreCircle(num, isSelected, qId);
+                                  }),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: List.generate(5, (idx) {
+                                    final num = idx + 6;
+                                    final isSelected = _sliderValue.toInt() == num;
+                                    return _buildQuickScoreCircle(num, isSelected, qId);
+                                  }),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 12),
 
@@ -1325,6 +1351,41 @@ class _AiChatOnboardingScreenState extends State<AiChatOnboardingScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildQuickScoreCircle(int num, bool isSelected, int? qId) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _sliderValue = num.toDouble();
+        });
+        if (qId != null) {
+          _onRateQuestion(qId, num);
+        }
+      },
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF0F3B4A) : Colors.white,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0F3B4A) : const Color(0xFFCBD5E1),
+            width: 1.5,
+          ),
+        ),
+        child: Center(
+          child: Text(
+            '$num',
+            style: TextStyle(
+              color: isSelected ? Colors.white : const Color(0xFF1E3A42),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
     );
   }
 

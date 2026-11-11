@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/constants/feelings_wheel_data.dart';
+import '../../core/services/ai_service.dart';
 import '../../core/services/journey_service.dart';
+import '../../core/services/learning_service.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/profile_service.dart';
 
 class HomeTab extends StatefulWidget {
@@ -15,9 +19,11 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
-  
+
   final ProfileService _profileService = ProfileService();
   final JourneyService _journeyService = JourneyService();
+  final LearningService _learningService = LearningService();
+  final AiService _aiService = AiService();
 
   String _userName = 'Guest';
   double _progress = 0.0;
@@ -25,8 +31,12 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
   String _greeting = 'Good Evening';
   String _journeySubtitle = 'Loading your journey...';
   int _streak = 0;
+  int _activeDaysLast7 = 0;
+  bool _streakSafe = true;
   int _level = 0;
   bool _isLoading = true;
+  bool _eodDialogShown = false;
+  Map<String, dynamic>? _aiSuggestions;
 
   @override
   void initState() {
@@ -45,33 +55,57 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
 
     _loadData();
   }
-  
+
   Future<void> _loadData() async {
     try {
       final profile = await _profileService.getProfile();
       final dashboard = await _journeyService.getHomeDashboard();
-      
+      Map<String, dynamic>? suggestions;
+      try {
+        suggestions = await _aiService.getSuggestions();
+      } catch (_) {
+        suggestions = null;
+      }
+
       if (mounted) {
+        final missDayEnabled = dashboard['miss_day_nudge_enabled'] != false;
+        final nudgeDays = (dashboard['inactivity_nudge_days'] as num?)?.toInt() ?? 2;
+        if (missDayEnabled) {
+          NotificationService().scheduleInactivityNudge(nudgeDays);
+        }
+        final pendingReflections =
+            (dashboard['pending_reflections_today'] as List<dynamic>?) ?? [];
+        if (pendingReflections.isNotEmpty) {
+          NotificationService().scheduleEndOfDayReflectionReminder();
+        } else {
+          NotificationService().cancelEndOfDayReflectionReminder();
+        }
+
+        final streakDetail = (dashboard['streak_detail'] as Map?) ?? {};
+
         setState(() {
           final userObj = dashboard['user'] ?? {};
           _userName = userObj['name'] ?? profile['full_name'] ?? 'Guest';
-          
+
           final overallProgress = dashboard['overall_progress'] ?? {};
           _progress = (overallProgress['percent'] ?? 0) / 100.0;
           _level = overallProgress['completed_abilities'] ?? 0;
-          
+
           _activitiesCompleted = dashboard['completed_activities'] ?? 0;
           _streak = dashboard['streak_days'] ?? 0;
-          
+          _activeDaysLast7 = (streakDetail['active_days_last_7'] as num?)?.toInt() ?? 0;
+          _streakSafe = streakDetail['streak_safe'] != false;
+          _aiSuggestions = suggestions;
+
           final journey = dashboard['journey'] ?? {};
           final currentDay = journey['current_day'] ?? 1;
-          
+
           final currentAbility = dashboard['current_ability'] ?? {};
           final ability = currentAbility['ability'] ?? {};
           final abilityName = ability['name'] ?? 'Your Journey';
-          
+
           _journeySubtitle = 'You\'re on Day $currentDay of $abilityName';
-          
+
           final hour = DateTime.now().hour;
           if (hour < 12) {
             _greeting = 'Good Morning';
@@ -80,7 +114,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           } else {
             _greeting = 'Good Evening';
           }
-          
+
           _progressAnimation = Tween<double>(begin: 0.0, end: _progress).animate(
             CurvedAnimation(
               parent: _animationController,
@@ -90,6 +124,14 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
           _isLoading = false;
         });
         _animationController.forward();
+
+        if (!_eodDialogShown && pendingReflections.isNotEmpty) {
+          _eodDialogShown = true;
+          final firstPending = Map<String, dynamic>.from(pendingReflections.first as Map);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _showEodReflectionDialog(firstPending);
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -289,7 +331,7 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'You have completed $_activitiesCompleted growth activities this week.',
+                        'You have completed $_activitiesCompleted growth activities.',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF637275),
@@ -299,9 +341,32 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
                           height: 1.50,
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _streakSafe ? const Color(0xFFECFDF5) : const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '5-of-7 Weekly Streak: $_activeDaysLast7/5 days • ${_streakSafe ? "Streak Safe" : "Practice Today"}',
+                          style: TextStyle(
+                            color: _streakSafe ? const Color(0xFF065F46) : const Color(0xFF9A3412),
+                            fontSize: 12,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
+
+                if (_aiSuggestions != null &&
+                    ((_aiSuggestions!['suggestions'] as List?)?.isNotEmpty ?? false)) ...[
+                  const SizedBox(height: 20),
+                  _buildAiSuggestionsCard(),
+                ],
 
                 const SizedBox(height: 24),
 
@@ -460,5 +525,237 @@ class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  Widget _buildAiSuggestionsCard() {
+    final summary = (_aiSuggestions?['summary'] ?? '').toString();
+    final coachNote = (_aiSuggestions?['ai_coach_note'] ?? '').toString();
+    final items = (_aiSuggestions?['suggestions'] as List<dynamic>? ?? [])
+        .whereType<Map>()
+        .take(2)
+        .toList();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0FAFB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFBAE6ED)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.auto_awesome, color: Color(0xFF073B4B), size: 18),
+              SizedBox(width: 8),
+              Text(
+                'AI Coaching Suggestions',
+                style: TextStyle(
+                  color: Color(0xFF073B4B),
+                  fontSize: 15,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          if (coachNote.isNotEmpty || summary.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              coachNote.isNotEmpty ? coachNote : summary,
+              style: const TextStyle(
+                color: Color(0xFF334155),
+                fontSize: 12.5,
+                fontFamily: 'Inter',
+                height: 1.4,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          ...items.map((item) {
+            final action = (item['action'] ?? '').toString();
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: InkWell(
+                onTap: () {
+                  if (action == 'reorder_abilities') {
+                    context.push('/ability-order?onboarding=false');
+                  } else if (action == 'open_chat') {
+                    context.push('/chat');
+                  } else if (widget.onNavigateToJourney != null) {
+                    widget.onNavigateToJourney!();
+                  }
+                },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            (item['title'] ?? '').toString(),
+                            style: const TextStyle(
+                              color: Color(0xFF0B191D),
+                              fontSize: 13.5,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            (item['detail'] ?? '').toString(),
+                            style: const TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 12,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF073B4B)),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showEodReflectionDialog(Map<String, dynamic> pending) async {
+    final sessionId = (pending['session_id'] as num?)?.toInt() ?? 0;
+    if (sessionId <= 0) return;
+
+    final abilityName = (pending['ability_name'] ?? 'today\'s ability').toString();
+    final question = (pending['reflection_question'] ??
+            'How did practicing $abilityName show up in your day?')
+        .toString();
+    final controller = TextEditingController();
+    String selectedFeeling = (pending['existing_response'] ?? '').toString();
+    bool isSaving = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (ctx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text(
+                'Evening Reflection: $abilityName',
+                style: const TextStyle(
+                  color: Color(0xFF0B191D),
+                  fontSize: 17,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      question,
+                      style: const TextStyle(
+                        color: Color(0xFF475569),
+                        fontSize: 13.5,
+                        fontFamily: 'Inter',
+                        height: 1.45,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: () {
+                        showFeelingsWheelPickerSheet(
+                          context: ctx,
+                          selectedWord: selectedFeeling,
+                          onSelected: (word) => setDialogState(() => selectedFeeling = word),
+                        );
+                      },
+                      icon: const Icon(Icons.explore_outlined, size: 17, color: Color(0xFF073B4B)),
+                      label: Text(
+                        selectedFeeling.isNotEmpty
+                            ? 'Feeling: $selectedFeeling (Change)'
+                            : 'Name your feeling (Feelings Wheel)',
+                        style: const TextStyle(
+                          color: Color(0xFF073B4B),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: controller,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Write 1–2 sentences about how you applied it today...',
+                        hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving ? null : () => Navigator.of(dialogCtx).pop(),
+                  child: const Text('Later', style: TextStyle(color: Color(0xFF64748B))),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          final text = controller.text.trim();
+                          if (text.isEmpty && selectedFeeling.isEmpty) return;
+                          setDialogState(() => isSaving = true);
+                          try {
+                            await _learningService.submitReflection(
+                              sessionId,
+                              response: selectedFeeling,
+                              reflectionText: text.isNotEmpty ? text : 'Checked in: $selectedFeeling',
+                            );
+                            await NotificationService().cancelEndOfDayReflectionReminder();
+                            if (dialogCtx.mounted) Navigator.of(dialogCtx).pop();
+                            if (mounted) _loadData();
+                          } catch (_) {
+                            setDialogState(() => isSaving = false);
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF073B4B),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Save Reflection', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    controller.dispose();
   }
 }

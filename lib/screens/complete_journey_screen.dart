@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../core/constants/feelings_wheel_data.dart';
 import '../core/services/profile_service.dart';
 import '../core/services/journey_service.dart';
 import '../core/services/learning_service.dart';
@@ -31,6 +32,7 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
   @override
   void initState() {
     super.initState();
+    selectedFeeling = widget.dayContent?['selected_feeling']?.toString();
     _fetchData();
   }
 
@@ -116,11 +118,11 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
               child: const Icon(Icons.arrow_back, size: 18),
             ),
           ),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Emotional Awareness Journey',
+              widget.dayContent?['ability_name']?.toString() ?? 'Practice Complete',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Color(0xFF0B191D),
                 fontSize: 18,
                 fontFamily: 'Archivo',
@@ -230,15 +232,23 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
     );
   }
 
+  static const Set<String> _legacyOutcomeLabels = {
+    'More calm',
+    'More clear',
+    'More focused',
+    'No change yet',
+  };
+
   Widget _buildFeelingOptions() {
     List<dynamic> options = [];
     if (widget.dayContent != null && widget.dayContent!['practice_options'] != null) {
       options = widget.dayContent!['practice_options'] as List<dynamic>;
     }
-
-    // If options are missing from API, don't show the options grid.
-    if (options.isEmpty) {
-      return const SizedBox.shrink();
+    final hasLegacy = options.any(
+      (o) => o is Map && _legacyOutcomeLabels.contains((o['label'] ?? '').toString()),
+    );
+    if (options.isEmpty || hasLegacy) {
+      options = FeelingsWheelData.defaultQuickFeelings.take(4).toList();
     }
 
     // Since options length might vary, we can generate rows of 2.
@@ -266,6 +276,34 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
         rows.add(const SizedBox(height: 12));
       }
     }
+
+    rows.add(const SizedBox(height: 10));
+    rows.add(
+      TextButton.icon(
+        onPressed: () {
+          showFeelingsWheelPickerSheet(
+            context: context,
+            selectedWord: selectedFeeling,
+            onSelected: (word) => setState(() => selectedFeeling = word),
+          );
+        },
+        icon: const Icon(Icons.explore_outlined, size: 18, color: Color(0xFF073B4B)),
+        label: Text(
+          selectedFeeling != null &&
+                  !FeelingsWheelData.defaultQuickFeelings
+                      .take(4)
+                      .any((f) => f['label'] == selectedFeeling)
+              ? 'Selected from Feelings Wheel: $selectedFeeling (Change)'
+              : 'Explore full 7-group Feelings Wheel',
+          style: const TextStyle(
+            color: Color(0xFF073B4B),
+            fontSize: 13,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
 
     return Column(children: rows);
   }
@@ -324,6 +362,104 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
     );
   }
 
+  Future<void> _handleSaveAndNextOrExit() async {
+    if (widget.sessionId > 0) {
+      if (selectedFeeling != null && selectedFeeling!.isNotEmpty) {
+        try {
+          await _learningService.submitReflection(
+            widget.sessionId,
+            response: selectedFeeling!,
+          );
+        } catch (e) {
+          debugPrint('Error saving feeling response: $e');
+        }
+      }
+
+      try {
+        await _learningService.completeSession(widget.sessionId);
+      } catch (e) {
+        debugPrint('Error completing session: $e');
+      }
+    }
+
+    try {
+      final results = await Future.wait([
+        _journeyService.getHomeDashboard(),
+        _journeyService.getTodayJourney(),
+      ]);
+      final dashboardData = results[0];
+      final todayData = results[1];
+      final status = dashboardData['journey']?['status'];
+      final sessions = (todayData['sessions'] as List<dynamic>?) ?? [];
+      Map<String, dynamic>? nextSession;
+      for (final s in sessions) {
+        if (s is Map<String, dynamic> &&
+            s['status'] != 'COMPLETED' &&
+            s['session_id'] != widget.sessionId) {
+          nextSession = s;
+          break;
+        }
+      }
+
+      if (!mounted) return;
+      if (status == 'COMPLETED') {
+        context.go('/journey-completed');
+        return;
+      }
+      if (nextSession != null) {
+        final nextAbility = nextSession['ability'] as Map<String, dynamic>? ?? {};
+        final nextName = nextAbility['name']?.toString() ?? 'your next ability';
+        final shouldStartNext = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text(
+              'Great job! Ready for the next skill?',
+              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w700, fontSize: 18),
+            ),
+            content: Text(
+              'You still have "$nextName" scheduled for today. Would you like to move right into it now?',
+              style: const TextStyle(fontFamily: 'Inter', fontSize: 14, color: Color(0xFF475569)),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Save & Exit'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF073B4B),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Start Next Ability'),
+              ),
+            ],
+          ),
+        );
+        if (!mounted) return;
+        if (shouldStartNext == true) {
+          final nextRoute = Uri(
+            path: '/session-intro',
+            queryParameters: {
+              'sessionId': '${nextSession['session_id'] ?? 0}',
+              'abilityId': '${nextAbility['id'] ?? 1}',
+              'dayNumber': '${nextSession['content_day'] ?? 1}',
+              'abilityName': nextName,
+            },
+          ).toString();
+          context.go(nextRoute);
+          return;
+        }
+      }
+      context.go('/home?tab=1');
+    } catch (e) {
+      debugPrint('Error navigating after save: $e');
+      if (mounted) context.go('/home?tab=1');
+    }
+  }
+
   Widget _buildBottomButton() {
     return Container(
       padding: const EdgeInsets.all(26),
@@ -370,40 +506,7 @@ class _CompleteJourneyScreenState extends State<CompleteJourneyScreen> {
             width: double.infinity,
             height: 54,
             child: ElevatedButton(
-              onPressed: () async {
-                if (widget.sessionId > 0) {
-                  // Submit feeling
-                  if (selectedFeeling != null) {
-                    try {
-                      await _learningService.submitReflection(
-                        widget.sessionId,
-                        reflectionText: "",
-                        practiceAnswer: selectedFeeling ?? "",
-                      );
-                    } catch (e) {}
-                  }
-                  
-                  // Complete session
-                  try {
-                    await _learningService.completeSession(widget.sessionId);
-                  } catch (e) {}
-                }
-                
-                // Fetch latest dashboard to see if entire journey is COMPLETED
-                try {
-                  final dashboardData = await _journeyService.getHomeDashboard();
-                  final status = dashboardData['journey']?['status'];
-                  if (mounted) {
-                    if (status == 'COMPLETED') {
-                      context.go('/journey-completed');
-                    } else {
-                      context.go('/home?tab=1');
-                    }
-                  }
-                } catch (e) {
-                  if (mounted) context.go('/home?tab=1');
-                }
-              },
+              onPressed: _handleSaveAndNextOrExit,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF073B4B),
                 shape: RoundedRectangleBorder(
