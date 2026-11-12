@@ -13,6 +13,7 @@ class GrowthPaceScreen extends StatefulWidget {
 class _GrowthPaceScreenState extends State<GrowthPaceScreen>
     with SingleTickerProviderStateMixin {
   String selectedPace = 'medium';
+  bool _isSaving = false;
   late AnimationController _controller;
   late Animation<Offset> _headerSlideAnimation;
   late Animation<Offset> _lowPaceSlideAnimation;
@@ -82,7 +83,7 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(100),
             ),
             child: const Icon(Icons.arrow_back, size: 16),
@@ -208,22 +209,44 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          final prefs = await SharedPreferences.getInstance();
-                          final sessionId = prefs.getString('onboarding_session_id');
-                          if (sessionId != null) {
-                            await OnboardingService().saveGrowthPlan(sessionId, {
-                              'growth_plan': selectedPace.toUpperCase(),
-                            });
-                          }
-                        } catch (e) {
-                          debugPrint('Failed to save growth plan: $e');
-                        }
-                        if (context.mounted) {
-                          context.push('/time-preference');
-                        }
-                      },
+                      onPressed: _isSaving
+                          ? null
+                          : () async {
+                              setState(() => _isSaving = true);
+                              final code = selectedPace.toUpperCase();
+                              bool syncFailed = false;
+                              try {
+                                final prefs = await SharedPreferences.getInstance();
+                                await prefs.setString('selected_growth_plan', code);
+                                final sessionId = prefs.getString('onboarding_session_id');
+                                if (sessionId != null &&
+                                    sessionId.isNotEmpty &&
+                                    sessionId != 'mock_session_id') {
+                                  await OnboardingService().saveGrowthPlan(sessionId, {
+                                    'growth_plan': code,
+                                  });
+                                }
+                              } catch (e) {
+                                syncFailed = true;
+                                debugPrint('Failed to save growth plan: $e');
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isSaving = false);
+                                }
+                              }
+                              if (context.mounted) {
+                                if (syncFailed) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Saved pace locally — we will sync when online.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                                context.push('/ability-order?onboarding=true');
+                              }
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF073B4B),
                         padding: const EdgeInsets.all(12),
@@ -231,26 +254,35 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'NEXT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'NEXT',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ],
                             ),
-                          ),
-                          SizedBox(width: 12),
-                          Icon(
-                            Icons.arrow_forward,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 ),
@@ -287,18 +319,18 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
           gradient: isGradient && isSelected
               ? const LinearGradient(colors: [Colors.white, Color(0xFFDCF1FB)])
               : null,
-          color: isSelected ? color.withOpacity(0.05) : Colors.white,
+          color: isSelected ? color.withValues(alpha: 0.05) : Colors.white,
           border: Border.all(
             width: isSelected ? 2 : 1,
             color: isSelected
                 ? color
-                : Colors.black.withOpacity(0.20),
+                : Colors.black.withValues(alpha: 0.20),
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -317,7 +349,7 @@ class _GrowthPaceScreenState extends State<GrowthPaceScreen>
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Center(

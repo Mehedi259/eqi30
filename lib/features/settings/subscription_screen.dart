@@ -2,9 +2,112 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/services/settings_service.dart';
 
-class SubscriptionScreen extends StatelessWidget {
+class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
+
+  @override
+  State<SubscriptionScreen> createState() => _SubscriptionScreenState();
+}
+
+class _SubscriptionScreenState extends State<SubscriptionScreen> {
+  final SettingsService _settingsService = SettingsService();
+  final AuthService _authService = AuthService();
+
+  bool _isLoading = true;
+  String _activePlanCode = 'BASIC';
+  String _activeStatus = 'FREE';
+  List<Map<String, dynamic>> _plans = const [
+    {
+      'name': 'Basic',
+      'code': 'BASIC',
+      'price': '0.00',
+      'billing_period': 'MONTHLY',
+      'features': ['Access to the 30-day challenge', 'Daily learning content'],
+    },
+    {
+      'name': 'Pro',
+      'code': 'PRO',
+      'price': '9.99',
+      'billing_period': 'MONTHLY',
+      'features': ['Everything in Basic', 'Full resources library', 'Progress insights'],
+    },
+    {
+      'name': 'Premium',
+      'code': 'PREMIUM',
+      'price': '19.99',
+      'billing_period': 'MONTHLY',
+      'features': ['Everything in Pro', 'Meditation & yoga (coming soon)', 'Priority support'],
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSubscription();
+  }
+
+  Future<void> _loadSubscription() async {
+    try {
+      final plans = await _settingsService.getSubscriptionPlans();
+      String activeCode = _activePlanCode;
+      String activeStatus = _activeStatus;
+      if (await _authService.isLoggedIn()) {
+        final statusData = await _settingsService.getSubscriptionStatus();
+        final plan = statusData['plan'];
+        if (plan is Map && plan['code'] != null) {
+          activeCode = plan['code'].toString().toUpperCase();
+        }
+        activeStatus = (statusData['status'] ?? 'FREE').toString().toUpperCase();
+      }
+      if (mounted) {
+        setState(() {
+          if (plans.isNotEmpty) _plans = plans;
+          _activePlanCode = activeCode;
+          _activeStatus = activeStatus;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _onPlanTap(Map<String, dynamic> plan) {
+    final code = (plan['code'] ?? '').toString().toUpperCase();
+    final name = (plan['name'] ?? 'Plan').toString();
+    if (code == _activePlanCode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You are currently on the $name plan.')),
+      );
+      return;
+    }
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('$name Plan'),
+        content: Text(
+          'In-app App Store / Play Store billing for $name is coming in the production release. Would you like to contact support for early organization access?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Close'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              context.push('/feedback');
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryDark),
+            child: const Text('Contact Support', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,74 +127,80 @@ class SubscriptionScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Choose Your Plan',
-                style: AppTextStyles.heading2.copyWith(fontSize: 22),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Choose Your Plan',
+                            style: AppTextStyles.heading2.copyWith(fontSize: 22),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE0F2FE),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '$_activePlanCode • $_activeStatus',
+                            style: const TextStyle(
+                              color: Color(0xFF073B4B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Select the subscription that best fits your emotional growth journey. Upgrade or cancel anytime.',
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    ..._plans.map((plan) {
+                      final code = (plan['code'] ?? '').toString().toUpperCase();
+                      final name = (plan['name'] ?? '').toString();
+                      final rawPrice = double.tryParse((plan['price'] ?? '0').toString()) ?? 0;
+                      final priceText = rawPrice == 0
+                          ? '\$0'
+                          : '\$${rawPrice.toStringAsFixed(2)}';
+                      final period = (plan['billing_period'] ?? 'MONTHLY').toString().toUpperCase() == 'YEARLY'
+                          ? '/yr'
+                          : '/mo';
+                      final features = (plan['features'] as List<dynamic>? ?? [])
+                          .map((e) => e.toString())
+                          .toList();
+                      final isCurrent = code == _activePlanCode;
+                      final isPro = code == 'PRO';
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildPlanCard(
+                          title: name,
+                          price: priceText,
+                          period: period,
+                          description: rawPrice == 0
+                              ? 'Essential tools to begin your 30-ability EQ journey.'
+                              : 'Unlock deeper resources, insights, and coaching support.',
+                          features: features,
+                          buttonText: isCurrent ? 'Current Plan' : 'Choose $name',
+                          onTap: () => _onPlanTap(plan),
+                          isHighlighted: isPro || isCurrent,
+                          badge: isCurrent ? 'CURRENT PLAN' : (isPro ? 'BEST VALUE' : null),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Select the subscription that best fits your emotional healing journey. Upgrade or cancel anytime.',
-                style: AppTextStyles.bodyMedium,
-              ),
-              const SizedBox(height: 24),
-              
-              // Basic Plan
-              _buildPlanCard(
-                title: 'Basic',
-                price: '\$0',
-                period: '/mo',
-                description: 'Essential tools to begin your journey of self-awareness.',
-                features: [
-                  'Limited daily reflections',
-                  'Basic emotion tracking',
-                  'Access to community forums',
-                ],
-                buttonText: 'Start for Free',
-                onTap: () {},
-              ),
-              const SizedBox(height: 16),
-              
-              // Pro Plan
-              _buildPlanCard(
-                title: 'Pro Plan',
-                price: '\$9.99',
-                period: '/mo',
-                description: 'Full access to deepen your reflection and growth.',
-                features: [
-                  'Unlimited Meditations',
-                  'Personalized Journeys',
-                  'Yoga Video Library',
-                  'Advanced Insights & Analytics',
-                ],
-                buttonText: 'Go Pro',
-                onTap: () {},
-                isHighlighted: true,
-                badge: 'BEST VALUE',
-              ),
-              const SizedBox(height: 16),
-              
-              // Premium Plan
-              _buildPlanCard(
-                title: 'Premium',
-                price: '\$19.99',
-                period: '/mo',
-                description: 'Dedicated support for a guided healing experience.',
-                features: [
-                  'Everything in Pro Plan',
-                  '1-on-1 monthly coaching call',
-                  'Priority therapist support',
-                ],
-                buttonText: 'Join Premium',
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

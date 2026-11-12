@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/notification_service.dart';
 import '../../core/services/profile_service.dart';
 
 class GoalScreen extends StatefulWidget {
@@ -11,10 +13,37 @@ class GoalScreen extends StatefulWidget {
 
 class _GoalScreenState extends State<GoalScreen> {
   int selectedMinutes = 60;
+  String selectedPace = 'MEDIUM';
   bool isLoading = true;
   final ProfileService _profileService = ProfileService();
 
   final List<int> goalOptions = [15, 30, 45, 60, 90, 120];
+  static const List<Map<String, dynamic>> _paceOptions = [
+    {
+      'code': 'LOW',
+      'emoji': '🌱',
+      'label': 'LOW',
+      'title': '1 ability per day',
+      'subtitle': '≈ 5 minutes daily',
+      'color': Color(0xFF4CAF7D),
+    },
+    {
+      'code': 'MEDIUM',
+      'emoji': '🔥',
+      'label': 'MEDIUM',
+      'title': '2 abilities per day',
+      'subtitle': '≈ 10 minutes daily',
+      'color': Color(0xFF50A8C0),
+    },
+    {
+      'code': 'HIGH',
+      'emoji': '🚀',
+      'label': 'HIGH',
+      'title': '3 abilities per day',
+      'subtitle': '≈ 15 minutes daily',
+      'color': Color(0xFFE07B6A),
+    },
+  ];
 
   @override
   void initState() {
@@ -23,17 +52,28 @@ class _GoalScreenState extends State<GoalScreen> {
   }
 
   Future<void> _loadGoal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPace = prefs.getString('selected_growth_plan');
     try {
       final profile = await _profileService.getProfile();
       if (mounted) {
+        final remotePace = (profile['growth_plan'] ?? savedPace ?? 'MEDIUM')
+            .toString()
+            .toUpperCase();
         setState(() {
           selectedMinutes = profile['daily_goal_minutes'] ?? 60;
+          selectedPace = ['LOW', 'MEDIUM', 'HIGH'].contains(remotePace)
+              ? remotePace
+              : 'MEDIUM';
           isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
+          if (savedPace != null && ['LOW', 'MEDIUM', 'HIGH'].contains(savedPace)) {
+            selectedPace = savedPace;
+          }
           isLoading = false;
         });
       }
@@ -180,6 +220,131 @@ class _GoalScreenState extends State<GoalScreen> {
                     ),
 
                     const SizedBox(height: 32),
+
+                    // Growth Pace Options (Abilities per day)
+                    const Text(
+                      'Growth Pace (Abilities per Day)',
+                      style: TextStyle(
+                        color: Color(0xFF0B191D),
+                        fontSize: 16,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ..._paceOptions.map((option) {
+                      final code = option['code'] as String;
+                      final color = option['color'] as Color;
+                      final isSelected = selectedPace == code;
+                      return GestureDetector(
+                        onTap: () => setState(() => selectedPace = code),
+                        child: Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? color.withValues(alpha: 0.08)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? color : const Color(0xFFE2E8F0),
+                              width: isSelected ? 1.8 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                option['emoji'] as String,
+                                style: const TextStyle(fontSize: 22),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      option['label'] as String,
+                                      style: TextStyle(
+                                        color: color,
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.6,
+                                      ),
+                                    ),
+                                    Text(
+                                      option['title'] as String,
+                                      style: const TextStyle(
+                                        color: Color(0xFF0B191D),
+                                        fontSize: 15,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(
+                                      option['subtitle'] as String,
+                                      style: const TextStyle(
+                                        color: Color(0xFF637275),
+                                        fontSize: 12,
+                                        fontFamily: 'Inter',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(Icons.check_circle, color: color, size: 22),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                    const SizedBox(height: 6),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => context.push('/ability-order'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0F9FF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF095A70).withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(
+                              Icons.tune_rounded,
+                              color: Color(0xFF095A70),
+                              size: 20,
+                            ),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Pick which abilities you want to finish first',
+                                style: TextStyle(
+                                  color: Color(0xFF095A70),
+                                  fontSize: 13.5,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 14,
+                              color: Color(0xFF095A70),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
 
                     // Goal Options
                     const Text(
@@ -349,18 +514,27 @@ class _GoalScreenState extends State<GoalScreen> {
                   onPressed: isLoading ? null : () async {
                     setState(() => isLoading = true);
                     try {
-                      await _profileService.updateProfile({'daily_goal_minutes': selectedMinutes});
-                      if (mounted) {
+                      await _profileService.updateProfile({
+                        'daily_goal_minutes': selectedMinutes,
+                        'growth_plan': selectedPace,
+                      });
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('selected_growth_plan', selectedPace);
+                      final nudgeDays = selectedPace == 'HIGH'
+                          ? 1
+                          : (selectedPace == 'MEDIUM' ? 2 : 3);
+                      await NotificationService().scheduleInactivityNudge(nudgeDays);
+                      if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Daily goal updated'),
+                            content: Text('Goal & growth pace updated'),
                             backgroundColor: Color(0xFF095A70),
                           ),
                         );
                         context.pop();
                       }
                     } catch (e) {
-                      if (mounted) {
+                      if (context.mounted) {
                         setState(() => isLoading = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Failed to update goal')),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/services/auth_service.dart';
 import '../../core/services/notification_service.dart';
+import '../../core/services/settings_service.dart';
 
 class ReminderScreen extends StatefulWidget {
   const ReminderScreen({super.key});
@@ -32,18 +34,75 @@ class _ReminderScreenState extends State<ReminderScreen> {
     _loadPreferences();
   }
 
+  final SettingsService _settingsService = SettingsService();
+  final AuthService _authService = AuthService();
+
+  static const List<String> _allDays = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  static const List<String> _weekdayDays = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
+  static const List<String> _weekendDays = ['SAT', 'SUN'];
+
+  List<String> _repeatDaysForLabel(String label) {
+    switch (label) {
+      case 'Weekdays':
+        return _weekdayDays;
+      case 'Weekends':
+        return _weekendDays;
+      case 'Custom':
+        return _allDays;
+      case 'Daily':
+      default:
+        return _allDays;
+    }
+  }
+
+  String _labelForRepeatDays(dynamic rawDays) {
+    if (rawDays is! List) return 'Daily';
+    final normalized = rawDays.map((e) => e.toString().toUpperCase()).toSet();
+    if (normalized.isEmpty || normalized.length == 7) return 'Daily';
+    if (normalized.length == 5 && _weekdayDays.every(normalized.contains)) {
+      return 'Weekdays';
+    }
+    if (normalized.length == 2 && _weekendDays.every(normalized.contains)) {
+      return 'Weekends';
+    }
+    return 'Custom';
+  }
+
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    bool enabled = prefs.getBool('isReminderEnabled') ?? true;
+    String repeat = prefs.getString('selectedRepeat') ?? 'Daily';
+    TimeOfDay time = TimeOfDay(
+      hour: prefs.getInt('reminderHour') ?? 9,
+      minute: prefs.getInt('reminderMinute') ?? 0,
+    );
+
+    if (await _authService.isLoggedIn()) {
+      try {
+        final remote = await _settingsService.getReminders();
+        enabled = remote['is_active'] ?? enabled;
+        repeat = _labelForRepeatDays(remote['repeat_days']);
+        final remoteTime = remote['reminder_time']?.toString();
+        if (remoteTime != null && remoteTime.contains(':')) {
+          final parts = remoteTime.split(':');
+          final h = int.tryParse(parts[0]);
+          final m = int.tryParse(parts[1]);
+          if (h != null && m != null) {
+            time = TimeOfDay(hour: h, minute: m);
+          }
+        }
+        await prefs.setBool('isReminderEnabled', enabled);
+        await prefs.setString('selectedRepeat', repeat);
+        await prefs.setInt('reminderHour', time.hour);
+        await prefs.setInt('reminderMinute', time.minute);
+      } catch (_) {}
+    }
+
     if (mounted) {
       setState(() {
-        isReminderEnabled = prefs.getBool('isReminderEnabled') ?? true;
-        selectedRepeat = prefs.getString('selectedRepeat') ?? 'Daily';
-        
-        final hour = prefs.getInt('reminderHour');
-        final minute = prefs.getInt('reminderMinute');
-        if (hour != null && minute != null) {
-          selectedTime = TimeOfDay(hour: hour, minute: minute);
-        }
+        isReminderEnabled = enabled;
+        selectedRepeat = repeat;
+        selectedTime = time;
         isLoading = false;
       });
     }
@@ -164,7 +223,7 @@ class _ReminderScreenState extends State<ReminderScreen> {
                                 isReminderEnabled = value;
                               });
                             },
-                            activeColor: const Color(0xFF095A70),
+                            activeThumbColor: const Color(0xFF095A70),
                           ),
                         ],
                       ),
@@ -371,6 +430,21 @@ class _ReminderScreenState extends State<ReminderScreen> {
                     await prefs.setInt('reminderHour', selectedTime.hour);
                     await prefs.setInt('reminderMinute', selectedTime.minute);
 
+                    bool syncedRemote = true;
+                    if (await _authService.isLoggedIn()) {
+                      try {
+                        final hh = selectedTime.hour.toString().padLeft(2, '0');
+                        final mm = selectedTime.minute.toString().padLeft(2, '0');
+                        await _settingsService.updateReminders({
+                          'reminder_time': '$hh:$mm:00',
+                          'repeat_days': _repeatDaysForLabel(selectedRepeat),
+                          'is_active': isReminderEnabled,
+                        });
+                      } catch (_) {
+                        syncedRemote = false;
+                      }
+                    }
+
                     if (isReminderEnabled) {
                       await NotificationService().scheduleDailyReminder(
                         selectedTime,
@@ -380,11 +454,15 @@ class _ReminderScreenState extends State<ReminderScreen> {
                       await NotificationService().cancelAllReminders();
                     }
 
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Reminder settings saved'),
-                          backgroundColor: Color(0xFF095A70),
+                        SnackBar(
+                          content: Text(
+                            syncedRemote
+                                ? 'Reminder settings saved'
+                                : 'Saved locally (offline sync pending)',
+                          ),
+                          backgroundColor: const Color(0xFF095A70),
                         ),
                       );
                       context.pop();

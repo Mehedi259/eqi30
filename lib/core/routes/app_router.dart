@@ -111,7 +111,11 @@ class AppRouter {
         builder: (context, state) {
           final isOnboarding =
               state.uri.queryParameters['onboarding'] == 'true';
-          return AbilityOrderScreen(isOnboarding: isOnboarding);
+          final popOnSave = state.uri.queryParameters['pop'] == 'true';
+          return AbilityOrderScreen(
+            isOnboarding: isOnboarding,
+            popOnSave: popOnSave,
+          );
         },
       ),
       GoRoute(

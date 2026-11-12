@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/profile_service.dart';
 import '../../core/services/auth_service.dart';
+import '../../core/services/settings_service.dart';
 
 class ProfileTab extends StatefulWidget {
   const ProfileTab({super.key});
@@ -14,12 +15,14 @@ class ProfileTab extends StatefulWidget {
 class _ProfileTabState extends State<ProfileTab> {
   final ProfileService _profileService = ProfileService();
   final AuthService _authService = AuthService();
+  final SettingsService _settingsService = SettingsService();
   
   bool _isLoading = true;
   bool _isLoggedIn = false;
   String _name = 'Guest';
   String _email = '';
   int _dailyGoalMinutes = 60;
+  String? _growthPlan;
   String _practiceTime = '09:00';
   
   @override
@@ -52,6 +55,7 @@ class _ProfileTabState extends State<ProfileTab> {
           _email = profileData['email'] ?? profileData['user']?['email'] ?? '';
           
           _dailyGoalMinutes = profileData['daily_goal_minutes'] ?? 60;
+          _growthPlan = profileData['growth_plan']?.toString().toUpperCase();
           _isLoading = false;
         });
       }
@@ -64,19 +68,36 @@ class _ProfileTabState extends State<ProfileTab> {
       }
     }
     
-    // Load local reminder preferences
+    // Load reminder time (backend synced if available, else local preferences)
+    String resolvedTimeText = '';
+    try {
+      final remoteReminder = await _settingsService.getReminders();
+      final isActive = remoteReminder['is_active'] ?? true;
+      final timeStr = remoteReminder['reminder_time']?.toString();
+      if (!isActive) {
+        resolvedTimeText = 'Off';
+      } else if (timeStr != null && timeStr.contains(':')) {
+        final parts = timeStr.split(':');
+        final h = int.tryParse(parts[0]) ?? 9;
+        final m = int.tryParse(parts[1]) ?? 0;
+        resolvedTimeText = _formatTime(TimeOfDay(hour: h, minute: m));
+      }
+    } catch (_) {}
+
     final prefs = await SharedPreferences.getInstance();
+    if (resolvedTimeText.isEmpty) {
+      final isEnabled = prefs.getBool('isReminderEnabled') ?? true;
+      if (!isEnabled) {
+        resolvedTimeText = 'Off';
+      } else {
+        final hour = prefs.getInt('reminderHour') ?? 9;
+        final minute = prefs.getInt('reminderMinute') ?? 0;
+        resolvedTimeText = _formatTime(TimeOfDay(hour: hour, minute: minute));
+      }
+    }
     if (mounted) {
       setState(() {
-        final isEnabled = prefs.getBool('isReminderEnabled') ?? true;
-        if (!isEnabled) {
-          _practiceTime = 'Off';
-        } else {
-          final hour = prefs.getInt('reminderHour') ?? 9;
-          final minute = prefs.getInt('reminderMinute') ?? 0;
-          final time = TimeOfDay(hour: hour, minute: minute);
-          _practiceTime = _formatTime(time);
-        }
+        _practiceTime = resolvedTimeText;
       });
     }
   }
@@ -92,19 +113,19 @@ class _ProfileTabState extends State<ProfileTab> {
     // Show logout confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Log Out'),
         content: const Text(
           'Are you sure you want to log out?',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(dialogContext); // Close dialog
               await _authService.logout();
               if (mounted) {
                 context.go('/login');
@@ -271,8 +292,14 @@ class _ProfileTabState extends State<ProfileTab> {
                     children: [
                       _buildSettingItem(
                         icon: '🎯',
-                        title: 'Goal',
-                        trailing: '$_dailyGoalMinutes min / day',
+                        title: 'Goal & Pace',
+                        trailing: _growthPlan == 'HIGH'
+                            ? '3/day • $_dailyGoalMinutes min'
+                            : (_growthPlan == 'MEDIUM'
+                                ? '2/day • $_dailyGoalMinutes min'
+                                : (_growthPlan == 'LOW'
+                                    ? '1/day • $_dailyGoalMinutes min'
+                                    : '$_dailyGoalMinutes min / day')),
                         onTap: () => context.push('/goal').then((_) => _loadProfile()),
                       ),
                       _buildDivider(),

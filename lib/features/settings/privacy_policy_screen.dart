@@ -1,8 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/settings_service.dart';
 
-class PrivacyPolicyScreen extends StatelessWidget {
+class PrivacyPolicyScreen extends StatefulWidget {
   const PrivacyPolicyScreen({super.key});
+
+  @override
+  State<PrivacyPolicyScreen> createState() => _PrivacyPolicyScreenState();
+}
+
+class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
+  final SettingsService _settingsService = SettingsService();
+  String? _liveTitle;
+  String? _liveVersion;
+  String? _liveContent;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDocument();
+  }
+
+  Future<void> _loadDocument() async {
+    try {
+      final doc = await _settingsService.getPrivacyPolicy();
+      final content = (doc['content'] ?? '').toString().trim();
+      if (mounted && content.isNotEmpty) {
+        setState(() {
+          _liveTitle = doc['title']?.toString();
+          _liveVersion = doc['version']?.toString();
+          _liveContent = content;
+        });
+      }
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +94,47 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSection(
+                    if (_liveContent != null) ...[
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x14073B4B), blurRadius: 4),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_liveTitle != null || _liveVersion != null) ...[
+                              Text(
+                                '${_liveTitle ?? 'Privacy Policy'}${_liveVersion != null ? ' (v$_liveVersion)' : ''}',
+                                style: const TextStyle(
+                                  color: Color(0xFF095A70),
+                                  fontSize: 15,
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                            Text(
+                              _liveContent!,
+                              style: const TextStyle(
+                                color: Color(0xFF334155),
+                                fontSize: 14,
+                                fontFamily: 'Inter',
+                                height: 1.55,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      _buildSection(
                       number: '1',
                       title: 'Information We Collect',
                       content: [
@@ -137,6 +208,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         'Respond to us at any time within 3 business days.',
                       ],
                     ),
+                    ],
                     const SizedBox(height: 24),
                   ],
                 ),

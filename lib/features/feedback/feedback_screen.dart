@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
+import '../../core/services/settings_service.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -14,6 +15,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   final _subjectController = TextEditingController();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
+  final SettingsService _settingsService = SettingsService();
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
@@ -172,15 +175,55 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Handle submit
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Feedback submitted successfully!'),
-                      ),
-                    );
-                    context.pop();
-                  },
+                  onPressed: _isSubmitting
+                      ? null
+                      : () async {
+                          final subject = _subjectController.text.trim();
+                          final email = _emailController.text.trim();
+                          final message = _messageController.text.trim();
+                          if (subject.isEmpty || email.isEmpty || message.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please fill in subject, email, and message.'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (!email.contains('@') || !email.contains('.')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please enter a valid email address.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setState(() => _isSubmitting = true);
+                          try {
+                            await _settingsService.submitFeedback({
+                              'subject': subject,
+                              'email': email,
+                              'message': message,
+                            });
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Feedback submitted successfully!'),
+                                  backgroundColor: Color(0xFF095A70),
+                                ),
+                              );
+                              context.pop();
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to submit feedback: $e')),
+                              );
+                            }
+                          } finally {
+                            if (mounted) setState(() => _isSubmitting = false);
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryDark,
                     foregroundColor: Colors.white,
@@ -189,17 +232,26 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Submit',
-                        style: AppTextStyles.buttonLarge,
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward, size: 20),
-                    ],
-                  ),
+                  child: _isSubmitting
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Submit',
+                              style: AppTextStyles.buttonLarge,
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward, size: 20),
+                          ],
+                        ),
                 ),
               ),
             ],

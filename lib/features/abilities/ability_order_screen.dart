@@ -8,8 +8,13 @@ import '../../core/services/onboarding_service.dart';
 /// pick cross-competency abilities, and prioritize Today's Practice Stack.
 class AbilityOrderScreen extends StatefulWidget {
   final bool isOnboarding;
+  final bool popOnSave;
 
-  const AbilityOrderScreen({super.key, this.isOnboarding = false});
+  const AbilityOrderScreen({
+    super.key,
+    this.isOnboarding = false,
+    this.popOnSave = false,
+  });
 
   @override
   State<AbilityOrderScreen> createState() => _AbilityOrderScreenState();
@@ -26,6 +31,7 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
   int _abilitiesPerDay = 1;
   List<Map<String, dynamic>> _abilities = [];
   List<int> _orderedIds = [];
+  List<int> _manualPicks = [];
 
   static const List<Map<String, dynamic>> _fallbackAbilities = [
     {'id': 1, 'name': 'Emotional Awareness', 'competency': {'code': 'SELF_MANAGEMENT', 'name': 'Self-Management'}, 'what_it_is': 'Recognizing and naming what you feel in the moment.'},
@@ -66,17 +72,31 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
     _loadAbilities();
   }
 
+  int _paceFromCode(String? code) {
+    switch ((code ?? '').toUpperCase()) {
+      case 'HIGH':
+        return 3;
+      case 'MEDIUM':
+        return 2;
+      case 'LOW':
+        return 1;
+      default:
+        return 1;
+    }
+  }
+
   Future<void> _loadAbilities({String? overrideView}) async {
     final targetView = overrideView ?? _viewMode;
     setState(() => _isLoading = true);
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final localPace = _paceFromCode(prefs.getString('selected_growth_plan'));
       Map<String, dynamic> data;
       if (widget.isOnboarding) {
-        final prefs = await SharedPreferences.getInstance();
         final sessionId = prefs.getString('onboarding_session_id');
         if (sessionId == null || sessionId.isEmpty || sessionId == 'mock_session_id') {
-          _applyFallback();
+          _applyFallback(fallbackPace: localPace);
           return;
         }
         data = await _onboardingService.getOnboardingAbilities(sessionId, view: targetView);
@@ -91,28 +111,40 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
           .toList();
 
       if (!mounted) return;
+      final effectivePace = (data['abilities_per_day'] as num?)?.toInt() ?? localPace;
       setState(() {
         _viewMode = targetView;
-        _abilitiesPerDay = (data['abilities_per_day'] as num?)?.toInt() ?? 1;
+        _abilitiesPerDay = effectivePace < 1 ? 1 : effectivePace;
         _abilities = parsed;
-        if (targetView == 'custom' && savedOrder.isNotEmpty) {
+        if (overrideView == null && savedOrder.isNotEmpty) {
           final remaining = parsed
               .map((a) => (a['id'] as num).toInt())
               .where((id) => !savedOrder.contains(id));
           _orderedIds = [...savedOrder, ...remaining];
+          _manualPicks = savedOrder.take(_abilitiesPerDay).toList();
+        } else if (targetView == 'custom' && savedOrder.isNotEmpty) {
+          final remaining = parsed
+              .map((a) => (a['id'] as num).toInt())
+              .where((id) => !savedOrder.contains(id));
+          _orderedIds = [...savedOrder, ...remaining];
+          _manualPicks = savedOrder.take(_abilitiesPerDay).toList();
         } else {
           _orderedIds = parsed.map((a) => (a['id'] as num).toInt()).toList();
+          _manualPicks = [];
         }
         _isLoading = false;
       });
     } catch (_) {
-      _applyFallback();
+      final prefs = await SharedPreferences.getInstance();
+      final localPace = _paceFromCode(prefs.getString('selected_growth_plan'));
+      _applyFallback(fallbackPace: localPace);
     }
   }
 
-  void _applyFallback() {
+  void _applyFallback({int fallbackPace = 1}) {
     if (!mounted) return;
     setState(() {
+      _abilitiesPerDay = fallbackPace;
       _abilities = _fallbackAbilities.map((e) => Map<String, dynamic>.from(e)).toList();
       _orderedIds = _abilities.map((a) => (a['id'] as num).toInt()).toList();
       _isLoading = false;
@@ -124,6 +156,32 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
     return _orderedIds.where(byId.containsKey).map((id) => byId[id]!).toList();
   }
 
+  void _rebuildOrderWithManualPicks(List<int> nextPicks) {
+    final baseSeq = _abilities.map((a) => (a['id'] as num).toInt()).toList();
+    final remaining = [
+      ..._orderedIds.where((id) => !nextPicks.contains(id)),
+      ...baseSeq.where((id) => !nextPicks.contains(id) && !_orderedIds.contains(id)),
+    ];
+    _manualPicks = nextPicks;
+    _orderedIds = [...nextPicks, ...remaining];
+  }
+
+  void _togglePickAbility(int abilityId) {
+    setState(() {
+      final nextPicks = List<int>.from(_manualPicks);
+      if (nextPicks.contains(abilityId)) {
+        nextPicks.remove(abilityId);
+      } else {
+        if (nextPicks.length >= _abilitiesPerDay && _abilitiesPerDay > 0) {
+          // Keep queue size crisp for daily stack while preserving latest user intent.
+          nextPicks.removeAt(0);
+        }
+        nextPicks.add(abilityId);
+      }
+      _rebuildOrderWithManualPicks(nextPicks);
+    });
+  }
+
   void _moveAbility(int abilityId, int delta) {
     final idx = _orderedIds.indexOf(abilityId);
     if (idx == -1) return;
@@ -132,15 +190,19 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
     setState(() {
       final item = _orderedIds.removeAt(idx);
       _orderedIds.insert(nextIdx, item);
+      if (_manualPicks.contains(abilityId) && nextIdx >= _abilitiesPerDay) {
+        _manualPicks.remove(abilityId);
+      }
     });
   }
 
   void _promoteToTopStack(int abilityId) {
-    final idx = _orderedIds.indexOf(abilityId);
-    if (idx == -1 || idx == 0) return;
     setState(() {
-      final item = _orderedIds.removeAt(idx);
-      _orderedIds.insert(0, item);
+      final nextPicks = [abilityId, ..._manualPicks.where((id) => id != abilityId)];
+      if (nextPicks.length > _abilitiesPerDay && _abilitiesPerDay > 0) {
+        nextPicks.removeRange(_abilitiesPerDay, nextPicks.length);
+      }
+      _rebuildOrderWithManualPicks(nextPicks);
     });
   }
 
@@ -251,14 +313,22 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
     if (_orderedIds.isEmpty) return;
     setState(() => _isSaving = true);
     try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+        'selected_abilities_order',
+        _orderedIds.map((e) => e.toString()).toList(),
+      );
       if (widget.isOnboarding) {
-        final prefs = await SharedPreferences.getInstance();
         final sessionId = prefs.getString('onboarding_session_id');
         if (sessionId != null && sessionId.isNotEmpty && sessionId != 'mock_session_id') {
           await _onboardingService.saveOnboardingAbilities(sessionId, _orderedIds);
         }
         if (mounted) {
-          context.push('/notification-permission');
+          if (widget.popOnSave && context.canPop()) {
+            context.pop(true);
+          } else {
+            context.push('/time-preference');
+          }
         }
       } else {
         await _journeyService.updateAbilityOrder(_orderedIds);
@@ -334,42 +404,81 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "TODAY'S ACTIVE STACK ($_abilitiesPerDay ${_abilitiesPerDay == 1 ? 'ABILITY' : 'ABILITIES'} / DAY)",
-                              style: const TextStyle(
-                                color: Color(0xFF94F990),
-                                fontSize: 11,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w700,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "FIRST $_abilitiesPerDay ${_abilitiesPerDay == 1 ? 'ABILITY' : 'ABILITIES'} TO COMPLETE",
+                                  style: const TextStyle(
+                                    color: Color(0xFF94F990),
+                                    fontSize: 11,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                if (_manualPicks.isNotEmpty)
+                                  GestureDetector(
+                                    onTap: () => _loadAbilities(overrideView: 'recommended'),
+                                    child: const Text(
+                                      'Reset to AI',
+                                      style: TextStyle(
+                                        color: Color(0xFF7DD3FC),
+                                        fontSize: 11,
+                                        fontFamily: 'Inter',
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                             const SizedBox(height: 6),
                             Wrap(
                               spacing: 6,
                               runSpacing: 6,
                               children: topStack.asMap().entries.map((entry) {
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.14),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    '#${entry.key + 1} ${entry.value['name']}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w600,
+                                final itemId = (entry.value['id'] as num).toInt();
+                                final isManual = _manualPicks.contains(itemId);
+                                return GestureDetector(
+                                  onTap: isManual ? () => _togglePickAbility(itemId) : null,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: isManual
+                                          ? const Color(0xFF22C55E).withValues(alpha: 0.25)
+                                          : Colors.white.withValues(alpha: 0.14),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: isManual
+                                          ? Border.all(color: const Color(0xFF86EFAC))
+                                          : null,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '#${entry.key + 1} ${entry.value['name']}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        if (isManual) ...[
+                                          const SizedBox(width: 4),
+                                          const Icon(Icons.close, size: 13, color: Colors.white),
+                                        ],
+                                      ],
                                     ),
                                   ),
                                 );
                               }).toList(),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Mix abilities from any competency using ↑↓ or tap to promote to #1.',
-                              style: TextStyle(
+                            Text(
+                              _manualPicks.isEmpty
+                                  ? 'Ranked by AI from your assessment. Tap "+ Pick" on any competency ability to put yours first.'
+                                  : 'Picked ${_manualPicks.length}/$_abilitiesPerDay custom start ${_abilitiesPerDay == 1 ? 'ability' : 'abilities'} — remaining slots keep AI priority.',
+                              style: const TextStyle(
                                 color: Color(0xFFCBD5E1),
                                 fontSize: 11.5,
                                 fontFamily: 'Inter',
@@ -421,6 +530,9 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                       final aid = (ability['id'] as num).toInt();
                       final globalRank = _orderedIds.indexOf(aid) + 1;
                       final isInTodayStack = globalRank <= _abilitiesPerDay;
+                      final isManualPicked = _manualPicks.contains(aid);
+                      final recRank = (ability['recommended_rank'] as num?)?.toInt();
+                      final isAiTop = recRank != null && recRank <= _abilitiesPerDay;
                       final compName = (ability['competency']?['name'] ?? '').toString();
 
                       return Container(
@@ -465,6 +577,24 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                                   ),
                                 ),
                               ),
+                              if (isAiTop && !isManualPicked) ...[
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE0F2FE),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'AI Pick',
+                                    style: TextStyle(
+                                      color: Color(0xFF0369A1),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                              ],
                               if (isInTodayStack)
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
@@ -472,9 +602,9 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                                     color: const Color(0xFFDCFCE7),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
-                                  child: const Text(
-                                    'Today',
-                                    style: TextStyle(
+                                  child: Text(
+                                    isManualPicked ? 'Picked' : 'Today',
+                                    style: const TextStyle(
                                       color: Color(0xFF15803D),
                                       fontSize: 10,
                                       fontWeight: FontWeight.w700,
@@ -496,15 +626,39 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              InkWell(
+                                borderRadius: BorderRadius.circular(8),
+                                onTap: () => _togglePickAbility(aid),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: isManualPicked
+                                        ? const Color(0xFF073B4B)
+                                        : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    isManualPicked ? '✓ Picked' : '+ Pick',
+                                    style: TextStyle(
+                                      color: isManualPicked
+                                          ? Colors.white
+                                          : const Color(0xFF073B4B),
+                                      fontSize: 11,
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
                               IconButton(
                                 visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.arrow_upward, size: 18, color: Color(0xFF073B4B)),
+                                icon: const Icon(Icons.arrow_upward, size: 17, color: Color(0xFF073B4B)),
                                 onPressed: globalRank > 1 ? () => _moveAbility(aid, -1) : null,
                                 tooltip: 'Move up',
                               ),
                               IconButton(
                                 visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.arrow_downward, size: 18, color: Color(0xFF64748B)),
+                                icon: const Icon(Icons.arrow_downward, size: 17, color: Color(0xFF64748B)),
                                 onPressed: globalRank < _orderedIds.length ? () => _moveAbility(aid, 1) : null,
                                 tooltip: 'Move down',
                               ),

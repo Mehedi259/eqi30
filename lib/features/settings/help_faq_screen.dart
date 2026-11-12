@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/services/settings_service.dart';
 
 class HelpFaqScreen extends StatefulWidget {
   const HelpFaqScreen({super.key});
@@ -9,9 +10,12 @@ class HelpFaqScreen extends StatefulWidget {
 }
 
 class _HelpFaqScreenState extends State<HelpFaqScreen> {
+  final SettingsService _settingsService = SettingsService();
+  final TextEditingController _searchController = TextEditingController();
   int? expandedIndex;
+  String _query = '';
 
-  final List<Map<String, String>> faqs = [
+  static const List<Map<String, String>> _defaultFaqs = [
     {
       'question': 'What is EQi30?',
       'answer':
@@ -53,6 +57,47 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
           'You can reach us at support@eqi30.com or use the Contact Support option below. We typically respond within 1-2 business days.',
     },
   ];
+
+  List<Map<String, String>> faqs = List<Map<String, String>>.from(_defaultFaqs);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFaqs();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFaqs() async {
+    try {
+      final remote = await _settingsService.getFaqs();
+      if (mounted && remote.isNotEmpty) {
+        setState(() {
+          faqs = remote
+              .map((item) => {
+                    'question': (item['question'] ?? '').toString(),
+                    'answer': (item['answer'] ?? '').toString(),
+                  })
+              .where((item) => item['question']!.isNotEmpty)
+              .toList();
+        });
+      }
+    } catch (_) {}
+  }
+
+  List<Map<String, String>> get _filteredFaqs {
+    final q = _query.trim().toLowerCase();
+    if (q.isEmpty) return faqs;
+    return faqs
+        .where((f) =>
+            f['question']!.toLowerCase().contains(q) ||
+            f['answer']!.toLowerCase().contains(q))
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +178,13 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
+                              controller: _searchController,
+                              onChanged: (value) {
+                                setState(() {
+                                  _query = value;
+                                  expandedIndex = null;
+                                });
+                              },
                               decoration: const InputDecoration(
                                 hintText: 'Search for help...',
                                 hintStyle: TextStyle(
@@ -170,7 +222,19 @@ class _HelpFaqScreenState extends State<HelpFaqScreen> {
                     const SizedBox(height: 12),
 
                     // FAQ Items
-                    ...faqs.asMap().entries.map((entry) {
+                    if (_filteredFaqs.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Text(
+                          'No matching questions found.',
+                          style: TextStyle(
+                            color: Color(0xFF637275),
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                          ),
+                        ),
+                      ),
+                    ..._filteredFaqs.asMap().entries.map((entry) {
                       final index = entry.key;
                       final faq = entry.value;
                       final isExpanded = expandedIndex == index;

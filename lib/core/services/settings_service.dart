@@ -11,8 +11,37 @@ class SettingsService {
     return await _apiClient.get('/content/terms-of-service/');
   }
 
-  Future<Map<String, dynamic>> getFaqs() async {
-    return await _apiClient.get('/content/faqs/');
+  Future<List<Map<String, dynamic>>> getFaqs() async {
+    final res = await _apiClient.get('/content/faqs/');
+    if (res is List) {
+      return res.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    }
+    if (res is Map && res['results'] is List) {
+      return (res['results'] as List)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<List<Map<String, dynamic>>> getSubscriptionPlans() async {
+    final res = await _apiClient.get('/subscription/plans/');
+    if (res is List) {
+      return res.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    }
+    if (res is Map && res['results'] is List) {
+      return (res['results'] as List)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> getSubscriptionStatus() async {
+    final res = await _apiClient.get('/subscription/status/');
+    return res is Map ? Map<String, dynamic>.from(res) : {};
   }
 
   Future<Map<String, dynamic>> submitFeedback(Map<String, dynamic> data) async {

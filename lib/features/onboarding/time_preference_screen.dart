@@ -103,7 +103,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(100),
             ),
             child: const Icon(Icons.arrow_back, size: 16),
@@ -369,7 +369,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               debugPrint('Failed to save practice time: $e');
                             }
                             if (context.mounted) {
-                              context.push('/ability-order?onboarding=true');
+                              context.push('/notification-permission');
                             }
                           },
                           style: ElevatedButton.styleFrom(
@@ -413,7 +413,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () {
-                            context.push('/ability-order?onboarding=true');
+                            context.push('/ability-order?onboarding=true&pop=true');
                           },
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
@@ -421,7 +421,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                               vertical: 13,
                             ),
                             side: BorderSide(
-                              color: Colors.black.withOpacity(0.20),
+                              color: Colors.black.withValues(alpha: 0.20),
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -430,7 +430,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                           child: Text(
                             'See 30 Abilities',
                             style: TextStyle(
-                              color: Colors.black.withOpacity(0.55),
+                              color: Colors.black.withValues(alpha: 0.55),
                               fontSize: 16,
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w500,
@@ -581,7 +581,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF50A8C0),
+            activeThumbColor: const Color(0xFF50A8C0),
           ),
         ],
       ),
