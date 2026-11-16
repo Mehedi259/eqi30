@@ -413,7 +413,7 @@ class _TimePreferenceScreenState extends State<TimePreferenceScreen>
                         width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () {
-                            context.push('/ability-order?onboarding=true&pop=true');
+                            context.push('/choose-journey');
                           },
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(

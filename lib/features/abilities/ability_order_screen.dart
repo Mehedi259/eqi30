@@ -389,17 +389,28 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Active Stack Summary Card
+                      // Active Stack Summary Card - Sleek modern gradient
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF073B4B),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF073B4B), Color(0xFF0F5064)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           borderRadius: BorderRadius.circular(16),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x18073B4B),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,31 +418,64 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "FIRST $_abilitiesPerDay ${_abilitiesPerDay == 1 ? 'ABILITY' : 'ABILITIES'} TO COMPLETE",
-                                  style: const TextStyle(
-                                    color: Color(0xFF94F990),
-                                    fontSize: 11,
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.w700,
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF94F990).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Icon(
+                                          Icons.auto_awesome,
+                                          size: 13,
+                                          color: Color(0xFF94F990),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 7),
+                                      Flexible(
+                                        child: Text(
+                                          "TODAY'S FOCUS ($_abilitiesPerDay ${_abilitiesPerDay == 1 ? 'ABILITY' : 'ABILITIES'})",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Color(0xFF94F990),
+                                            fontSize: 11,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.6,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                if (_manualPicks.isNotEmpty)
+                                if (_manualPicks.isNotEmpty) ...[
+                                  const SizedBox(width: 8),
                                   GestureDetector(
                                     onTap: () => _loadAbilities(overrideView: 'recommended'),
-                                    child: const Text(
-                                      'Reset to AI',
-                                      style: TextStyle(
-                                        color: Color(0xFF7DD3FC),
-                                        fontSize: 11,
-                                        fontFamily: 'Inter',
-                                        fontWeight: FontWeight.w600,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Text(
+                                        'Reset to AI',
+                                        style: TextStyle(
+                                          color: Color(0xFF7DD3FC),
+                                          fontSize: 11,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ),
+                                ],
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             Wrap(
                               spacing: 6,
                               runSpacing: 6,
@@ -447,9 +491,12 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                                           ? const Color(0xFF22C55E).withValues(alpha: 0.25)
                                           : Colors.white.withValues(alpha: 0.14),
                                       borderRadius: BorderRadius.circular(20),
-                                      border: isManual
-                                          ? Border.all(color: const Color(0xFF86EFAC))
-                                          : null,
+                                      border: Border.all(
+                                        color: isManual
+                                            ? const Color(0xFF86EFAC)
+                                            : Colors.white.withValues(alpha: 0.25),
+                                        width: 1,
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -476,11 +523,11 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                             const SizedBox(height: 6),
                             Text(
                               _manualPicks.isEmpty
-                                  ? 'Ranked by AI from your assessment. Tap "+ Pick" on any competency ability to put yours first.'
-                                  : 'Picked ${_manualPicks.length}/$_abilitiesPerDay custom start ${_abilitiesPerDay == 1 ? 'ability' : 'abilities'} — remaining slots keep AI priority.',
-                              style: const TextStyle(
-                                color: Color(0xFFCBD5E1),
-                                fontSize: 11.5,
+                                  ? 'Ranked by AI. Tap "+ Pick" below to put yours first.'
+                                  : 'Picked ${_manualPicks.length}/$_abilitiesPerDay custom start — remaining slots keep AI priority.',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.75),
+                                fontSize: 11,
                                 fontFamily: 'Inter',
                               ),
                             ),
@@ -489,19 +536,25 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Order Source Mode Switcher
-                      Row(
-                        children: [
-                          _modeChip('recommended', 'Recommended'),
-                          const SizedBox(width: 8),
-                          _modeChip('chosen', 'Guided Journey'),
-                          const SizedBox(width: 8),
-                          _modeChip('custom', 'My Order'),
-                        ],
+                      // Order Source Mode Switcher - Modern Segmented Control
+                      Container(
+                        height: 38,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            _modeChip('recommended', 'Recommended'),
+                            _modeChip('chosen', 'Guided Journey'),
+                            _modeChip('custom', 'My Order'),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 10),
 
-                      // Competency filter strip
+                      // Competency filter strip - Clean category pills
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
@@ -516,14 +569,13 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
                     ],
                   ),
                 ),
 
                 Expanded(
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    padding: const EdgeInsets.fromLTRB(20, 2, 20, 80),
                     itemCount: filteredList.length,
                     itemBuilder: (ctx, index) {
                       final ability = filteredList[index];
@@ -534,135 +586,272 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                       final recRank = (ability['recommended_rank'] as num?)?.toInt();
                       final isAiTop = recRank != null && recRank <= _abilitiesPerDay;
                       final compName = (ability['competency']?['name'] ?? '').toString();
+                      final compCode = (ability['competency']?['code'] ?? '').toString();
+                      final compColor = _competencyColor(compCode);
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 10),
                         decoration: BoxDecoration(
                           color: isInTodayStack ? const Color(0xFFF0FDF4) : Colors.white,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isInTodayStack
-                                ? const Color(0xFF22C55E)
+                                ? const Color(0xFF22C55E).withValues(alpha: 0.7)
                                 : const Color(0xFFE2E8F0),
                             width: isInTodayStack ? 1.5 : 1,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isInTodayStack
+                                  ? const Color(0xFF22C55E).withValues(alpha: 0.08)
+                                  : const Color(0x06000000),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          onTap: () => _showAbilityPreviewSheet(ability),
-                          leading: CircleAvatar(
-                            radius: 17,
-                            backgroundColor: isInTodayStack
-                                ? const Color(0xFF073B4B)
-                                : const Color(0xFFE2E8F0),
-                            child: Text(
-                              '$globalRank',
-                              style: TextStyle(
-                                color: isInTodayStack ? Colors.white : const Color(0xFF334155),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  (ability['name'] ?? '').toString(),
-                                  style: const TextStyle(
-                                    color: Color(0xFF0B191D),
-                                    fontSize: 14.5,
-                                    fontFamily: 'Poppins',
-                                    fontWeight: FontWeight.w600,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () => _showAbilityPreviewSheet(ability),
+                            child: Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Top row: Rank badge + Competency Tag + Status Badges
+                                  Row(
+                                    children: [
+                                      // Rank Badge
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: isInTodayStack
+                                              ? const Color(0xFF073B4B)
+                                              : const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          '#$globalRank',
+                                          style: TextStyle(
+                                            color: isInTodayStack ? Colors.white : const Color(0xFF475569),
+                                            fontSize: 11,
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+
+                                      // Competency category tag
+                                      Flexible(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: compColor.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Container(
+                                                width: 5,
+                                                height: 5,
+                                                decoration: BoxDecoration(
+                                                  color: compColor,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Flexible(
+                                                child: Text(
+                                                  compName,
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: compColor,
+                                                    fontSize: 10.5,
+                                                    fontFamily: 'Inter',
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      const SizedBox(width: 6),
+
+                                      // Status Badges
+                                      if (isAiTop && !isManualPicked) ...[
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFE0F2FE),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: const Text(
+                                            'AI Pick',
+                                            style: TextStyle(
+                                              color: Color(0xFF0369A1),
+                                              fontSize: 10,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                      if (isInTodayStack)
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFDCFCE7),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            isManualPicked ? 'Picked' : 'Today',
+                                            style: const TextStyle(
+                                              color: Color(0xFF15803D),
+                                              fontSize: 10,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   ),
-                                ),
-                              ),
-                              if (isAiTop && !isManualPicked) ...[
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE0F2FE),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Text(
-                                    'AI Pick',
-                                    style: TextStyle(
-                                      color: Color(0xFF0369A1),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                              ],
-                              if (isInTodayStack)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFDCFCE7),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    isManualPicked ? 'Picked' : 'Today',
+
+                                  const SizedBox(height: 10),
+
+                                  // Middle: Ability Name
+                                  Text(
+                                    (ability['name'] ?? '').toString(),
                                     style: const TextStyle(
-                                      color: Color(0xFF15803D),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0B191D),
+                                      fontSize: 15.5,
+                                      fontFamily: 'Poppins',
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.25,
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          subtitle: Text(
-                            '$compName • ${(ability['what_it_is'] ?? '').toString()}',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFF64748B),
-                              fontSize: 12,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              InkWell(
-                                borderRadius: BorderRadius.circular(8),
-                                onTap: () => _togglePickAbility(aid),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: isManualPicked
-                                        ? const Color(0xFF073B4B)
-                                        : const Color(0xFFF1F5F9),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    isManualPicked ? '✓ Picked' : '+ Pick',
-                                    style: TextStyle(
-                                      color: isManualPicked
-                                          ? Colors.white
-                                          : const Color(0xFF073B4B),
-                                      fontSize: 11,
+                                  const SizedBox(height: 4),
+
+                                  // Description
+                                  Text(
+                                    (ability['what_it_is'] ?? '').toString(),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF64748B),
+                                      fontSize: 12.5,
                                       fontFamily: 'Inter',
-                                      fontWeight: FontWeight.w700,
+                                      height: 1.35,
                                     ),
                                   ),
-                                ),
+
+                                  const SizedBox(height: 12),
+
+                                  // Bottom Actions Row: Tap hint + Pick Button + Reorder Stepper
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.info_outline,
+                                        size: 14,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      const Text(
+                                        'Details',
+                                        style: TextStyle(
+                                          color: Color(0xFF94A3B8),
+                                          fontSize: 11,
+                                          fontFamily: 'Inter',
+                                        ),
+                                      ),
+
+                                      const Spacer(),
+
+                                      // Pick / Remove Button
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () => _togglePickAbility(aid),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: isManualPicked
+                                                ? const Color(0xFF073B4B)
+                                                : const Color(0xFFF1F5F9),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            isManualPicked ? '✓ Picked' : '+ Pick',
+                                            style: TextStyle(
+                                              color: isManualPicked
+                                                  ? Colors.white
+                                                  : const Color(0xFF073B4B),
+                                              fontSize: 11.5,
+                                              fontFamily: 'Inter',
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+
+                                      // Reorder stepper buttons
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF8FAFC),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            InkWell(
+                                              borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
+                                              onTap: globalRank > 1 ? () => _moveAbility(aid, -1) : null,
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                child: Icon(
+                                                  Icons.arrow_upward,
+                                                  size: 14,
+                                                  color: globalRank > 1
+                                                      ? const Color(0xFF073B4B)
+                                                      : const Color(0xFFCBD5E1),
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 1,
+                                              height: 14,
+                                              color: const Color(0xFFE2E8F0),
+                                            ),
+                                            InkWell(
+                                              borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+                                              onTap: globalRank < _orderedIds.length ? () => _moveAbility(aid, 1) : null,
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+                                                child: Icon(
+                                                  Icons.arrow_downward,
+                                                  size: 14,
+                                                  color: globalRank < _orderedIds.length
+                                                      ? const Color(0xFF073B4B)
+                                                      : const Color(0xFFCBD5E1),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.arrow_upward, size: 17, color: Color(0xFF073B4B)),
-                                onPressed: globalRank > 1 ? () => _moveAbility(aid, -1) : null,
-                                tooltip: 'Move up',
-                              ),
-                              IconButton(
-                                visualDensity: VisualDensity.compact,
-                                icon: const Icon(Icons.arrow_downward, size: 17, color: Color(0xFF64748B)),
-                                onPressed: globalRank < _orderedIds.length ? () => _moveAbility(aid, 1) : null,
-                                tooltip: 'Move down',
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       );
@@ -670,38 +859,55 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
                   ),
                 ),
 
-                SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _saveAndContinue,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF073B4B),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                // Floating Bottom Action Bar with soft gradient overlay
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        const Color(0xFFF8FAFC).withValues(alpha: 0.0),
+                        const Color(0xFFF8FAFC).withValues(alpha: 0.95),
+                        const Color(0xFFF8FAFC),
+                      ],
+                      stops: const [0.0, 0.3, 1.0],
+                    ),
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isSaving ? null : _saveAndContinue,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF073B4B),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 2,
+                            shadowColor: const Color(0x30073B4B),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
-                        ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : Text(
-                                widget.isOnboarding
-                                    ? 'Save Stack & Continue'
-                                    : 'Save Priority Order',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontFamily: 'Inter',
-                                  fontWeight: FontWeight.w600,
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : Text(
+                                  widget.isOnboarding
+                                      ? 'Save Stack & Continue'
+                                      : 'Save Priority Order',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
                     ),
                   ),
@@ -711,29 +917,53 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
     );
   }
 
+  Color _competencyColor(String? code) {
+    switch ((code ?? '').toUpperCase()) {
+      case 'SELF_MANAGEMENT':
+        return const Color(0xFF43BDC7);
+      case 'INTERPERSONAL_MANAGEMENT':
+        return const Color(0xFF3FA9E2);
+      case 'STRESS_MANAGEMENT':
+        return const Color(0xFF33B87B);
+      case 'SPIRIT_MANAGEMENT':
+        return const Color(0xFFF7931E);
+      case 'EXECUTIVE_FUNCTION':
+        return const Color(0xFF5C6AC4);
+      case 'DECISION_MAKING':
+        return const Color(0xFF4776E6);
+      default:
+        return const Color(0xFF073B4B);
+    }
+  }
+
   Widget _modeChip(String mode, String label) {
     final active = _viewMode == mode;
     return Expanded(
       child: GestureDetector(
         onTap: () => _loadAbilities(overrideView: mode),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 9),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF249FA9) : Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: active ? const Color(0xFF249FA9) : const Color(0xFFCBD5E1),
-            ),
+            color: active ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: active
+                ? const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 4,
+                      offset: Offset(0, 1),
+                    ),
+                  ]
+                : null,
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: active ? Colors.white : const Color(0xFF334155),
-                fontSize: 12,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w600,
-              ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: active ? const Color(0xFF073B4B) : const Color(0xFF64748B),
+              fontSize: 12,
+              fontFamily: 'Inter',
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),
@@ -743,17 +973,49 @@ class _AbilityOrderScreenState extends State<AbilityOrderScreen> {
 
   Widget _filterChip(String code, String label) {
     final active = _selectedCompetency == code;
+    final color = code == 'ALL' ? const Color(0xFF073B4B) : _competencyColor(code);
+
     return Padding(
       padding: const EdgeInsets.only(right: 6),
-      child: ChoiceChip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
-        selected: active,
-        selectedColor: const Color(0xFF073B4B),
-        labelStyle: TextStyle(
-          color: active ? Colors.white : const Color(0xFF334155),
-          fontWeight: FontWeight.w600,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => setState(() => _selectedCompetency = code),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: active ? const Color(0xFF073B4B) : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: active ? const Color(0xFF073B4B) : const Color(0xFFE2E8F0),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (code != 'ALL') ...[
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 5),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  color: active ? Colors.white : const Color(0xFF475569),
+                  fontSize: 12,
+                  fontFamily: 'Inter',
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
-        onSelected: (_) => setState(() => _selectedCompetency = code),
       ),
     );
   }
